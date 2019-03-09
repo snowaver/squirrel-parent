@@ -1,0 +1,29 @@
+=============================================================================
+= NOTICE file corresponding to section 4d of the Apache License Version 2.0 =
+=============================================================================
+
+* Copyright 2019 snowaver. https://mashroom.cc/
+
+This product includes/uses software(s) developed by 'The Apache Software Foundation' ( http://www.apache.org/) and licensed under Apache Licence 2.0
+- Commons Lang (https://commons.apache.org/proper/commons-lang/)
+- Apache Commons Codec (http://commons.apache.org/proper/commons-codec/)
+- Commons IO (http://commons.apache.org/proper/commons-io/)
+- Commons Collections (http://commons.apache.org/proper/commons-collections/)
+This product includes/uses software(s) developed by 'H2 Group' ( http://www.h2database.com/html/main.html) licensed under MPL 2.0 and EPL 1.0
+- H2
+This product includes/uses software(s) developed by 'The Guava Authors' (https://github.com/google/guava/) and licensed under Apache Licence 2.0
+- Google Guava
+This product includes/uses software(s) developed by 'The Project Lombok Authors' (https://www.projectlombok.org/) and licensed under the MIT license
+- Project Lombok
+This product includes/uses software(s) developed by 'Codehaus.org' (http://jackson.codehaus.org/) and licensed under Apache Licence 2.0
+- Jackson Databind
+This product includes/uses software(s) developed by 'The Netty project' (https://netty.io/) and licensed under Apache Licence 2.0
+- Netty Handler
+This product includes/uses software(s) developed by 'Joda.org' ( https://www.joda.org/joda-time/) and licensed under Apache Licence 2.0
+- Joda Time
+This product includes/uses software(s) developed by 'QOS.ch' (https://www.slf4j.org/) and licensed under the MIT license
+- SLF4J
+This product includes/uses software(s) developed by 'Square, Inc.' (  https://square.github.io/okhttp/) and licensed under Apache Licence 2.0
+- OkHttp
+This product includes/uses software(s) developed by 'The WebRTC project authors' (https://code.google.com/p/webrtc/) and licensed under BSD 3-clause
+- Libjingle Peerconnection

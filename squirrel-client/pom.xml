@@ -1,0 +1,40 @@
+<project  xmlns="http://maven.apache.org/POM/4.0.0"  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0  http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
+	<artifactId>squirrel-client</artifactId><name>squirrel-client</name>
+	<modelVersion>4.0.0</modelVersion>
+	<packaging>jar</packaging><url>https://mashroom.cc/</url>
+
+	<parent >
+		<groupId>cc.mashroom.squirrel</groupId><artifactId>squirrel-parent</artifactId><version>v1.0.0</version>  <relativePath >../pom.xml</relativePath>
+	</parent>
+
+	<dependencies >
+		<dependency >
+			<groupId>io.pristine</groupId><artifactId>libjingle_peerconnection</artifactId><version>${libjingle.peerconnection.version}</version>
+		</dependency>
+		<dependency >
+			<groupId>com.h2database</groupId><artifactId>h2</artifactId><version>${h2.version}</version><scope>provided</scope>
+		</dependency>
+		<dependency >
+			<groupId>cc.mashroom.squirrel</groupId><artifactId>squirrel-paip</artifactId><version>${mashroom.parent.version}</version>
+		</dependency>
+		<dependency >
+			<groupId>cc.mashroom</groupId><artifactId>mashroom-router</artifactId><version>${mashroom.parent.version}</version>
+		</dependency>
+		<dependency >
+			<groupId>cc.mashroom</groupId><artifactId>mashroom-db</artifactId><version>${mashroom.parent.version}</version>
+		</dependency>
+	</dependencies>
+	
+	<build >
+    	<plugins >
+    		<plugin >
+				<groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.6.1</version><configuration><source>1.7</source><target>1.7</target></configuration>
+			</plugin>
+			<plugin >
+				<groupId>org.apache.maven.plugins</groupId><artifactId>maven-jar-plugin</artifactId><version>3.1.1</version><configuration><archive></archive></configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+</project>
