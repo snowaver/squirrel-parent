@@ -27,7 +27,7 @@ import  cc.mashroom.db.util.ConnectionUtils;
 import  cc.mashroom.util.Reference;
 import  cc.mashroom.util.collection.map.Map;
 
-public  class  AbstractModel<M extends XModel>  extends  XModel<M>
+public  class  AbstractModel<M extends AbstractModel<?>>  extends  XModel<M>
 {
 	public  void  upsert( List<? extends Map>  records )
 	{

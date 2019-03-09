@@ -26,7 +26,7 @@ import  lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 
-public  class  DefaultGenericFutureListener<F extends Future>  implements  GenericFutureListener<F>
+public  class  DefaultGenericFutureListener<F extends Future<?>>  implements  GenericFutureListener<F>
 {
 	private  QosHandler  handler;
 	
