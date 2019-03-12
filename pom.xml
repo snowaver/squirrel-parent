@@ -15,7 +15,7 @@
 	</scm>
 	
 	<groupId>cc.mashroom.squirrel</groupId><artifactId>squirrel-parent</artifactId><name>squirrel-parent</name>
-	<modelVersion>4.0.0</modelVersion><version>v1.0.1</version>
+	<modelVersion>4.0.0</modelVersion><version>v1.0.2</version>
 	<packaging>pom</packaging><url>https://mashroom.cc/</url>
 
 	<properties >

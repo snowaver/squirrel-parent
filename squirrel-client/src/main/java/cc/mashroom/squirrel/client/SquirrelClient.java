@@ -22,6 +22,7 @@ import  java.util.concurrent.ScheduledThreadPoolExecutor;
 import  java.util.concurrent.ThreadPoolExecutor;
 import  java.util.concurrent.TimeUnit;
 
+import org.apache.commons.codec.binary.Hex;
 import  org.joda.time.DateTime;
 import  org.joda.time.DateTimeZone;
 
@@ -172,7 +173,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		//  reset  the  connnectivity  error  to  normal  state, which  should  be  changed  by  the  special  situation.
 		this.setConnectivityError( 0x00 );
 		
-		try( Response  response = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(2,TimeUnit.SECONDS).build().newCall(new  Request.Builder().url("https://"+host+":"+httpPort+"/user/signin").post(HttpUtils.form(connectParameters = connectParameters != null ? connectParameters.addEntry("isAutoReconnect",true) : new  HashMap<String,Object>().addEntry("username",username).addEntry("password",DigestUtils.md5Hex(password).toUpperCase()).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
+		try( Response  response = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(2,TimeUnit.SECONDS).build().newCall(new  Request.Builder().url("https://"+host+":"+httpPort+"/user/signin").post(HttpUtils.form(connectParameters = connectParameters != null ? connectParameters.addEntry("isAutoReconnect",true) : new  HashMap<String,Object>().addEntry("username",username).addEntry("password",new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
 		{
 			if( response.code()   == 200 )
 			{
