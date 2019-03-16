@@ -17,13 +17,12 @@ package cc.mashroom.squirrel.paip.codec;
 
 import  java.util.List;
 
-import  org.slf4j.LoggerFactory;
-
 import  io.netty.buffer.ByteBuf;
 import  io.netty.channel.Channel;
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.handler.codec.ByteToMessageDecoder;
 import  io.netty.handler.codec.CorruptedFrameException;
+import  lombok.extern.slf4j.Slf4j;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.call.CallAckPacket;
@@ -45,10 +44,13 @@ import  cc.mashroom.squirrel.paip.message.connect.QosReceiptPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribePacket;
 
+@Slf4j
+
 public  class  PAIPDecoder  extends  ByteToMessageDecoder
 {
-	private  final  static  org.slf4j.Logger  logger = LoggerFactory.getLogger( PAIPDecoder.class );
-	
+	/*
+	private  final  org.slf4j.Logger  logger= LoggerFactory.getLogger( ByteToMessageDecoder.class );
+	*/
 	protected  void  decode( ChannelHandlerContext  context,ByteBuf  byteBuf,List<Object>  objectList )  throws  Exception
 	{
 		try
@@ -59,7 +61,7 @@ public  class  PAIPDecoder  extends  ByteToMessageDecoder
 		{
 			e.printStackTrace();
 			
-			logger.error( e.getMessage(),e );
+			log.error( e.getMessage(),e );
 		}
 	}
 	

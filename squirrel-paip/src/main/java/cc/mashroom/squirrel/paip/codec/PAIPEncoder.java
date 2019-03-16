@@ -15,23 +15,24 @@
  */
 package cc.mashroom.squirrel.paip.codec;
 
-import  org.slf4j.LoggerFactory;
+import  org.joda.time.DateTime;
 
 import  io.netty.buffer.ByteBuf;
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.handler.codec.CorruptedFrameException;
 import  io.netty.handler.codec.MessageToByteEncoder;
+import  lombok.extern.slf4j.Slf4j;
 import  cc.mashroom.squirrel.paip.message.Packet;
+
+@Slf4j
 
 public  class  PAIPEncoder  extends  MessageToByteEncoder  <Packet<?>>
 {
-	private  final  static  org.slf4j.Logger  logger = LoggerFactory.getLogger( PAIPEncoder.class );
-	
 	protected  void  encode( ChannelHandlerContext  channel,Packet<?>  packet,ByteBuf  byteBuf )  throws  Exception
 	{
-		System.out.println( "//*SED:\t\t"+packet.toString() );
+		ByteBuf  contentByteBuf=channel.alloc().buffer();
 		
-		ByteBuf  contentByteBuf    = channel.alloc().buffer();
+		System.err.println(DateTime.now().toString("yyyy-MM-dd HH:mm:ss")+"  CHANNEL.WRITE:\t"+packet.toString() );
 		
 		try
 		{
@@ -48,7 +49,7 @@ public  class  PAIPEncoder  extends  MessageToByteEncoder  <Packet<?>>
 		{
 			e.printStackTrace();
 			
-			logger.error( e.getMessage(),e );
+			log.error(  e.getMessage() , e );
 		}
 		finally
 		{
