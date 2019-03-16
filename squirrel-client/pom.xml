@@ -16,7 +16,7 @@
 			<groupId>com.h2database</groupId><artifactId>h2</artifactId><version>${h2.version}</version>
 		</dependency>
 		<dependency >
-			<groupId>cc.mashroom.squirrel</groupId><artifactId>squirrel-paip</artifactId><version>${mashroom.parent.version}</version>
+			<groupId>cc.mashroom.squirrel</groupId><artifactId>squirrel-paip</artifactId><version>${project.parent.version}</version>
 		</dependency>
 		<dependency >
 			<groupId>cc.mashroom</groupId><artifactId>mashroom-router</artifactId><version>${mashroom.parent.version}</version>
