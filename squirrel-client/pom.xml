@@ -10,7 +10,7 @@
 
 	<dependencies >
 		<dependency >
-			<groupId>io.pristine</groupId><artifactId>libjingle_peerconnection</artifactId><version>${libjingle.peerconnection.version}</version>
+			<groupId>io.pristine</groupId><artifactId>libjingle-peerconnection</artifactId><version>${libjingle.peerconnection.version}</version>
 		</dependency>
 		<dependency >
 			<groupId>com.h2database</groupId><artifactId>h2</artifactId><version>${h2.version}</version>

@@ -301,6 +301,8 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	
 	public  void  onAddStream(MediaStream  addedMediaStream )
 	{
+		super.onAddStream(  addedMediaStream );
+		
 		CallEventDispatcher.onStart( id, contactId );
 		
 		if( peerConnectionParameters.videoEnabled   )
@@ -311,6 +313,8 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	
     public  void  onCreateSuccess(SessionDescription sessionDescription )
     {
+    	super.onCreateSuccess(  sessionDescription );
+    	
     	this.connection.setLocalDescription( this , sessionDescription );
     	
     	this.state.set(    CallState.CALLING );
@@ -318,13 +322,17 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
     	this.context.send(new  SDPPacket(this.contactId,this.id,new  SDP(sessionDescription.type.canonicalForm(),sessionDescription.description)) );
     }
 
-    public  void  onIceCandidate(   IceCandidate  candidate )
+    public  void  onIceCandidate(IceCandidate  iceCandidate )
     {
-        this.context.send(new  CandidatePacket( this.contactId, this.id, new  Candidate(candidate.sdpMid,candidate.sdpMLineIndex,candidate.sdp) ) );
+    	super.onIceCandidate(   iceCandidate );
+    	
+        this.context.send(new  CandidatePacket( contactId, id, new  Candidate(iceCandidate.sdpMid, iceCandidate.sdpMLineIndex, iceCandidate.sdp)) );
     }
 
 	public  void  onRemoveStream(   MediaStream   removingMediaStream   )
 	{
+		super.onRemoveStream(  removingMediaStream );
+		
 		if( peerConnectionParameters.videoEnabled   )
 		{
 			removingMediaStream.videoTracks.get(0).dispose();
