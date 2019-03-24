@@ -16,40 +16,48 @@
 package cc.mashroom.squirrel.paip.message.call;
 
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
-import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
+import  cc.mashroom.squirrel.paip.message.Packet;
 
 @ToString
-public  class  CloseCallPacket  extends  AbstractCallPacket<CloseCallPacket>
-{
-	public  CloseCallPacket( long  contactId,long  roomId,CloseCallReason  reason )
+public  abstract  class  AbstractCallPacket<T extends AbstractCallPacket<?>>  extends  Packet<T>
+{	
+	public  AbstractCallPacket( long roomId )
 	{
-		super( roomId   );
+		super();
 		
-		this.setContactId(contactId).setReason( reason );
+		setRoomId(roomId);
 	}
 	
-	public  CloseCallPacket( ByteBuf buf )
+	public  ByteBuf  writeToVariableByteBuf( ByteBuf  byteBuf )
 	{
-		super( buf,0x00 );
-		
-		this.setContactId(buf.readLongLE()).setReason( CloseCallReason.valueOf(buf.readShortLE()) );
+		return  byteBuf.writeLongLE( this.roomId );
 	}
 	
-	@Setter( value=   AccessLevel.PUBLIC )
+	public  AbstractCallPacket( ByteBuf   byteBuf,int  expectedFlags )
+	{
+		super( byteBuf , 0x00 );
+		
+		this.setRoomId(byteBuf.readLongLE());
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  8 +   super.getInitialVariableByteBufferSize();
+	}
+	
+	@Setter( value  = AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  CloseCallReason  reason;
-	
-	public  void  writeTo(  ByteBuf  buf )
+	private  long  roomId;
+	/*
+	public  void  writeTo( ByteBuf  byteBuf )
 	{
-		write( buf,super.writeToVariableByteBuf(Unpooled.buffer(10+super.getInitialVariableByteBufferSize())).writeLongLE(contactId).writeShortLE(reason.getValue()),PAIPPacketType.CLOSE_CALL );
+		
 	}
-
-
+	*/
 }

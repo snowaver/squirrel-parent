@@ -20,17 +20,24 @@ import  cc.mashroom.squirrel.paip.message.call.SDP;
 
 public  interface  CallListener
 {
-	public  void  onWaitingResponse( long  callId,long  contactId );
+	/**
+	 *  this  method  will  be  triggered  when  a  new  room  is  created.
+	 */
+	public  void  onRoomCreated( long  roomId );
 	
-	public  void  onError( long  callId,long  contactId,CallError  error );
+	public  void  onWaitingResponse( long  roomId,long  contactId );
 	
-	public  void  onResponded( long  callId,long  contactId,int  responseCode );
+	public  void  onError( long  roomId,long  contactId,CallError  error );
 	
-	public  void  onClose( long  callId,long  contactId,boolean  proactive,CallState  callState );
+	public  void  onResponded( long  roomId,long  contactId,int  responseCode );
 	
-	public  void  onReceivedSdp(   long  callId,long  contactId,SDP  sdp );
+	public  void  onClose( long  roomId,long  contactId,boolean  proactive,CallState  callState );
 	
-	public  void  onStart( long  callId,long  contactId );
+	public  void  onReceivedSdp(   long  roomId,long  contactId,SDP  sdp );
+	/**
+	 *  call  is  connected,  udp/tcp  multimedia  packet  is  transfering  now.
+	 */
+	public  void  onStart( long  roomId,long  contactId );
 	
-	public  void  onReceivedCandidate( long  callId,long  contactId,Candidate  candidate );
+	public  void  onReceivedCandidate( long  roomId,long  contactId,Candidate  candidate );
 }

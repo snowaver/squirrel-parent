@@ -24,15 +24,20 @@ import  lombok.ToString;
 
 @AllArgsConstructor
 @ToString
-public  class  PingPacket  extends  Packet<PingPacket>
+public  class  PingPacket  extends  Packet  <PingPacket>
 {
 	public  PingPacket( ByteBuf  byteBuf )
 	{
-		super( byteBuf,0x00 );
+		super( byteBuf , 0x00 );
 	}
 
+	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf )
+	{
+		return  variableByteBuf;
+	}
+	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		write( buf, Unpooled.buffer(0) , PAIPPacketType.PING );
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.PING );
 	}
 }

@@ -30,23 +30,23 @@ import  lombok.experimental.Accessors;
 @ToString
 public  class  ConnectAckPacket   extends  Packet  <ConnectAckPacket>
 {
-    public  final  static  int  CONNECTION_ACCEPTED = 0x00;
+    public  final  static  int  CONNECTION_ACCEPTED  = 0x00;
     
     public  final  static  int  UNNACEPTABLE_PROTOCOL_VERSION = 0x01;
     
-    public  final  static  int  IDENTIFIER_REJECTED = 0x02;
+    public  final  static  int  IDENTIFIER_REJECTED  = 0x02;
     
     public  final  static  int  BAD_USERNAME_OR_PASSWORD = 0x04;
     
-    public  final  static  int  SERVER_UNAVAILABLE  = 0x03;
+    public  final  static  int  SERVER_UNAVAILABLE   = 0x03;
     
-    public  final  static  int  NOT_AUTHORIZED = 0x05;
+    public  final  static  int  NOT_AUTHORIZED  = 0x05;
     
-    public  ConnectAckPacket( ByteBuf  byteBuf )
+    public  ConnectAckPacket(ByteBuf buf )
     {
-    	super( byteBuf,0x00 );
+    	super( buf,0x00 );
     	
-    	this.setSessionPresent(byteBuf.readByte() == 0x01).setResponseCode( byteBuf.readByte() );
+    	this.setSessionPresent(    buf.readByte() == 0x01 ).setResponseCode( buf.readByte() );
     }
     
     @Setter( value=AccessLevel.PROTECTED )
@@ -58,8 +58,18 @@ public  class  ConnectAckPacket   extends  Packet  <ConnectAckPacket>
 	@Accessors(chain=true)
     private  boolean  sessionPresent;
 
+    public  ByteBuf  writeToVariableByteBuf(   ByteBuf  variableBuf )
+	{
+		return  variableBuf.writeByte(sessionPresent ? 0x01 : 0x00).writeByte( responseCode );
+	}
+	
+	public  int      getInitialVariableByteBufferSize()
+	{
+		return  2 +super.getInitialVariableByteBufferSize();
+	}
+    
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		write( buf,Unpooled.buffer(10).writeByte(sessionPresent ? 0x01 : 0x00).writeByte(responseCode),PAIPPacketType.CONNECT_ACK );
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CONNECT_ACK );
 	}
 }

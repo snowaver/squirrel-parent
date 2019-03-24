@@ -84,8 +84,18 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 	@Accessors(chain=true)
     private  String  protocolName;
 
+	public  ByteBuf  writeToVariableByteBuf(ByteBuf  byteBuf )
+	{
+		ByteBuf  protocolByteBuf = PAIPUtils.encode( "PAIP" );  ByteBuf  accessKeyByteBuf = PAIPUtils.encode( accessKey );  ByteBuf  secretKeyByteBuf = PAIPUtils.encodeBytes( secretKey );  byteBuf.writeBytes(protocolByteBuf).writeByte(4).writeShortLE(keepalive).writeBytes(accessKeyByteBuf).writeBytes(secretKeyByteBuf);  protocolByteBuf.release();  accessKeyByteBuf.release();  secretKeyByteBuf.release();  return  byteBuf;
+	}
+	
+	public  int      getInitialVariableByteBufferSize()
+	{
+		return  3  + super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo( ByteBuf  byteBuf )
 	{
-		ByteBuf  protocolByteBuf = PAIPUtils.encode( "PAIP" );  ByteBuf  accessKeyByteBuf = PAIPUtils.encode( accessKey );  ByteBuf  secretKeyByteBuf = PAIPUtils.encodeBytes( secretKey );  write( byteBuf,Unpooled.buffer(4).writeBytes(protocolByteBuf).writeByte(4).writeShortLE(keepalive).writeBytes(accessKeyByteBuf).writeBytes(secretKeyByteBuf),PAIPPacketType.CONNECT );  protocolByteBuf.release();  accessKeyByteBuf.release();  secretKeyByteBuf.release();
+		write( byteBuf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CONNECT );
 	}
 }

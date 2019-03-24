@@ -28,15 +28,15 @@ import  org.joda.time.DateTimeZone;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 
-public  abstract  class  Packet<T extends Packet<?>>
+public  abstract  class  Packet  <T extends Packet>
 {
 	public  Packet()
 	{
 		this.setHeader( new  Header() ).setId(   Packet.forId( DateTime.now( DateTimeZone.UTC ).getMillis() ) );
 	}
 
-	public  abstract  void  writeTo( ByteBuf  buf );
-	//  the  id  should  be  greater  than  privious  id,  else  a  new  id  ( the  id  plus  one )  will  be  generated.
+	public  abstract  void  writeTo(ByteBuf  buf );
+	//  the  id  should  be  greater  than  privious  id,  else  a  new  id  ( the  old  id  plus  one )  will  be  generated.
 	public  static  long  forId(long  id )
 	{
 		return  ID_GENERATOR.get() >= id ? ID_GENERATOR.incrementAndGet() : ID_GENERATOR.addAndGet( (id-ID_GENERATOR.get()) );
@@ -45,36 +45,42 @@ public  abstract  class  Packet<T extends Packet<?>>
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(  chain = true )
-	protected  long  id;
+	protected  long    id;
+	@Getter
+	@Accessors(  chain = true )
+	protected  long  contactId;
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(  chain = true )
 	protected  Header   header;
 	
-	protected  final  static  AtomicLong  ID_GENERATOR= new  AtomicLong( 0x00 );
+	protected  final  static  AtomicLong  ID_GENERATOR  = new  AtomicLong( 0x00 );
 	
-	public  T  setContactId(       long  contactId )
+	public  T  setContactId(      long  contactId )
 	{
 		this.contactId        = contactId;
 		
 		return  (T)  this;
 	}
 	
-	public  T  setQos(  int  qos , long  contactId )
+	public  T  setQos(  int  qos, long  contactId )
 	{
 		if(    contactId <= 0 )
 		{
 			throw  new  IllegalArgumentException("SQUIRREL-PAIP:  ** PACKET **  contact  id  is  invalidate." );
 		}
 		
-		this.setContactId(contactId).getHeader().setQos(qos);
+		this.setContactId(contactId).getHeader().setQos(qos );
 		
 		return  (T)  this;
 	}
+		
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  0;
+	}
 	
-	@Getter
-	@Accessors(  chain = true )
-	protected  long  contactId;
+	public  abstract  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf );
 	
 	protected  void  write( ByteBuf  byteBuf,ByteBuf  variableByteBuf,PAIPPacketType  packetType )
 	{
@@ -86,11 +92,11 @@ public  abstract  class  Packet<T extends Packet<?>>
 		}
 		finally
 		{
-			decodeRemainingLengthByteBuf.release( );  variableByteBuf.release();
+			decodeRemainingLengthByteBuf.release();     variableByteBuf.release();
 		}
 	}
 	
-	public  Packet( ByteBuf  byteBuf,Integer  expectedFlags )
+	public  Packet( ByteBuf  byteBuf, Integer  expectedFlags )
 	{
 		this.setHeader(new  Header(byteBuf.resetReaderIndex(),expectedFlags)).setId( this.getHeader().getId() );
 	}

@@ -41,59 +41,67 @@ public  class  CallEventDispatcher
 		}
 	}
 	
-	public  static  void  onResponded( long  callId, long  contactId, int  responseCode )
+	public  static  void  onRoomCreated(     long  roomId )
 	{
 		for( CallListener  listener : listeners )
 		{
-			listener.onResponded( callId,contactId,responseCode );
+			listener.onRoomCreated( roomId );
 		}
 	}
 	
-	public  static  void  onReceivedSdp(   long  callId,long  contactId,SDP  sdp )
+	public  static  void  onResponded( long  roomId, long  contactId, int  responseCode )
 	{
 		for( CallListener  listener : listeners )
 		{
-			listener.onReceivedSdp( callId,contactId,sdp );
+			listener.onResponded( roomId,contactId,responseCode );
 		}
 	}
 	
-	public  static  void  onClose( long  callId,long  contactId,boolean  proactive,CallState  state )
+	public  static  void  onReceivedSdp(   long  roomId,long  contactId,SDP  sdp )
 	{
 		for( CallListener  listener : listeners )
 		{
-			listener.onClose( callId, contactId,proactive,state );
+			listener.onReceivedSdp( roomId,contactId,sdp );
 		}
 	}
 	
-	public  static  void  onError( long  callId,long  contactId,CallError  error )
+	public  static  void  onClose( long  roomId,long  contactId,boolean  proactive,CallState  state )
 	{
 		for( CallListener  listener : listeners )
 		{
-			listener.onError(   callId, contactId, error );
+			listener.onClose( roomId, contactId,proactive,state );
+		}
+	}
+		
+	public  static  void  onWaitingResponse( long  roomId,long  contactId )
+	{
+		for( CallListener  listener : listeners )
+		{
+			listener.onWaitingResponse( roomId,contactId );
 		}
 	}
 	
-	public  static  void  onWaitingResponse( long  callId,long  contactId )
+	public  static  void  onError( long  roomId,long  contactId,CallError  error )
 	{
 		for( CallListener  listener : listeners )
 		{
-			listener.onWaitingResponse( callId,contactId );
+			listener.onError(   roomId, contactId, error );
 		}
 	}
 	
-	public  static  void  onStart( long  callId, long  contactId )
+	public  static  void  onStart( long  roomId, long  contactId )
 	{
 		for( CallListener  listener : listeners )
 		{
-			listener.onStart( callId,contactId );
+			listener.onStart( roomId,contactId );
 		}
 	}
 	
-	public  static  void  onReceivedCandidate(    long  callId,long  contactId,Candidate  candidate )
+	public  static  void  onReceivedCandidate(    long  roomId,long  contactId,Candidate  candidate )
 	{
 		for( CallListener  listener : listeners )
 		{
-			listener.onReceivedCandidate( callId , contactId , candidate );
+			listener.onReceivedCandidate( roomId , contactId , candidate );
 		}
 	}
 }

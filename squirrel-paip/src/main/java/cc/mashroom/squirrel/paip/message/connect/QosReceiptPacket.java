@@ -55,8 +55,18 @@ public  class  QosReceiptPacket<T extends QosReceiptPacket<?>>  extends  Packet<
 	@Accessors(chain=true)
 	protected  Map<String,Object>  attatchments   = new  HashMap<String,Object>();
 
+	public  ByteBuf  writeToVariableByteBuf(ByteBuf  byteBuf )
+	{
+		return  byteBuf.writeLongLE(contactId).writeLongLE(packetId).writeBytes( PAIPUtils.encode( JsonUtils.toJson(attatchments) ) );
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  16 + super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo(   ByteBuf  buf )
 	{
-		write( buf,Unpooled.buffer(8).writeLongLE(contactId).writeLongLE(packetId).writeBytes(PAIPUtils.encode(JsonUtils.toJson(attatchments))),PAIPPacketType.QOS_RECEIPT );
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.QOS_RECEIPT );
 	}
 }

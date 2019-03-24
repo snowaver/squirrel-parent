@@ -17,40 +17,39 @@ package cc.mashroom.squirrel.paip.message.call;
 
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
-import  io.netty.util.AttributeKey;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
-import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString
-public  class  CallPacket  extends  Packet  <CallPacket>  //  implements  Receiptable
+public  class  CallPacket  extends  AbstractCallPacket  <CallPacket>
 {
+	/*
 	public  final  static  AttributeKey<Long>  CALL_CONTACT_ID = AttributeKey.newInstance( "CALL_CONTACT_ID" );
 	
-	public  final  static  AttributeKey<Long>  CALL_ID = AttributeKey.newInstance( "CALL_ID" );
-	
-	public  CallPacket( long  contactId, long  callId, CallContentType  contentType )
+	public  final  static  AttributeKey<Long>  ROOM_ID = AttributeKey.newInstance( "CALL_ID" );
+	*/
+	public  CallPacket( long  contactId, long  roomId, CallContentType  contentType )
 	{
-		super();
+		super( roomId   );
 		
-		super.setQos( 1, contactId ).setCallId(callId).setContentType( contentType );
+		super.setContactId(contactId).setContentType( contentType );
 	}
 	
 	public  CallPacket( ByteBuf  byteBuf )
 	{
-		super( byteBuf,0x00 );
+		super( byteBuf , 0x00 );
 		
-		this.setCallId(byteBuf.readLongLE()).setContactId(byteBuf.readLongLE()).setContentType( CallContentType.valueOf( byteBuf.readByte()) );
+		this.setContactId(byteBuf.readLongLE()).setContentType( CallContentType.valueOf( byteBuf.readByte()) );
 	}
 
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  long  callId;
+	private  long  roomId;
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
@@ -58,6 +57,6 @@ public  class  CallPacket  extends  Packet  <CallPacket>  //  implements  Receip
 
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		write( buf,Unpooled.buffer(17).writeLongLE(this.callId).writeLongLE(contactId).writeByte(contentType.getValue()),PAIPPacketType.CALL );
+		write( buf,super.writeToVariableByteBuf(Unpooled.buffer(9+super.getInitialVariableByteBufferSize())).writeLongLE(contactId).writeByte(contentType.getValue()),PAIPPacketType.CALL );
 	}
 }

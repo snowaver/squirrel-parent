@@ -42,9 +42,9 @@ import  cc.mashroom.squirrel.paip.message.call.CallPacket;
 import  cc.mashroom.squirrel.paip.message.call.Candidate;
 import  cc.mashroom.squirrel.paip.message.call.CandidatePacket;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
+import  cc.mashroom.squirrel.paip.message.call.CloseCallReason;
 import  cc.mashroom.squirrel.paip.message.call.SDP;
 import  cc.mashroom.squirrel.paip.message.call.SDPPacket;
-import  cc.mashroom.squirrel.paip.message.connect.QosReceiptPacket;
 import  cc.mashroom.util.ObjectUtils;
 import  lombok.AccessLevel;
 import  lombok.Getter;
@@ -150,14 +150,14 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 
 	public  CallState  getState()
 	{
-		return  state.get();
+		return   state.get();
 	}
 
 	public  void  accept()
 	{
 		if( state.compareAndSet(CallState.REQUESTED , CallState.ACCEPT) )
 		{
-			this.context.send( new  CallAckPacket( callPacketId,contactId,id,CallAckPacket.ACCEPT ) );
+			this.context.send( new  CallAckPacket(contactId,id,CallAckPacket.ACCEPT ) );
 		}
 		else
 		{
@@ -169,7 +169,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	{
 		if( state.compareAndSet(CallState.REQUESTED , CallState.REJECT) )
 		{
-			this.context.send( new  CallAckPacket( callPacketId,contactId,id,CallAckPacket.REJECT ) );
+			this.context.send( new  CallAckPacket(contactId,id,CallAckPacket.REJECT ) );
 			
 			close();
 		}
@@ -183,16 +183,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	{
 		if( packet instanceof CloseCallPacket && transportState == TransportState.SENT )
 		{
-			release( true );
-		}
-		else
-		if( packet instanceof CallPacket && transportState==TransportState.SEND_FAILED )
-		{
-			CallEventDispatcher.onError( id,ObjectUtils.cast(packet,CallPacket.class).getContactId(),CallError.NO_RESPONSE );
-			
-			release( true );
-			
-			this.context.send( new  CloseCallPacket(contactId,id), 5,TimeUnit.SECONDS );
+			release(  true );
 		}
 	}
 
@@ -208,9 +199,21 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		}
 	}
 	
+	public  void  cancel()
+	{
+		if( state.compareAndSet(CallState.REQUESTING,   CallState.NONE) )
+		{
+			context.send( new  CloseCallPacket(contactId,id , CloseCallReason.CANCEL) );
+		}
+		else
+		{
+			throw  new  IllegalStateException( String.format("SIMP:  ** CALL **  can  not  cancel  the  call  when  the  state  is  %s",state.get().name()) );
+		}
+	}
+	
 	public  void   close()
 	{
-		this.context.send( new  CloseCallPacket(this.contactId,id),5,TimeUnit.SECONDS );
+		this.context.send( new  CloseCallPacket(this.contactId,id,CloseCallReason.CLOSE_ACTIVELY),5,TimeUnit.SECONDS );
 	}
 	
 	public  boolean  beforeSend(Packet packet )
@@ -240,43 +243,20 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 			state.compareAndSet(  CallState.NONE , CallState.REQUESTED );
 		}
 		else
-		if( packet instanceof   CallAckPacket )
+		if( packet instanceof CallAckPacket   )
 		{
-			if( ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.ACCEPT || ObjectUtils.cast( packet,CallAckPacket.class ).getResponseCode() == CallAckPacket.REJECT )
+			if( ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.ACCEPT     && this.state.compareAndSet(CallState.REQUESTING, CallState.ACCEPTED) )
 			{
-				if( ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.REJECT && this.state.compareAndSet(CallState.REQUESTING, CallState.REJECTED) )
-				{
-					this.release( false );
-					
-					return ;
-				}
-				else
-				if( ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.ACCEPT && this.state.compareAndSet(CallState.REQUESTING, CallState.ACCEPTED) )
-				{
-					connection.createOffer(this,constraints);
-						
-					return ;
-				}
-				else
-				{
-					close();
-				}
-				
+				connection.createOffer( this , constraints );
+				/*
 				CallEventDispatcher.onResponded( id,ObjectUtils.cast(packet,CallAckPacket.class).getContactId(),ObjectUtils.cast(packet, CallAckPacket.class).getResponseCode() );
+				*/
 			}
-			else
-			{
-				CallEventDispatcher.onError( id,contactId,ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.CONTACT_OFFLINE ? CallError.OFFLINE : CallError.UNKNOWN );
-			}
-			
-			if( ObjectUtils.cast( packet, CallAckPacket.class ).getResponseCode() != CallAckPacket.ACCEPT )  release( true );
 		}
 		else
 		if( packet instanceof CloseCallPacket )
 		{
-			release(false );
-			
-			this.context.send( new  QosReceiptPacket( contactId , ObjectUtils.cast(packet,CloseCallPacket.class).getId() ) );
+			release( false );
 		}
 		else
 		if( packet instanceof SDPPacket  )
@@ -288,14 +268,14 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 				connection.createAnswer(  this,constraints );
 			}
 			
-			CallEventDispatcher.onReceivedSdp( ObjectUtils.cast(packet,SDPPacket.class).getCallId(),ObjectUtils.cast(packet,SDPPacket.class).getContactId(),ObjectUtils.cast(packet,SDPPacket.class).getSdp() );
+			CallEventDispatcher.onReceivedSdp( ObjectUtils.cast(packet,SDPPacket.class).getRoomId(),ObjectUtils.cast(packet,SDPPacket.class).getContactId(),ObjectUtils.cast(packet,SDPPacket.class).getSdp() );
 		}
 		else
 		if( packet instanceof CandidatePacket )
 		{
 			connection.addIceCandidate( new  IceCandidate(ObjectUtils.cast(packet,CandidatePacket.class).getCandidate().getId(),ObjectUtils.cast(packet,CandidatePacket.class).getCandidate().getLineIndex(),ObjectUtils.cast(packet,CandidatePacket.class).getCandidate().getCandidate()) );
 			
-			CallEventDispatcher.onReceivedCandidate( ObjectUtils.cast(packet,CandidatePacket.class).getCallId(),ObjectUtils.cast(packet,CandidatePacket.class).getContactId(),ObjectUtils.cast(packet,CandidatePacket.class).getCandidate() );
+			CallEventDispatcher.onReceivedCandidate( ObjectUtils.cast(packet,CandidatePacket.class).getRoomId(),ObjectUtils.cast(packet,CandidatePacket.class).getContactId(),ObjectUtils.cast(packet,CandidatePacket.class).getCandidate() );
 		}
 	}
 	

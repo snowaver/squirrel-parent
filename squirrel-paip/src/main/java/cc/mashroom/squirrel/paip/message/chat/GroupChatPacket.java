@@ -62,8 +62,18 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 	@Accessors(chain=true)
 	private  byte[]   content;
 	
+	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variableBuf )
+	{
+		ByteBuf  contentByteBuf= PAIPUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPUtils.encode( md5 );  variableBuf.writeLongLE(contactId).writeLongLE(groupId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableBuf;
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  17+super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		ByteBuf  contentByteBuf = PAIPUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPUtils.encode( md5 );  write( buf,Unpooled.buffer(17).writeLongLE(contactId).writeLongLE(groupId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf),PAIPPacketType.GROUP_CHAT );  md5ByteBuf.release();  contentByteBuf.release();
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.GROUP_CHAT );
 	}
 }

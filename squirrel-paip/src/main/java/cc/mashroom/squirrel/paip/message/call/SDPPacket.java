@@ -23,37 +23,33 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
-import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString
-public  class  SDPPacket   extends  Packet  <SDPPacket>  //  implements  Receiptable
+public  class  SDPPacket   extends  AbstractCallPacket<SDPPacket>  //  implements  Receiptable
 {
-	public  SDPPacket( long  contactId,long  callId,SDP  sdp )
+	public  SDPPacket( long  contactId,long  roomId,SDP  sdp )
 	{
-		super();
+		super( roomId );
 		
-		super.setContactId(contactId).setCallId(callId).setSdp( sdp );
+		super.setContactId(contactId).setSdp( sdp );
 	}
 	
 	public  SDPPacket(  ByteBuf  byteBuf )
 	{
-		super(byteBuf,0x00 );
+		super( byteBuf,0x00 );
 		
-		this.setCallId(byteBuf.readLongLE()).setContactId(byteBuf.readLongLE()).setSdp( new  SDP(PAIPUtils.decode(byteBuf),PAIPUtils.decode(byteBuf)) );
+		setContactId(byteBuf.readLongLE()).setSdp( new  SDP(PAIPUtils.decode(byteBuf),PAIPUtils.decode(byteBuf)) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
-	@Accessors(chain=true)
-	private  long  callId;
-	@Setter( value=AccessLevel.PROTECTED )
-	@Getter
-	@Accessors(chain=true)
-	private  SDP   sdp;
+	@Accessors( chain = true )
+	
+	private  SDP    sdp;
 
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		ByteBuf  sdpByteBuf = sdp.toByteBuf();  write( buf,Unpooled.buffer(16).writeLongLE(callId).writeLongLE(contactId).writeBytes(sdpByteBuf),PAIPPacketType.CALL_SDP );  sdpByteBuf.release();
+		ByteBuf  sdpByteBuf = sdp.toByteBuf();  write( buf,super.writeToVariableByteBuf(Unpooled.buffer(8+super.getInitialVariableByteBufferSize())).writeLongLE(contactId).writeBytes(sdpByteBuf),PAIPPacketType.CALL_SDP );  sdpByteBuf.release();
 	}
 }

@@ -19,23 +19,23 @@ import  lombok.AllArgsConstructor;
 import  lombok.Getter;
 
 @AllArgsConstructor
-public  enum  CallContentType
+public  enum  CloseCallReason
 {
-	AUDIO(0x00), VIDEO(0x01);
+	UNKNOWN(0x00),ROOM_NOT_FOUND(0x01),CANCEL(0x02),TIMEOUT(0x03),REJECT(0x04),CANCELED(0x05),CLOSE_ACTIVELY(0x06),NETWORK_ERROR(0x07);
 	
 	@Getter
 	private  int  value;
 	
-	public  static  CallContentType  valueOf( int  value )
+	public  static  CloseCallReason  valueOf( int  value )
 	{
-		for( CallContentType  callContentType : CallContentType.values() )
+		for( CloseCallReason  closeCallReason : CloseCallReason.values() )
 		{
-			if( value == callContentType.getValue() )
+			if( value == closeCallReason.getValue() )
 			{
-				return  callContentType;
+				return  closeCallReason;
 			}
 		}
 		
-		throw  new  IllegalArgumentException( String.format("SQUIRREL-PAIP:  ** CALL  TYPES **  no  call  type  defined  for  %d",value) );
+		throw  new  IllegalArgumentException( String.format("SQUIRREL-PAIP:  ** CLOSE  CALL  REASON **  no  close  call  reason  defined  for  %d",value) );
 	}
 }

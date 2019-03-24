@@ -52,8 +52,18 @@ public  class  SubscribePacket  extends  Packet<SubscribePacket>
 	@Accessors( chain = true )
 	private  Map<String,Object>  subscriberProfile = new  HashMap<String,Object>();
 
+	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
+	{
+		ByteBuf  subscriberProfileByteBuf = PAIPUtils.encode( JsonUtils.toJson(subscriberProfile == null ? new  HashMap<String,Object>() : subscriberProfile) );  byteBuf.writeLongLE(contactId).writeBytes(subscriberProfileByteBuf);  subscriberProfileByteBuf.release();  return  byteBuf;
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  8 +    super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		ByteBuf  subscriberProfileByteBuf = PAIPUtils.encode( JsonUtils.toJson(subscriberProfile == null ? new  HashMap<String,Object>() : subscriberProfile) );  write( buf,Unpooled.buffer(8).writeLongLE(contactId).writeBytes(subscriberProfileByteBuf),PAIPPacketType.SUBSCRIBE );  subscriberProfileByteBuf.release();
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.SUBSCRIBE );
 	}
 }

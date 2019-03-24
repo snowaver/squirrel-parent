@@ -41,17 +41,27 @@ public  class  ChatRetractPacket  extends  Packet<ChatRetractPacket>
 	@Accessors(chain=true)
 	private  long chatPacketId;
 	
-	public  ChatRetractPacket( ByteBuf  byteBuf )
+	public  ChatRetractPacket(   ByteBuf  byteBuf )
 	{
 		super( byteBuf, 0x00 );
 		
 		super.setContactId(byteBuf.readLongLE()).setChatPacketId( byteBuf.readLongLE() );
 	}
 	
+	public  ByteBuf  writeToVariableByteBuf(      ByteBuf  byteBuf )
+	{
+		return  byteBuf.writeLongLE(contactId).writeLongLE( chatPacketId );
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  16+super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo(  ByteBuf  buf )
 	{
 		super.getHeader().setQos(  0x01 );
 		
-		write( buf,Unpooled.buffer(16).writeLongLE(contactId).writeLongLE(chatPacketId),PAIPPacketType.CHAT_WITHDRAW );
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CHAT_WITHDRAW );
 	}
 }

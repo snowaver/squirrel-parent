@@ -22,48 +22,36 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
-import  cc.mashroom.squirrel.paip.message.connect.QosReceiptPacket;
-import  cc.mashroom.util.JsonUtils;
-import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString
-public  class  CallAckPacket  extends  QosReceiptPacket  <CallAckPacket>
+public  class  CallAckPacket  extends  AbstractCallPacket<CallAckPacket>
 {
-	public  final  static  int  ACCEPT = 0x00;
+	public  final  static  int  ACCEPT  = 0x00;
 	
-	public  final  static  int  REJECT = 0x01;
+	public  final  static  int  REJECT  = 0x01;
 	
-	public  final  static  int  CONTACT_OFFLINE    = 0x03;
-	
-	public  final  static  int  BUSY   = 0x02;
+	public  CallAckPacket( /* long  callPacketId, */  long  contactId,long  roomId,int  responseCode )
+	{
+		super( roomId   );
+		
+		this.setContactId( contactId ).setResponseCode(  responseCode );
+	}
 	
 	public  CallAckPacket(  ByteBuf  buf )
 	{
-		super( buf );
+		super( buf,0x00 );
 		
-		setCallId(buf.readLongLE()).setResponseCode(   buf.readByte() );
-	}
-	
-	public  CallAckPacket( long  callPacketId,long  contactId,long  callId,int  responseCode )
-	{
-		super( contactId , callPacketId );
-		
-		setCallId(callId).setResponseCode( responseCode );
+		this.setResponseCode( buf.readByte() );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  long  callId;
-	@Setter( value=AccessLevel.PROTECTED )
-	@Getter
-	@Accessors(chain=true)
-	
 	private  int  responseCode;
 	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		write( buf,Unpooled.buffer(25).writeLongLE(contactId).writeLongLE(packetId).writeBytes(PAIPUtils.encode(JsonUtils.toJson(attatchments))).writeLongLE(callId).writeByte(responseCode),PAIPPacketType.CALL_ACK );
+		write( buf,super.writeToVariableByteBuf(Unpooled.buffer(9+super.getInitialVariableByteBufferSize())).writeLongLE(contactId).writeByte(responseCode),PAIPPacketType.CALL_ACK );
 	}
 }

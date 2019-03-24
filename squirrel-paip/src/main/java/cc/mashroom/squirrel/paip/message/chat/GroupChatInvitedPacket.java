@@ -27,20 +27,20 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString
-public  class  GroupChatInvitedPacket    extends  Packet  < GroupChatInvitedPacket >
+public  class  GroupChatInvitedPacket  extends  Packet<GroupChatInvitedPacket>
 {
+	public  GroupChatInvitedPacket(  ByteBuf  buf )
+	{
+		super( buf,0x00 );
+		
+		super.setContactId(buf.readLongLE()).setGroupId(   buf.readLongLE() );
+	}
+	
 	public  GroupChatInvitedPacket( long  contactId,long  groupId )
 	{
 		super();
 		
-		super.setQos(0,contactId).setGroupId( groupId );
-	}
-	
-	public  GroupChatInvitedPacket(   ByteBuf  byteBuf )
-	{
-		super( byteBuf,0x00 );
-		
-		super.setContactId(byteBuf.readLongLE()).setGroupId( byteBuf.readLongLE() );
+		super.setQos(0,contactId).setGroupId(     groupId );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -48,8 +48,18 @@ public  class  GroupChatInvitedPacket    extends  Packet  < GroupChatInvitedPack
 	@Accessors( chain = true )
 	private  long  groupId;
 	
+	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableBuf )
+	{
+		return  variableBuf.writeLongLE(contactId).writeLongLE(this.groupId );
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  16+super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		write( buf,Unpooled.buffer(16).writeLongLE(contactId).writeLongLE(groupId),PAIPPacketType.GROUP_CHAT_INVITED );
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.GROUP_CHAT_INVITED );
 	}
 }

@@ -28,13 +28,13 @@ import  lombok.experimental.Accessors;
 
 @AllArgsConstructor
 @ToString
-public  class  DisconnectAckPacket  extends  Packet  <DisconnectAckPacket>
+public  class  DisconnectAckPacket  extends  Packet<DisconnectAckPacket>
 {
+	public  final  static  int  NETWORK_ERROR=0x01;
+	
 	public  final  static  int  ACTIVE=0x00;
 	
-	public  final  static  int  NETWORK_ERROR=0x01;
-		
-	public  final  static  int  REMOTE_LOGIN_ERROR = 0x02;
+	public  final  static  int  REMOTE_LOGIN_ERROR  = 0x02;
 	
 	public  DisconnectAckPacket( ByteBuf  byteBuf )
 	{
@@ -48,8 +48,18 @@ public  class  DisconnectAckPacket  extends  Packet  <DisconnectAckPacket>
 	@Accessors(chain=true)
 	private  int   reason;
 
-	public  void  writeTo(    ByteBuf  buf )
+	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableByteBuf )
 	{
-		write( buf,Unpooled.buffer(2).writeShortLE(reason),PAIPPacketType.DISCONNECT_ACK );
+		return  variableByteBuf.writeShortLE(this.reason );
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  2+super.getInitialVariableByteBufferSize();
+	}
+	
+	public  void  writeTo(ByteBuf  byteBuf )
+	{
+		write( byteBuf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.DISCONNECT_ACK );
 	}
 }

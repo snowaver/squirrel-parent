@@ -34,24 +34,24 @@ import  lombok.experimental.Accessors;
 @ToString
 public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 {
-	public  final  static  int  IGNORE  = 0x03;
+	public  final  static  int  IGNORE      = 0x03;
 	
 	public  final  static  int  DENY=0x05;
 	
-	public  final  static  int  ACCEPT  = 0x07;
+	public  final  static  int  ACCEPT      = 0x07;
 	
-	public  SubscribeAckPacket( long  contactId,int  responseCode,Map<String,Object>  subscribeeProfile )
+	public  SubscribeAckPacket( long  contactId , int  responseCode , Map<String, Object>  subscribeeProfile )
 	{
 		super();
 		
 		super.setContactId(contactId).setResponseCode(responseCode).setSubscribeeProfile( subscribeeProfile );
 	}
 	
-	public  SubscribeAckPacket(  ByteBuf  buf )
+	public  SubscribeAckPacket( ByteBuf  byteBuf  )
 	{
-		super( buf,0x00 );
+		super( byteBuf,0x00 );
 		
-		super.setContactId(buf.readLongLE()).setResponseCode(buf.readByte()).setSubscribeeProfile( new  HashMap<String,Object>().addEntries((java.util.Map<String,Object>)  JsonUtils.fromJson(PAIPUtils.decode(buf))) );
+		super.setContactId(byteBuf.readLongLE()).setResponseCode(byteBuf.readByte()).setSubscribeeProfile( new  HashMap<String,Object>().addEntries((java.util.Map<String,Object>)  JsonUtils.fromJson(PAIPUtils.decode(byteBuf))) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -63,8 +63,18 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	@Accessors(chain=true)
 	private  Map<String,Object>  subscribeeProfile = new  HashMap<String,Object>();
 	
+	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variableByteBuf )
+	{
+		ByteBuf  subscribeeProfileByteBuf = PAIPUtils.encode( JsonUtils.toJson(subscribeeProfile == null ? new  HashMap<String,Object>() : subscribeeProfile) );  variableByteBuf.writeLongLE(contactId).writeByte(responseCode).writeBytes(subscribeeProfileByteBuf);  subscribeeProfileByteBuf.release();  return  variableByteBuf;
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  9+super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		ByteBuf  subscribeeProfileByteBuf = PAIPUtils.encode( JsonUtils.toJson(subscribeeProfile == null ? new  HashMap<String,Object>() : subscribeeProfile) );  write( buf,Unpooled.buffer(9).writeLongLE(contactId).writeByte(responseCode).writeBytes(subscribeeProfileByteBuf),PAIPPacketType.SUBSCRIBE_ACK );  subscribeeProfileByteBuf.release();
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.SUBSCRIBE_ACK );
 	}
 }

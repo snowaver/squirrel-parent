@@ -22,9 +22,7 @@ import  java.util.concurrent.ScheduledThreadPoolExecutor;
 import  java.util.concurrent.ThreadPoolExecutor;
 import  java.util.concurrent.TimeUnit;
 
-import org.apache.commons.codec.binary.Hex;
-import  org.joda.time.DateTime;
-import  org.joda.time.DateTimeZone;
+import  org.apache.commons.codec.binary.Hex;
 
 import  io.netty.channel.ChannelHandler.Sharable;
 import  io.netty.util.concurrent.DefaultThreadFactory;
@@ -33,17 +31,20 @@ import  lombok.Getter;
 import  lombok.NonNull;
 import  lombok.Setter;
 import  lombok.experimental.Accessors;
+import  okhttp3.FormBody;
+import  okhttp3.HttpUrl;
 import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 import  okhttp3.Response;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.call.Call;
+import  cc.mashroom.squirrel.client.connect.call.CallError;
+import  cc.mashroom.squirrel.client.connect.call.CallEventDispatcher;
 import  cc.mashroom.squirrel.client.connect.util.HttpUtils;
 import  cc.mashroom.squirrel.client.handler.AutoReconnectChannelInboundHandlerAdapter;
 import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.client.storage.model.user.User;
 import  cc.mashroom.squirrel.common.Tracer;
-import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.call.CallContentType;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
@@ -119,9 +120,44 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	/**
 	 *  return  null  if  a  call  exists  or  a  new  call.
 	 */
-	public  synchronized  Call  newCall(   long  id,long  contactId,@NonNull  CallContentType  contentType )
+	public  synchronized  void  newCall(final  long  roomId,final  long  contactId,@NonNull  final  CallContentType  contentType)
 	{
+		if( roomId <= 0 )
+		{
+			this.synchronousRunner.execute
+			(
+				new  Runnable(){public  void  run()
+				{
+					try( Response  response = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(8,TimeUnit.SECONDS).build().newCall(new  Request.Builder().addHeader("SECRET_KEY",getUserMetadata().getString("SECRET_KEY")).url(new  HttpUrl.Builder().scheme("https").host(getHost()).port(getHttpPort()).addPathSegments("call/room").build()).post(new  FormBody.Builder().add("callee",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
+					{
+						if( response.code()!= 200 )
+						{
+							CallEventDispatcher.onError( -1  /* error */ ,contactId,CallError.CREATE_ROOM );
+						}
+						else
+						{
+							call=new  Call( SquirrelClient.this,Long.parseLong(response.body().string()),contactId,contentType );
+							
+							CallEventDispatcher.onRoomCreated( call.getId() );
+						}
+					}
+					catch(  Exception  e )
+					{
+						{
+							CallEventDispatcher.onError( -2  /* cause */ ,contactId,CallError.CREATE_ROOM );
+						}
+						e.getStackTrace();
+					}
+				}}
+			);
+		}
+		else
+		{
+			this.call  = new  Call( this , roomId , contactId , contentType );
+		}
+		/*
 		return  call != null ? null : ( call = new  Call(this,id >= 1 ? id : Packet.forId(DateTime.now(DateTimeZone.UTC).getMillis()),contactId,contentType) );
+		*/
 	}
 	/**
 	 *  connect  by  id.  username  and  password  encrypted  can  be  queried  by  id  from  local  h2  database.  a  new  connect  parameters  will  be  generated  for  the  http  authenticate  request.

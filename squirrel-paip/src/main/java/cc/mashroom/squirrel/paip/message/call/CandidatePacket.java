@@ -23,30 +23,25 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
-import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString
-public  class  CandidatePacket  extends  Packet  <CandidatePacket>
+public  class  CandidatePacket  extends  AbstractCallPacket<CandidatePacket>
 {
-	public  CandidatePacket( long  contactId,long  callId,Candidate  candidate )
+	public  CandidatePacket( long  contactId,long  roomId,Candidate  candidate )
 	{
-		super();
+		super( roomId   );
 		
-		super.setContactId(contactId).setCallId(callId).setCandidate(candidate);
+		super.setContactId(contactId).setCandidate( candidate );
 	}
 	
 	public  CandidatePacket(ByteBuf  buf )
 	{
 		super( buf,0x00 );
 		
-		this.setCallId(buf.readLongLE()).setContactId(buf.readLongLE()).setCandidate( new  Candidate(PAIPUtils.decode(buf),buf.readIntLE(),PAIPUtils.decode(buf)) );
+		this.setContactId(buf.readLongLE()).setCandidate( new  Candidate(PAIPUtils.decode(buf),buf.readIntLE(),PAIPUtils.decode(buf)) );
 	}
 	
-	@Setter( value=AccessLevel.PROTECTED )
-	@Getter
-	@Accessors(chain=true)
-	private  long  callId;
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
@@ -54,6 +49,6 @@ public  class  CandidatePacket  extends  Packet  <CandidatePacket>
 	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		ByteBuf  candidateByteBuf = PAIPUtils.encode( candidate.getCandidate() );  ByteBuf  idByteBuf = PAIPUtils.encode( candidate.getId() );  write( buf,Unpooled.buffer(20).writeLongLE(callId).writeLongLE(contactId).writeBytes(idByteBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf),PAIPPacketType.CALL_CANDIDATE );  idByteBuf.release();  candidateByteBuf.release();
+		ByteBuf  candidateByteBuf = PAIPUtils.encode( candidate.getCandidate() );  ByteBuf  idByteBuf = PAIPUtils.encode( candidate.getId() );  write( buf,super.writeToVariableByteBuf(Unpooled.buffer(12+super.getInitialVariableByteBufferSize())).writeLongLE(contactId).writeBytes(idByteBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf),PAIPPacketType.CALL_CANDIDATE );  idByteBuf.release();  candidateByteBuf.release();
 	}
 }

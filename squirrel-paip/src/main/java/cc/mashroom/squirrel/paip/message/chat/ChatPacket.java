@@ -57,10 +57,20 @@ public  class  ChatPacket  extends  Packet  <ChatPacket>  //  implements  Receip
 	@Accessors(chain=true)
 	private  byte[]   content;
 	
+	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf )
+	{
+		ByteBuf  contentByteBuf = PAIPUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPUtils.encode( md5 == null ? "" : md5 );  variableByteBuf.writeLongLE(contactId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableByteBuf;
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  9+super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo(  ByteBuf  buf )
 	{
 		super.getHeader().setQos(  0x01 );
 		
-		ByteBuf  contentByteBuf = PAIPUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPUtils.encode( md5 == null ? "" : md5 );  write( buf,Unpooled.buffer(9).writeLongLE(contactId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf),PAIPPacketType.CHAT );  md5ByteBuf.release();  contentByteBuf.release();
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CHAT );  
 	}
 }

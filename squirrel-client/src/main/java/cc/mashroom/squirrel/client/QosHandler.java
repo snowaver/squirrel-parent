@@ -94,16 +94,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		else
 		if( packet instanceof CallPacket    )
 		{
-			if( adapter.newCall(ObjectUtils.cast(packet , CallPacket.class).getCallId(),ObjectUtils.cast(packet , CallPacket.class).getContactId(),ObjectUtils.cast( packet,CallPacket.class ).getContentType()) == null )
-			{
-				adapter.send( new  CallAckPacket(ObjectUtils.cast(packet,CallPacket.class).getId(),ObjectUtils.cast(packet,CallPacket.class).getContactId(),ObjectUtils.cast(packet,CallPacket.class).getCallId(),CallAckPacket.BUSY) );
-			
-				return;
-			}
-			else
-			{
-				adapter.getCall().setCallPacketId(     ObjectUtils.cast(packet,CallPacket.class).getId() );
-			}
+			adapter.newCall( ObjectUtils.cast(packet , CallPacket.class).getRoomId(),ObjectUtils.cast(packet , CallPacket.class).getContactId(),ObjectUtils.cast( packet,CallPacket.class ).getContentType() );
 		}
 		else
 		if( packet.getHeader().getQos()== 1 )
@@ -113,7 +104,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		else
 		if( packet instanceof CloseCallPacket     )
 		{
-			if( adapter.getCall() == null || adapter.getCall().getId() != ObjectUtils.cast(packet, CloseCallPacket.class).getCallId() || adapter.getCall().getContactId() != ObjectUtils.cast(packet,CloseCallPacket.class).getContactId() )
+			if( adapter.getCall() == null || adapter.getCall().getId() != ObjectUtils.cast(packet, CloseCallPacket.class).getRoomId() || adapter.getCall().getContactId() != ObjectUtils.cast(packet,CloseCallPacket.class).getContactId() )
 			{
 				return;
 			}

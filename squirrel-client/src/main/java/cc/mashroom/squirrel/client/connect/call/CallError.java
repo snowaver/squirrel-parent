@@ -17,5 +17,5 @@ package cc.mashroom.squirrel.client.connect.call;
 
 public  enum  CallError
 {
-	UNKNOWN,NO_RESPONSE,OFFLINE
+	UNKNOWN,CREATE_ROOM,NO_RESPONSE,OFFLINE,
 }

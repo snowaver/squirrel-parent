@@ -24,15 +24,20 @@ import  lombok.ToString;
 
 @AllArgsConstructor
 @ToString
-public  class  DisconnectPacket  extends  Packet    <DisconnectPacket>
+public  class  DisconnectPacket  extends  Packet  <DisconnectPacket>
 {
 	public  DisconnectPacket( ByteBuf  byteBuf )
 	{
 		super( byteBuf,0x00 );
 	}
 
+	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableBuf )
+	{
+		return    variableBuf;
+	}
+	
 	public  void  writeTo(    ByteBuf  byteBuf )
 	{
-		write( byteBuf,Unpooled.buffer(0),PAIPPacketType.DISCONNECT );
+		write( byteBuf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.DISCONNECT );
 	}
 }
