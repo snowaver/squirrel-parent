@@ -52,7 +52,7 @@ public  class  ConnectAckPacket   extends  Packet  <ConnectAckPacket>
     @Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-    private  int responseCode;
+    private  int  responseCode;
     @Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)

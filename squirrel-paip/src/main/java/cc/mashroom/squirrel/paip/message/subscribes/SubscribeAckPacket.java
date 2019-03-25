@@ -34,11 +34,11 @@ import  lombok.experimental.Accessors;
 @ToString
 public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 {
-	public  final  static  int  IGNORE      = 0x03;
+	public  final  static  int  ACK_IGNORE  = 0x03;
 	
-	public  final  static  int  DENY=0x05;
+	public  final  static  int  ACK_DENY    = 0x05;
 	
-	public  final  static  int  ACCEPT      = 0x07;
+	public  final  static  int  ACK_ACCEPT  = 0x07;
 	
 	public  SubscribeAckPacket( long  contactId , int  responseCode , Map<String, Object>  subscribeeProfile )
 	{

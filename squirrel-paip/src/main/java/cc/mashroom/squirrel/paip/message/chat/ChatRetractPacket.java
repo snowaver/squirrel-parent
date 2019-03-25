@@ -39,18 +39,18 @@ public  class  ChatRetractPacket  extends  Packet<ChatRetractPacket>
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  long chatPacketId;
+	private  long  chatPacketId;
 	
 	public  ChatRetractPacket(   ByteBuf  byteBuf )
 	{
-		super( byteBuf, 0x00 );
+		super( byteBuf , 0x00 );
 		
 		super.setContactId(byteBuf.readLongLE()).setChatPacketId( byteBuf.readLongLE() );
 	}
 	
-	public  ByteBuf  writeToVariableByteBuf(      ByteBuf  byteBuf )
+	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableBuf )
 	{
-		return  byteBuf.writeLongLE(contactId).writeLongLE( chatPacketId );
+		return  variableBuf.writeLongLE(contactId).writeLongLE( chatPacketId );
 	}
 	
 	public  int  getInitialVariableByteBufferSize()

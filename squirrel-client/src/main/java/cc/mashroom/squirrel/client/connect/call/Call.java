@@ -157,7 +157,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	{
 		if( state.compareAndSet(CallState.REQUESTED , CallState.ACCEPT) )
 		{
-			this.context.send( new  CallAckPacket(contactId,id,CallAckPacket.ACCEPT ) );
+			context.send( new  CallAckPacket(contactId, id, CallAckPacket.ACK_ACCEPT) );
 		}
 		else
 		{
@@ -169,7 +169,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	{
 		if( state.compareAndSet(CallState.REQUESTED , CallState.REJECT) )
 		{
-			this.context.send( new  CallAckPacket(contactId,id,CallAckPacket.REJECT ) );
+			context.send( new  CallAckPacket(contactId, id, CallAckPacket.ACK_REJECT) );
 			
 			close();
 		}
@@ -245,7 +245,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		else
 		if( packet instanceof CallAckPacket   )
 		{
-			if( ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.ACCEPT     && this.state.compareAndSet(CallState.REQUESTING, CallState.ACCEPTED) )
+			if( ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.ACK_ACCEPT && this.state.compareAndSet(CallState.REQUESTING, CallState.ACCEPTED) )
 			{
 				connection.createOffer( this , constraints );
 				/*

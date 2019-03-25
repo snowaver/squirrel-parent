@@ -96,6 +96,6 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 	
 	public  void  writeTo( ByteBuf  byteBuf )
 	{
-		write( byteBuf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CONNECT );
+		super.write( byteBuf , this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())), PAIPPacketType.CONNECT );
 	}
 }

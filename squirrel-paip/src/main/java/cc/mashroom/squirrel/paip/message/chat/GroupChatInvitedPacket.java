@@ -48,14 +48,14 @@ public  class  GroupChatInvitedPacket  extends  Packet<GroupChatInvitedPacket>
 	@Accessors( chain = true )
 	private  long  groupId;
 	
-	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableBuf )
-	{
-		return  variableBuf.writeLongLE(contactId).writeLongLE(this.groupId );
-	}
-	
 	public  int  getInitialVariableByteBufferSize()
 	{
 		return  16+super.getInitialVariableByteBufferSize();
+	}
+	
+	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableBuf )
+	{
+		return  variableBuf.writeLongLE(contactId).writeLongLE(this.groupId );
 	}
 	
 	public  void  writeTo(  ByteBuf  buf )

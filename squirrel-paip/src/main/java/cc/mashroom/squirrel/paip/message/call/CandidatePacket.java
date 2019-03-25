@@ -26,7 +26,7 @@ import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString
-public  class  CandidatePacket  extends  AbstractCallPacket<CandidatePacket>
+public  class  CandidatePacket      extends  AbstractCallPacket<CandidatePacket>
 {
 	public  CandidatePacket( long  contactId,long  roomId,Candidate  candidate )
 	{
@@ -39,7 +39,7 @@ public  class  CandidatePacket  extends  AbstractCallPacket<CandidatePacket>
 	{
 		super( buf,0x00 );
 		
-		this.setContactId(buf.readLongLE()).setCandidate( new  Candidate(PAIPUtils.decode(buf),buf.readIntLE(),PAIPUtils.decode(buf)) );
+		this.setContactId(buf.readLongLE()).setCandidate( new  Candidate(PAIPUtils.decode(buf),buf.readIntLE(), PAIPUtils.decode(buf)) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -47,8 +47,18 @@ public  class  CandidatePacket  extends  AbstractCallPacket<CandidatePacket>
 	@Accessors(chain=true)
 	private  Candidate  candidate;
 	
+	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
+	{
+		ByteBuf  candidateByteBuf = PAIPUtils.encode( candidate.getCandidate() );  ByteBuf  idByteBuf = PAIPUtils.encode( candidate.getId() );  byteBuf.writeLongLE(contactId).writeBytes(idByteBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf);  idByteBuf.release();  candidateByteBuf.release();  return  byteBuf;
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  12  +  super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		ByteBuf  candidateByteBuf = PAIPUtils.encode( candidate.getCandidate() );  ByteBuf  idByteBuf = PAIPUtils.encode( candidate.getId() );  write( buf,super.writeToVariableByteBuf(Unpooled.buffer(12+super.getInitialVariableByteBufferSize())).writeLongLE(contactId).writeBytes(idByteBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf),PAIPPacketType.CALL_CANDIDATE );  idByteBuf.release();  candidateByteBuf.release();
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CALL_CANDIDATE );
 	}
 }

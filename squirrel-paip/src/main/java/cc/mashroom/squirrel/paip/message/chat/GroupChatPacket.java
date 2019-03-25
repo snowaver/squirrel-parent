@@ -30,19 +30,19 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 @AllArgsConstructor
 @ToString
 public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
-{
-	public  GroupChatPacket( long  contactId,long  groupId,String  md5,ChatContentType  contentType,byte[]  content )
-	{
-		super();
-		
-		super.setContactId(contactId).setGroupId(groupId).setMd5(md5).setContentType(contentType).setContent( content );
-	}
-	
+{	
 	public  GroupChatPacket(ByteBuf  buf )
 	{
 		super( buf,0x00 );
 		
 		super.setContactId(buf.readLongLE()).setGroupId(buf.readLongLE()).setContentType(ChatContentType.valueOf(buf.readByte())).setMd5(PAIPUtils.decode(buf)).setContent( PAIPUtils.decodeBytes(buf) );
+	}
+	
+	public  GroupChatPacket( long  contactId,long  groupId,String  md5,ChatContentType  contentType,byte[]  content )
+	{
+		super();
+		
+		setContactId(contactId).setGroupId(groupId).setMd5(md5 ).setContentType( contentType ).setContent( content );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -62,14 +62,14 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 	@Accessors(chain=true)
 	private  byte[]   content;
 	
-	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variableBuf )
-	{
-		ByteBuf  contentByteBuf= PAIPUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPUtils.encode( md5 );  variableBuf.writeLongLE(contactId).writeLongLE(groupId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableBuf;
-	}
-	
 	public  int  getInitialVariableByteBufferSize()
 	{
 		return  17+super.getInitialVariableByteBufferSize();
+	}
+	
+	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variableBuf )
+	{
+		ByteBuf  contentByteBuf= PAIPUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPUtils.encode( md5 );  variableBuf.writeLongLE(contactId).writeLongLE(groupId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableBuf;
 	}
 	
 	public  void  writeTo(  ByteBuf  buf )

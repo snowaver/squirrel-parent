@@ -29,19 +29,19 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString
 public  class  ChatPacket  extends  Packet  <ChatPacket>  //  implements  Receiptable
-{
-	public  ChatPacket( long  contactId,String  md5,ChatContentType  contentType,byte[]  content )
-	{
-		super();
-		
-		super.setQos(1,contactId).setMd5(md5).setContentType( contentType ).setContent( content );
-	}
-	
+{	
 	public  ChatPacket( ByteBuf  byteBuf )
 	{
 		super( byteBuf,0x00 );
 		
 		super.setContactId(byteBuf.readLongLE()).setContentType(ChatContentType.valueOf(byteBuf.readByte())).setMd5(PAIPUtils.decode(byteBuf)).setContent( PAIPUtils.decodeBytes(byteBuf) );
+	}
+	
+	public  ChatPacket( long  contactId,String  md5,ChatContentType  contentType,byte[]  content )
+	{
+		super();
+		
+		super.setQos(1,contactId).setMd5(md5).setContentType( contentType ).setContent( content );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )

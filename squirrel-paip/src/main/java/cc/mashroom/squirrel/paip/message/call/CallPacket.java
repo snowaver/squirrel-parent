@@ -32,7 +32,7 @@ public  class  CallPacket  extends  AbstractCallPacket  <CallPacket>
 	
 	public  final  static  AttributeKey<Long>  ROOM_ID = AttributeKey.newInstance( "CALL_ID" );
 	*/
-	public  CallPacket( long  contactId, long  roomId, CallContentType  contentType )
+	public  CallPacket( long  contactId , long  roomId , CallContentType  contentType )
 	{
 		super( roomId   );
 		
@@ -49,14 +49,20 @@ public  class  CallPacket  extends  AbstractCallPacket  <CallPacket>
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  long  roomId;
-	@Setter( value=AccessLevel.PROTECTED )
-	@Getter
-	@Accessors(chain=true)
 	private  CallContentType  contentType;
 
+	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableBuf )
+	{
+		return  variableBuf.writeLongLE(contactId).writeByte( contentType.getValue() );
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  9+super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		write( buf,super.writeToVariableByteBuf(Unpooled.buffer(9+super.getInitialVariableByteBufferSize())).writeLongLE(contactId).writeByte(contentType.getValue()),PAIPPacketType.CALL );
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CALL );
 	}
 }

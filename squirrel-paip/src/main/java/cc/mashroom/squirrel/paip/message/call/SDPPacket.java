@@ -26,13 +26,13 @@ import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString
-public  class  SDPPacket   extends  AbstractCallPacket<SDPPacket>  //  implements  Receiptable
+public  class  SDPPacket       extends  AbstractCallPacket  <SDPPacket>
 {
 	public  SDPPacket( long  contactId,long  roomId,SDP  sdp )
 	{
 		super( roomId );
 		
-		super.setContactId(contactId).setSdp( sdp );
+		this.setContactId(contactId).setSdp( sdp );
 	}
 	
 	public  SDPPacket(  ByteBuf  byteBuf )
@@ -48,8 +48,18 @@ public  class  SDPPacket   extends  AbstractCallPacket<SDPPacket>  //  implement
 	
 	private  SDP    sdp;
 
+	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf )
+	{
+		ByteBuf  sdpBuf = sdp.toByteBuf();  variableByteBuf.writeLongLE(contactId).writeBytes(sdpBuf);  sdpBuf.release();  return  variableByteBuf;
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  8 +  super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		ByteBuf  sdpByteBuf = sdp.toByteBuf();  write( buf,super.writeToVariableByteBuf(Unpooled.buffer(8+super.getInitialVariableByteBufferSize())).writeLongLE(contactId).writeBytes(sdpByteBuf),PAIPPacketType.CALL_SDP );  sdpByteBuf.release();
+		  write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CALL_SDP );  
 	}
 }

@@ -27,9 +27,9 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 @ToString
 public  class  CallAckPacket  extends  AbstractCallPacket<CallAckPacket>
 {
-	public  final  static  int  ACCEPT  = 0x00;
+	public  final  static  int  ACK_ACCEPT  = 0x00;
 	
-	public  final  static  int  REJECT  = 0x01;
+	public  final  static  int  ACK_REJECT  = 0x01;
 	
 	public  CallAckPacket( /* long  callPacketId, */  long  contactId,long  roomId,int  responseCode )
 	{
@@ -42,7 +42,7 @@ public  class  CallAckPacket  extends  AbstractCallPacket<CallAckPacket>
 	{
 		super( buf,0x00 );
 		
-		this.setResponseCode( buf.readByte() );
+		setResponseCode( buf.readByte() );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -50,8 +50,18 @@ public  class  CallAckPacket  extends  AbstractCallPacket<CallAckPacket>
 	@Accessors(chain=true)
 	private  int  responseCode;
 	
+	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableByteBuf )
+	{
+		return  variableByteBuf.writeLongLE(contactId).writeByte( responseCode );
+	}
+	
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  9+super.getInitialVariableByteBufferSize();
+	}
+	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		write( buf,super.writeToVariableByteBuf(Unpooled.buffer(9+super.getInitialVariableByteBufferSize())).writeLongLE(contactId).writeByte(responseCode),PAIPPacketType.CALL_ACK );
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CALL_ACK );
 	}
 }
