@@ -17,6 +17,7 @@ package cc.mashroom.squirrel.paip.message.call;
 
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
+import io.netty.util.AttributeKey;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
@@ -27,11 +28,13 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 @ToString
 public  class  CallPacket  extends  AbstractCallPacket  <CallPacket>
 {
+	public  final  static  AttributeKey<Long>  CALL_ROOM_ID = AttributeKey.newInstance( "CALL_ROOM_ID" );
 	/*
 	public  final  static  AttributeKey<Long>  CALL_CONTACT_ID = AttributeKey.newInstance( "CALL_CONTACT_ID" );
 	
 	public  final  static  AttributeKey<Long>  ROOM_ID = AttributeKey.newInstance( "CALL_ID" );
 	*/
+	
 	public  CallPacket( long  contactId , long  roomId , CallContentType  contentType )
 	{
 		super( roomId   );
