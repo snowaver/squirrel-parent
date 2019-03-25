@@ -28,12 +28,7 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 @ToString
 public  class  CallPacket  extends  AbstractCallPacket  <CallPacket>
 {
-	public  final  static  AttributeKey<Long>  CALL_ROOM_ID = AttributeKey.newInstance( "CALL_ROOM_ID" );
-	/*
-	public  final  static  AttributeKey<Long>  CALL_CONTACT_ID = AttributeKey.newInstance( "CALL_CONTACT_ID" );
-	
-	public  final  static  AttributeKey<Long>  ROOM_ID = AttributeKey.newInstance( "CALL_ID" );
-	*/
+	public  final  static  AttributeKey<Long>  CALL_ROOM_ID  = AttributeKey.newInstance( "CALL_ROOM_ID" );
 	
 	public  CallPacket( long  contactId , long  roomId , CallContentType  contentType )
 	{
@@ -46,7 +41,7 @@ public  class  CallPacket  extends  AbstractCallPacket  <CallPacket>
 	{
 		super( byteBuf , 0x00 );
 		
-		this.setContactId(byteBuf.readLongLE()).setContentType( CallContentType.valueOf( byteBuf.readByte()) );
+		setContactId(byteBuf.readLongLE()).setContentType( CallContentType.valueOf( byteBuf.readByte()) );
 	}
 
 	@Setter( value=AccessLevel.PROTECTED )
@@ -56,7 +51,7 @@ public  class  CallPacket  extends  AbstractCallPacket  <CallPacket>
 
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableBuf )
 	{
-		return  variableBuf.writeLongLE(contactId).writeByte( contentType.getValue() );
+		return  super.writeToVariableByteBuf(variableBuf).writeLongLE(this.contactId).writeByte( this.contentType.getValue() );
 	}
 	
 	public  int  getInitialVariableByteBufferSize()

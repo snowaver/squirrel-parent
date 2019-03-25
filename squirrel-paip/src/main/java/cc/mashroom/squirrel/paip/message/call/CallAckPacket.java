@@ -31,11 +31,11 @@ public  class  CallAckPacket  extends  AbstractCallPacket<CallAckPacket>
 	
 	public  final  static  int  ACK_REJECT  = 0x01;
 	
-	public  CallAckPacket( /* long  callPacketId, */  long  contactId,long  roomId,int  responseCode )
+	public  CallAckPacket( long  contactId,long  roomId, int  response )
 	{
 		super( roomId   );
 		
-		this.setContactId( contactId ).setResponseCode(  responseCode );
+		setContactId(contactId).setResponseCode(response );
 	}
 	
 	public  CallAckPacket(  ByteBuf  buf )
@@ -52,7 +52,7 @@ public  class  CallAckPacket  extends  AbstractCallPacket<CallAckPacket>
 	
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableByteBuf )
 	{
-		return  variableByteBuf.writeLongLE(contactId).writeByte( responseCode );
+		return  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(contactId).writeByte( responseCode );
 	}
 	
 	public  int  getInitialVariableByteBufferSize()

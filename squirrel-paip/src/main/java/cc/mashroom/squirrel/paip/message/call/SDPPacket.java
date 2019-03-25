@@ -50,7 +50,7 @@ public  class  SDPPacket       extends  AbstractCallPacket  <SDPPacket>
 
 	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf )
 	{
-		ByteBuf  sdpBuf = sdp.toByteBuf();  variableByteBuf.writeLongLE(contactId).writeBytes(sdpBuf);  sdpBuf.release();  return  variableByteBuf;
+		ByteBuf  sdpBuf = sdp.toByteBuf();  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(contactId).writeBytes( sdpBuf );  sdpBuf.release();  return  variableByteBuf;
 	}
 	
 	public  int  getInitialVariableByteBufferSize()
@@ -60,6 +60,6 @@ public  class  SDPPacket       extends  AbstractCallPacket  <SDPPacket>
 	
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		  write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CALL_SDP );  
+		  write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())), PAIPPacketType.CALL_SDP );  
 	}
 }

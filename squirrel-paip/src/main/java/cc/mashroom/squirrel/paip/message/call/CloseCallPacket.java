@@ -34,6 +34,11 @@ public  class  CloseCallPacket  extends  AbstractCallPacket<CloseCallPacket>
 		this.setContactId(contactId).setReason(  this.reason );
 	}
 	
+	public  ByteBuf  writeToVariableByteBuf( ByteBuf  byteBuf )
+	{
+		return  super.writeToVariableByteBuf(byteBuf).writeLongLE(contactId).writeShortLE( reason.getValue() );
+	}
+	
 	public  CloseCallPacket( ByteBuf buf )
 	{
 		super( buf,0x00 );
@@ -45,12 +50,7 @@ public  class  CloseCallPacket  extends  AbstractCallPacket<CloseCallPacket>
 	@Getter
 	@Accessors(chain=true)
 	private  CloseCallReason  reason;
-	
-	public  ByteBuf  writeToVariableByteBuf( ByteBuf  byteBuf )
-	{
-		return  byteBuf.writeLongLE( contactId ).writeShortLE( reason.getValue() );
-	}
-	
+		
 	public  int  getInitialVariableByteBufferSize()
 	{
 		return  10 +  super.getInitialVariableByteBufferSize();

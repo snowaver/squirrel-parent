@@ -49,7 +49,7 @@ public  class  CandidatePacket      extends  AbstractCallPacket<CandidatePacket>
 	
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
 	{
-		ByteBuf  candidateByteBuf = PAIPUtils.encode( candidate.getCandidate() );  ByteBuf  idByteBuf = PAIPUtils.encode( candidate.getId() );  byteBuf.writeLongLE(contactId).writeBytes(idByteBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf);  idByteBuf.release();  candidateByteBuf.release();  return  byteBuf;
+		ByteBuf  candidateByteBuf = PAIPUtils.encode( candidate.getCandidate() );  ByteBuf  idBuf= PAIPUtils.encode( candidate.getId() );  super.writeToVariableByteBuf(byteBuf).writeLongLE(contactId).writeBytes(idBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf);  idBuf.release();  candidateByteBuf.release();  return  byteBuf;
 	}
 	
 	public  int  getInitialVariableByteBufferSize()
