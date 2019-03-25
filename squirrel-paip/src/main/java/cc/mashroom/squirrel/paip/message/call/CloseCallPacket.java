@@ -31,7 +31,7 @@ public  class  CloseCallPacket  extends  AbstractCallPacket<CloseCallPacket>
 	{
 		super( roomId   );
 		
-		this.setContactId(contactId).setReason(  this.reason );
+		setContactId(contactId).setReason(reason );
 	}
 	
 	public  ByteBuf  writeToVariableByteBuf( ByteBuf  byteBuf )
