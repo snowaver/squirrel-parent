@@ -27,7 +27,7 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
 @AllArgsConstructor
-@ToString
+@ToString(callSuper=true )
 public  class  DisconnectAckPacket  extends  Packet<DisconnectAckPacket>
 {
 	public  final  static  int  NETWORK_ERROR=0x01;
@@ -36,11 +36,11 @@ public  class  DisconnectAckPacket  extends  Packet<DisconnectAckPacket>
 	
 	public  final  static  int  REMOTE_LOGIN_ERROR  = 0x02;
 	
-	public  DisconnectAckPacket( ByteBuf  byteBuf )
+	public  DisconnectAckPacket(     ByteBuf  buf )
 	{
-		super( byteBuf,0x00 );
+		super( buf,0x00 );
 		
-		this.setReason(    byteBuf.readShortLE() );
+		this.setReason( buf.readShortLE() );
 	}
 	
 	@Setter( value = AccessLevel.PROTECTED )

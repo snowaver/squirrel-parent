@@ -31,7 +31,7 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
 @AllArgsConstructor
-@ToString
+@ToString(  callSuper  = true )
 public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 {
 	public  final  static  int  ACK_IGNORE  = 0x03;
@@ -49,7 +49,7 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	
 	public  SubscribeAckPacket( ByteBuf  byteBuf  )
 	{
-		super( byteBuf,0x00 );
+		super( byteBuf, 0x00 );
 		
 		super.setContactId(byteBuf.readLongLE()).setResponseCode(byteBuf.readByte()).setSubscribeeProfile( new  HashMap<String,Object>().addEntries((java.util.Map<String,Object>)  JsonUtils.fromJson(PAIPUtils.decode(byteBuf))) );
 	}

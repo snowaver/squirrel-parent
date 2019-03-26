@@ -31,7 +31,7 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
 @AllArgsConstructor
-@ToString
+@ToString(callSuper=true )
 public  class  QosReceiptPacket<T extends QosReceiptPacket<?>>  extends  Packet<T>
 {
 	public  QosReceiptPacket(ByteBuf  buf )

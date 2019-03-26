@@ -29,7 +29,7 @@ import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
-@ToString
+@ToString(   callSuper = true )
 public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 {
 	public  final  static  AttributeKey<Integer>  PROTOCOL_VERSION  = AttributeKey.newInstance( "PROTOCOL_VERSION" );

@@ -23,7 +23,7 @@ import  lombok.AllArgsConstructor;
 import  lombok.ToString;
 
 @AllArgsConstructor
-@ToString
+@ToString( callSuper=true )
 public  class  PingPacket  extends  Packet  <PingPacket>
 {
 	public  PingPacket( ByteBuf  byteBuf )

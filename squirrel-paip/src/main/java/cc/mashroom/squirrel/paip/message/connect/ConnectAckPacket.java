@@ -27,7 +27,7 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
 @AllArgsConstructor
-@ToString
+@ToString(callSuper=true )
 public  class  ConnectAckPacket   extends  Packet  <ConnectAckPacket>
 {
     public  final  static  int  CONNECTION_ACCEPTED  = 0x00;

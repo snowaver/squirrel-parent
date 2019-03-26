@@ -26,7 +26,7 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
-@ToString
+@ToString(callSuper=true )
 public  class  ChatRetractPacket  extends  Packet<ChatRetractPacket>
 {
 	public  ChatRetractPacket( long  contactId, long  chatPacketId )

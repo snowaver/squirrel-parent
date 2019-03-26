@@ -30,7 +30,7 @@ import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
-@ToString
+@ToString(callSuper=true )
 public  class  SubscribePacket  extends  Packet<SubscribePacket>
 {
 	public  SubscribePacket( long  subscriberId,HashMap<String,Object>  subscriberProfile )

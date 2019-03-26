@@ -24,7 +24,7 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
-@ToString
+@ToString(callSuper=true )
 public  class  CallAckPacket  extends  AbstractCallPacket<CallAckPacket>
 {
 	public  final  static  int  ACK_ACCEPT  = 0x00;

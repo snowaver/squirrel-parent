@@ -23,7 +23,7 @@ import  lombok.AllArgsConstructor;
 import  lombok.ToString;
 
 @AllArgsConstructor
-@ToString
+@ToString(  callSuper = true )
 public  class  DisconnectPacket  extends  Packet  <DisconnectPacket>
 {
 	public  DisconnectPacket( ByteBuf  byteBuf )

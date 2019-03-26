@@ -26,7 +26,7 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
-@ToString
+@ToString(callSuper=true )
 public  class  GroupChatInvitedPacket  extends  Packet<GroupChatInvitedPacket>
 {
 	public  GroupChatInvitedPacket(  ByteBuf  buf )

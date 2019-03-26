@@ -25,7 +25,7 @@ import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
-@ToString
+@ToString(callSuper=true )
 public  class  CandidatePacket      extends  AbstractCallPacket<CandidatePacket>
 {
 	public  CandidatePacket( long  contactId,long  roomId,Candidate  candidate )

@@ -24,7 +24,7 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
-@ToString
+@ToString(callSuper=true )
 public  class  CloseCallPacket  extends  AbstractCallPacket<CloseCallPacket>
 {
 	public  CloseCallPacket( long  contactId,long  roomId,CloseCallReason  reason )

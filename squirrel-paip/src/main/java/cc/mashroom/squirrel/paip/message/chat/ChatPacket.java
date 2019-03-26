@@ -27,7 +27,7 @@ import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
-@ToString
+@ToString(  callSuper = true )
 public  class  ChatPacket  extends  Packet  <ChatPacket>  //  implements  Receiptable
 {	
 	public  ChatPacket( ByteBuf  byteBuf )

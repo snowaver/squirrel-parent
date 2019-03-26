@@ -23,7 +23,7 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.message.Packet;
 
-@ToString
+@ToString(callSuper=true )
 public  abstract  class  AbstractCallPacket<T extends AbstractCallPacket<?>>  extends  Packet<T>
 {	
 	public  AbstractCallPacket( long roomId )

@@ -28,7 +28,7 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @AllArgsConstructor
-@ToString
+@ToString(callSuper=true )
 public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 {	
 	public  GroupChatPacket(ByteBuf  buf )
