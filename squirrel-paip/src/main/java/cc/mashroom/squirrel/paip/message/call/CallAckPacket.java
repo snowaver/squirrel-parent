@@ -42,7 +42,7 @@ public  class  CallAckPacket  extends  AbstractCallPacket<CallAckPacket>
 	{
 		super( buf,0x00 );
 		
-		setResponseCode( buf.readByte() );
+		setContactId(buf.readLongLE()).setResponseCode(buf.readByte() );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
