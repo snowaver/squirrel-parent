@@ -95,13 +95,13 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
             this.localMs.addTrack(videoPlayTrack );
         }
         
-        localMs.addTrack( peerConnectionFactory.createAudioTrack("ARDAMSa0",peerConnectionFactory.createAudioSource(new  MediaConstraints())) );
+        this.localMs.addTrack(peerConnectionFactory.createAudioTrack("ARDAMSa0",peerConnectionFactory.createAudioSource(new  MediaConstraints())) );
         
         this.setConnection(peerConnectionFactory.createPeerConnection(parameters.ices,connectionMediaConstraints,this)).getConnection().addStream( localMs,new  MediaConstraints() );
 	
         return  this;
 	}
-	
+		
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
@@ -124,7 +124,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	private  long  contactId;
 	@Setter( value=AccessLevel.PROTECTED )
 	@Accessors(chain=true)
-	private  AtomicReference<CallState>  state    = new  AtomicReference<CallState>( CallState.NONE );
+	private  AtomicReference<CallState>  state = new  AtomicReference<CallState>(    CallState.NONE );
 	@Setter( value=AccessLevel.PROTECTED )
 	@Accessors(chain=true)
     private  VideoSource  videoSource;
@@ -171,7 +171,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		{
 			context.send( new  CallAckPacket(contactId, id, CallAckPacket.ACK_REJECT) );
 			
-			close();
+			this.release( true    , CloseCallReason.REJECT );
 		}
 		else
 		{
@@ -183,7 +183,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	{
 		if( packet instanceof CloseCallPacket && transportState == TransportState.SENT )
 		{
-			release(  true );
+			release( true, ObjectUtils.cast(packet,CloseCallPacket.class).getReason() );
 		}
 	}
 
@@ -213,7 +213,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	
 	public  void   close()
 	{
-		this.context.send( new  CloseCallPacket(this.contactId,id,CloseCallReason.CLOSE_ACTIVELY),5,TimeUnit.SECONDS );
+		this.context.send(       new  CloseCallPacket( this.contactId , this.id , CloseCallReason.BY_USER ) , 5 , TimeUnit.SECONDS );
 	}
 	
 	public  boolean  beforeSend(Packet packet )
@@ -221,7 +221,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		return  true;
 	}
 	
-	private  void  release(boolean  proactive )
+	private  void  release(boolean  proactively,CloseCallReason  reason )
 	{
 		PacketEventDispatcher.removeListener( this );
 		
@@ -233,7 +233,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
     	
         this.peerConnectionFactory.dispose(  );
 		
-		CallEventDispatcher.onClose(id,contactId,proactive,state.get() );
+		CallEventDispatcher.onClose(this,proactively,reason);
 	}
 	
 	public  void  received(    Packet  packet )
@@ -248,15 +248,12 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 			if( ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.ACK_ACCEPT && this.state.compareAndSet(CallState.REQUESTING, CallState.ACCEPTED) )
 			{
 				connection.createOffer( this , constraints );
-				/*
-				CallEventDispatcher.onResponded( id,ObjectUtils.cast(packet,CallAckPacket.class).getContactId(),ObjectUtils.cast(packet, CallAckPacket.class).getResponseCode() );
-				*/
 			}
 		}
 		else
 		if( packet instanceof CloseCallPacket )
 		{
-			release( false );
+			release( false,ObjectUtils.cast(packet,CloseCallPacket.class).getReason() );
 		}
 		else
 		if( packet instanceof SDPPacket  )
@@ -267,15 +264,11 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 			{
 				connection.createAnswer(  this,constraints );
 			}
-			
-			CallEventDispatcher.onReceivedSdp( ObjectUtils.cast(packet,SDPPacket.class).getRoomId(),ObjectUtils.cast(packet,SDPPacket.class).getContactId(),ObjectUtils.cast(packet,SDPPacket.class).getSdp() );
 		}
 		else
 		if( packet instanceof CandidatePacket )
 		{
 			connection.addIceCandidate( new  IceCandidate(ObjectUtils.cast(packet,CandidatePacket.class).getCandidate().getId(),ObjectUtils.cast(packet,CandidatePacket.class).getCandidate().getLineIndex(),ObjectUtils.cast(packet,CandidatePacket.class).getCandidate().getCandidate()) );
-			
-			CallEventDispatcher.onReceivedCandidate( ObjectUtils.cast(packet,CandidatePacket.class).getRoomId(),ObjectUtils.cast(packet,CandidatePacket.class).getContactId(),ObjectUtils.cast(packet,CandidatePacket.class).getCandidate() );
 		}
 	}
 	
@@ -283,11 +276,11 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	{
 		super.onAddStream(  addedMediaStream );
 		
-		CallEventDispatcher.onStart( id, contactId );
+		CallEventDispatcher.onStart(    this );
 		
 		if( peerConnectionParameters.videoEnabled   )
 		{
-			addedMediaStream.videoTracks.get( 0 ).addRenderer( new  VideoRenderer(peerConnectionParameters.remoteRenderer) );
+			addedMediaStream.videoTracks.get(0).addRenderer(    new  VideoRenderer( this.peerConnectionParameters.remoteRenderer ) );
 		}
 	}
 	

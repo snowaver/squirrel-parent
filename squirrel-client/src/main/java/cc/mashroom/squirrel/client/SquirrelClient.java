@@ -65,7 +65,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		setContext(context).setCacheDir(  FileUtils.createDirectoryIfAbsent(cacheDir) );
 	}
 	
-	private  ScheduledThreadPoolExecutor  connectivityGuarantorThreadPool = new  ScheduledThreadPoolExecutor( 1,new  DefaultThreadFactory("AUTHENTICATE-THREAD",false,1) );
+	private  ScheduledThreadPoolExecutor  connectivityGuarantorThreadPool = new  ScheduledThreadPoolExecutor( 1,new  DefaultThreadFactory("CONNECT-THREAD",false,1) );
 	@Setter( value=AccessLevel.PROTECTED )
 	@Accessors(chain=true)
 	private  Object  context;
@@ -132,19 +132,17 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 					{
 						if( response.code()!= 200 )
 						{
-							CallEventDispatcher.onError( -1  /* error */ ,contactId,CallError.CREATE_ROOM );
+							CallEventDispatcher.onError( null  /* CALL  ABSENT. */ ,CallError.CREATE_ROOM );
 						}
 						else
 						{
-							call=new  Call( SquirrelClient.this,Long.parseLong(response.body().string()),contactId,contentType );
-							
-							CallEventDispatcher.onRoomCreated( call.getId() );
+							CallEventDispatcher.onRoomCreated( call = new  Call(SquirrelClient.this,Long.parseLong(response.body().string()),contactId,contentType) );
 						}
 					}
 					catch(  Exception  e )
 					{
 						{
-							CallEventDispatcher.onError( -2  /* cause */ ,contactId,CallError.CREATE_ROOM );
+							CallEventDispatcher.onError( null  /* CALL  ABSENT. */ ,CallError.CREATE_ROOM );
 						}
 						e.getStackTrace();
 					}
@@ -156,7 +154,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			this.call  = new  Call( this , roomId , contactId , contentType );
 		}
 		/*
-		return  call != null ? null : ( call = new  Call(this,id >= 1 ? id : Packet.forId(DateTime.now(DateTimeZone.UTC).getMillis()),contactId,contentType) );
+		return  this.call != null ? null : ( call = new  Call(this,id >= 1 ? id : Packet.forId( DateTime.now(DateTimeZone.UTC).getMillis() ),contactId,contentType) );
 		*/
 	}
 	/**
@@ -174,13 +172,11 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			
 			setConnectParameters( new  HashMap<String,Object>().addEntry("username",user.getString("USERNAME")).addEntry("password",user.getString("PASSWORD")).addEntry("isConnectingById",true).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac) );
 		
-			this.connect(null,null,null,null,null,lifecycleListener );
+			this.connect( null , null , null , null ,null,lifecycleListener );
 		}
 		catch( Throwable  e )
 		{
-			Tracer.trace(e );
-			
-			this.getLifecycleListener().onAuthenticateComplete( 500 );
+			Tracer.trace(e );  lifecycleListener.onAuthenticateComplete(500 );
 		}
 		
 		return   this;

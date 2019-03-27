@@ -18,18 +18,25 @@ package cc.mashroom.squirrel.client.connect.call;
 import  java.util.List;
 import  java.util.concurrent.CopyOnWriteArrayList;
 
-import  cc.mashroom.squirrel.paip.message.call.Candidate;
-import  cc.mashroom.squirrel.paip.message.call.SDP;
+import  cc.mashroom.squirrel.paip.message.call.CloseCallReason;
 
 public  class  CallEventDispatcher
 {
-	protected  static  List<CallListener>  listeners     = new  CopyOnWriteArrayList<CallListener>();
+	private  static  List<CallListener>  LISTENERS= new  CopyOnWriteArrayList<CallListener>();
 	
 	public  static  void  addListener(    CallListener  listener )
 	{
 		if( listener != null )
 		{
-			listeners.add( listener );
+			LISTENERS.add(      listener );
+		}
+	}
+	
+	public  static  void  onRoomCreated(   Call  call )
+	{
+		for( CallListener  listener : LISTENERS )
+		{
+			listener.onRoomCreated( call );
 		}
 	}
 
@@ -37,71 +44,31 @@ public  class  CallEventDispatcher
 	{
 		if( listener != null )
 		{
-			listeners.remove( listener );
+			LISTENERS.remove(   listener );
 		}
 	}
 	
-	public  static  void  onRoomCreated(     long  roomId )
+	public  static  void  onStart(   Call  call )
 	{
-		for( CallListener  listener : listeners )
+		for( CallListener  listener : LISTENERS )
 		{
-			listener.onRoomCreated( roomId );
+			listener.onStart( call );
 		}
 	}
 	
-	public  static  void  onResponded( long  roomId, long  contactId, int  responseCode )
+	public  static  void  onClose(   Call  call,boolean  proactively,CloseCallReason  reason )
 	{
-		for( CallListener  listener : listeners )
+		for( CallListener  listener : LISTENERS )
 		{
-			listener.onResponded( roomId,contactId,responseCode );
+			listener.onClose( call,proactively,reason );
 		}
 	}
 	
-	public  static  void  onReceivedSdp(   long  roomId,long  contactId,SDP  sdp )
+	public  static  void  onError( Call  call , CallError  error )
 	{
-		for( CallListener  listener : listeners )
+		for( CallListener  listener : LISTENERS )
 		{
-			listener.onReceivedSdp( roomId,contactId,sdp );
-		}
-	}
-	
-	public  static  void  onClose( long  roomId,long  contactId,boolean  proactive,CallState  state )
-	{
-		for( CallListener  listener : listeners )
-		{
-			listener.onClose( roomId, contactId,proactive,state );
-		}
-	}
-		
-	public  static  void  onWaitingResponse( long  roomId,long  contactId )
-	{
-		for( CallListener  listener : listeners )
-		{
-			listener.onWaitingResponse( roomId,contactId );
-		}
-	}
-	
-	public  static  void  onError( long  roomId,long  contactId,CallError  error )
-	{
-		for( CallListener  listener : listeners )
-		{
-			listener.onError(   roomId, contactId, error );
-		}
-	}
-	
-	public  static  void  onStart( long  roomId, long  contactId )
-	{
-		for( CallListener  listener : listeners )
-		{
-			listener.onStart( roomId,contactId );
-		}
-	}
-	
-	public  static  void  onReceivedCandidate(    long  roomId,long  contactId,Candidate  candidate )
-	{
-		for( CallListener  listener : listeners )
-		{
-			listener.onReceivedCandidate( roomId , contactId , candidate );
+			listener.onError( call,error );
 		}
 	}
 }

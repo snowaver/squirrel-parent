@@ -15,29 +15,20 @@
  */
 package cc.mashroom.squirrel.client.connect.call;
 
-import  cc.mashroom.squirrel.paip.message.call.Candidate;
-import  cc.mashroom.squirrel.paip.message.call.SDP;
+import  cc.mashroom.squirrel.paip.message.call.CloseCallReason;
 
 public  interface  CallListener
 {
 	/**
 	 *  this  method  will  be  triggered  when  a  new  room  is  created.
 	 */
-	public  void  onRoomCreated( long  roomId );
-	
-	public  void  onWaitingResponse( long  roomId,long  contactId );
-	
-	public  void  onError( long  roomId,long  contactId,CallError  error );
-	
-	public  void  onResponded( long  roomId,long  contactId,int  responseCode );
-	
-	public  void  onClose( long  roomId,long  contactId,boolean  proactive,CallState  callState );
-	
-	public  void  onReceivedSdp(   long  roomId,long  contactId,SDP  sdp );
+	public  void  onRoomCreated( Call  call );
 	/**
-	 *  call  is  connected,  udp/tcp  multimedia  packet  is  transfering  now.
+	 *  call  is  connected  and  udp/tcp  multimedia  packet  is  transfering  now  by  stun/turn/ice  server.
 	 */
-	public  void  onStart( long  roomId,long  contactId );
+	public  void  onStart( Call  call );
 	
-	public  void  onReceivedCandidate( long  roomId,long  contactId,Candidate  candidate );
+	public  void  onError( Call  call,CallError  error );
+	
+	public  void  onClose( Call  call,boolean  proactively,CloseCallReason  reason );
 }
