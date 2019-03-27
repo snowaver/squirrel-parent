@@ -19,6 +19,7 @@ import  io.netty.buffer.ByteBuf;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
+import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
 import  java.util.concurrent.atomic.AtomicLong;
@@ -28,6 +29,7 @@ import  org.joda.time.DateTimeZone;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 
+@ToString
 public  abstract  class  Packet  <T extends Packet>
 {
 	public  Packet()
