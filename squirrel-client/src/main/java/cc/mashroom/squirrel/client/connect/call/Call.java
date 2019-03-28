@@ -198,8 +198,10 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 			throw  new  IllegalStateException( String.format("SIMP:  ** CALL **  can  not  create  the  call  when  the  state  is  %s",state.get().name()) );
 		}
 	}
-	
-	public  void  cancel()
+	/**
+	 *  close  the  call.  send  close  call  packet  with  reason  CloseCallReason.CANCEL  if  the  call  is  on  state  CallState.REQUESTING,  or  with  reason  CloseCallReason.BY_USER  if  the  call  is  on  the  other  states.  release  the  call  after  the  close  call  packet  sent.
+	 */
+	public  void   close()
 	{
 		if( state.compareAndSet(CallState.REQUESTING,   CallState.NONE) )
 		{
@@ -207,13 +209,8 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		}
 		else
 		{
-			throw  new  IllegalStateException( String.format("SIMP:  ** CALL **  can  not  cancel  the  call  when  the  state  is  %s",state.get().name()) );
+			this.context.send(   new  CloseCallPacket( this.contactId , this.id , CloseCallReason.BY_USER ) , 5 , TimeUnit.SECONDS );
 		}
-	}
-	
-	public  void   close()
-	{
-		this.context.send(       new  CloseCallPacket( this.contactId , this.id , CloseCallReason.BY_USER ) , 5 , TimeUnit.SECONDS );
 	}
 	
 	public  boolean  beforeSend(Packet packet )
