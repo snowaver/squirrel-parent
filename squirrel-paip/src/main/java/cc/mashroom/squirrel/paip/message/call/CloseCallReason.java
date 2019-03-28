@@ -21,7 +21,7 @@ import  lombok.Getter;
 @AllArgsConstructor
 public  enum  CloseCallReason
 {
-	UNKNOWN(0x00),ROOM_NOT_FOUND(0x01),STATE_ERROR(0x02),CANCEL(0x03),TIMEOUT(0x04),REJECT(0x05),CANCELED(0x06),BY_USER(0x07),NETWORK_ERROR( 0x08 );
+	UNKNOWN(0x00),ROOM_NOT_FOUND(0x01),STATE_ERROR(0x02),CANCEL(0x03),TIMEOUT(0x04),REJECT(0x05),BY_USER(0x06),NETWORK_ERROR( 0x07 );
 	
 	@Getter
 	private  int  value;
