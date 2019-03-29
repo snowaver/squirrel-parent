@@ -16,17 +16,16 @@
 package cc.mashroom.squirrel.paip.message.connect;
 
 import  cc.mashroom.squirrel.paip.message.Packet;
+import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
-import  lombok.AllArgsConstructor;
 import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
-@AllArgsConstructor
 @ToString(callSuper=true )
 public  class  ConnectAckPacket   extends  Packet  <ConnectAckPacket>
 {
@@ -46,13 +45,20 @@ public  class  ConnectAckPacket   extends  Packet  <ConnectAckPacket>
     {
     	super( buf,0x00 );
     	
-    	this.setSessionPresent(    buf.readByte() == 0x01 ).setResponseCode( buf.readByte() );
+    	this.setSessionPresent(    buf.readByte() == 0x01 ).setResponse( buf.readByte() );
+    }
+    
+    public  ConnectAckPacket( int  response,boolean  sessionPresent )
+    {
+    	super( new  Header(  PAIPPacketType.CONNECT_ACK ) );
+    	
+    	this.setResponse(response).setSessionPresent(sessionPresent);
     }
     
     @Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-    private  int  responseCode;
+    private  int response;
     @Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
@@ -60,7 +66,7 @@ public  class  ConnectAckPacket   extends  Packet  <ConnectAckPacket>
 
     public  ByteBuf  writeToVariableByteBuf(   ByteBuf  variableBuf )
 	{
-		return  variableBuf.writeByte(sessionPresent ? 0x01 : 0x00).writeByte( responseCode );
+		return  variableBuf.writeByte(sessionPresent ? 0x01 : 0x00).writeByte( response );
 	}
 	
 	public  int      getInitialVariableByteBufferSize()

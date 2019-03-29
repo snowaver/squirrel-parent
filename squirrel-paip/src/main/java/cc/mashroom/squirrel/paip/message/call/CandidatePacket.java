@@ -23,6 +23,7 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
@@ -30,7 +31,7 @@ public  class  CandidatePacket      extends  AbstractCallPacket<CandidatePacket>
 {
 	public  CandidatePacket( long  contactId,long  roomId,Candidate  candidate )
 	{
-		super( roomId   );
+		super( new  Header(PAIPPacketType.CALL_CANDIDATE) , roomId );
 		
 		super.setContactId(contactId).setCandidate( candidate );
 	}

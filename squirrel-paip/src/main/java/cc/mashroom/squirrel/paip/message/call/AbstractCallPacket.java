@@ -21,14 +21,15 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
+import cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.Packet;
 
 @ToString(callSuper=true )
 public  abstract  class  AbstractCallPacket<T extends AbstractCallPacket<?>>  extends  Packet<T>
 {	
-	public  AbstractCallPacket( long roomId )
+	public  AbstractCallPacket(  Header  header , long roomId )
 	{
-		super();
+		super(   header );
 		
 		setRoomId(roomId);
 	}

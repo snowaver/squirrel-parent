@@ -23,6 +23,7 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(  callSuper = true )
@@ -30,7 +31,7 @@ public  class  SDPPacket       extends  AbstractCallPacket  <SDPPacket>
 {
 	public  SDPPacket( long  contactId,long  roomId,SDP  sdp )
 	{
-		super( roomId );
+		super( new  Header(PAIPPacketType.CALL_SDP), roomId );
 		
 		this.setContactId(contactId).setSdp( sdp );
 	}

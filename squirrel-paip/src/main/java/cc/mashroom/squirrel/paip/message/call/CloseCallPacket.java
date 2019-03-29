@@ -22,6 +22,7 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
+import cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
@@ -29,7 +30,7 @@ public  class  CloseCallPacket  extends  AbstractCallPacket<CloseCallPacket>
 {
 	public  CloseCallPacket( long  contactId,long  roomId,CloseCallReason  reason )
 	{
-		super( roomId   );
+		super( new  Header(PAIPPacketType.CLOSE_CALL),roomId );
 		
 		setContactId(contactId).setReason(reason );
 	}

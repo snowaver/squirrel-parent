@@ -22,6 +22,7 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
+import cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
@@ -33,9 +34,9 @@ public  class  CallAckPacket  extends  AbstractCallPacket<CallAckPacket>
 	
 	public  CallAckPacket( long  contactId,long  roomId, int  response )
 	{
-		super( roomId   );
+		super( new  Header(PAIPPacketType.CALL_ACK),roomId );
 		
-		setContactId(contactId).setResponseCode(response );
+		setContactId(contactId).setResponseCode(  response );
 	}
 	
 	public  CallAckPacket(  ByteBuf  buf )
@@ -57,7 +58,7 @@ public  class  CallAckPacket  extends  AbstractCallPacket<CallAckPacket>
 	
 	public  int  getInitialVariableByteBufferSize()
 	{
-		return  9+super.getInitialVariableByteBufferSize();
+		return  9 + super.getInitialVariableByteBufferSize();
 	}
 	
 	public  void  writeTo(  ByteBuf  buf )

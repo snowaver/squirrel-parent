@@ -65,7 +65,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		else
 		if( packet instanceof ConnectAckPacket    )
 		{
-			if( ObjectUtils.cast(packet, ConnectAckPacket.class).getResponseCode() == ConnectAckPacket.CONNECTION_ACCEPTED )
+			if( ObjectUtils.cast(packet, ConnectAckPacket.class).getResponse() == ConnectAckPacket.CONNECTION_ACCEPTED )
 			{
 				ClientConnectEventDispatcher.connectStateChanged( adapter.setConnectState(ConnectState.CONNECTED).getConnectState() );
 			}

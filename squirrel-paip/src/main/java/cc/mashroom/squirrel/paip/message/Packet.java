@@ -32,13 +32,19 @@ import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 @ToString
 public  abstract  class  Packet  <T extends Packet>
 {
+	/*
 	public  Packet()
 	{
 		this.setHeader( new  Header() ).setId(   Packet.forId( DateTime.now( DateTimeZone.UTC ).getMillis() ) );
 	}
+	*/
+	public  Packet(       Header  header )
+	{
+		this.setHeader(header).setId( Packet.forId(DateTime.now(DateTimeZone.UTC).getMillis() ) );
+	}
 
 	public  abstract  void  writeTo(ByteBuf  buf );
-	//  the  id  should  be  greater  than  privious  id,  else  a  new  id  ( the  old  id  plus  one )  will  be  generated.
+	//  the  id  should  be  greater  than  previous  id,  else  a  new  id  ( the  old  id  plus  one )  will  be  generated.
 	public  static  long  forId(long  id )
 	{
 		return  ID_GENERATOR.get() >= id ? ID_GENERATOR.incrementAndGet() : ID_GENERATOR.addAndGet( (id-ID_GENERATOR.get()) );

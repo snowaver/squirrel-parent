@@ -28,11 +28,11 @@ public  enum  PAIPPacketType
 
 	public  static  PAIPPacketType  valueOf( int  value )
 	{
-		for( PAIPPacketType  packetType : PAIPPacketType.values() )
+		for( PAIPPacketType  paipPacketType : PAIPPacketType.values() )
 		{
-			if( value == packetType.getValue() )
+			if( value == paipPacketType.getValue() )
 			{
-				return  packetType;
+				return  paipPacketType;
 			}
 		}
 		

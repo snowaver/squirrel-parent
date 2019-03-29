@@ -16,16 +16,20 @@
 package cc.mashroom.squirrel.paip.message.connect;
 
 import  cc.mashroom.squirrel.paip.message.Packet;
+import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
-import  lombok.AllArgsConstructor;
 import  lombok.ToString;
 
-@AllArgsConstructor
 @ToString( callSuper=true )
 public  class  PingPacket  extends  Packet  <PingPacket>
 {
+	public  PingPacket()
+	{
+		super( new  Header(PAIPPacketType.PING) );
+	}
+	
 	public  PingPacket( ByteBuf  byteBuf )
 	{
 		super( byteBuf , 0x00 );

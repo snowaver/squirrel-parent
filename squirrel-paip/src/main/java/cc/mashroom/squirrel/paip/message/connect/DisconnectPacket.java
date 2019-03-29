@@ -16,16 +16,20 @@
 package cc.mashroom.squirrel.paip.message.connect;
 
 import  cc.mashroom.squirrel.paip.message.Packet;
+import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
-import  lombok.AllArgsConstructor;
 import  lombok.ToString;
 
-@AllArgsConstructor
 @ToString(  callSuper = true )
 public  class  DisconnectPacket  extends  Packet  <DisconnectPacket>
 {
+	public  DisconnectPacket()
+	{
+		super( new  Header(PAIPPacketType.DISCONNECT) );
+	}
+	
 	public  DisconnectPacket( ByteBuf  byteBuf )
 	{
 		super( byteBuf,0x00 );

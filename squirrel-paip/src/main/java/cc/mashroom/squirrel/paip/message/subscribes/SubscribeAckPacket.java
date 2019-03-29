@@ -16,21 +16,20 @@
 package cc.mashroom.squirrel.paip.message.subscribes;
 
 import  cc.mashroom.squirrel.paip.message.Packet;
-import cc.mashroom.util.JsonUtils;
-import cc.mashroom.util.collection.map.HashMap;
-import cc.mashroom.util.collection.map.Map;
-import cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.util.JsonUtils;
+import  cc.mashroom.util.collection.map.HashMap;
+import  cc.mashroom.util.collection.map.Map;
+import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
-import  lombok.AllArgsConstructor;
 import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
-@AllArgsConstructor
 @ToString(  callSuper  = true )
 public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 {
@@ -42,7 +41,7 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	
 	public  SubscribeAckPacket( long  contactId , int  responseCode , Map<String, Object>  subscribeeProfile )
 	{
-		super();
+		super( new  Header(PAIPPacketType.SUBSCRIBE_ACK) );
 		
 		super.setContactId(contactId).setResponseCode(responseCode).setSubscribeeProfile( subscribeeProfile );
 	}

@@ -32,6 +32,11 @@ import  lombok.experimental.Accessors;
 @ToString
 public  class  Header
 {
+	public  Header( PAIPPacketType  packetType )
+	{
+		this.setPacketType(packetType );
+	}
+	
 	@Setter( value= AccessLevel.PUBLIC )
 	@Getter
 	@Accessors(chain=true)
@@ -62,7 +67,7 @@ public  class  Header
             throw  new  CorruptedFrameException( "SQUIRREL-PAIP:  ** HEADER **  readable  bytes  MUST  be  greater  than  one." );
         }
         
-        byte  headerByte = byteBuf.readByte();
+        byte  headerByte   = byteBuf.readByte();
         
         this.setQos((headerByte & 0x03)).setPacketType(PAIPPacketType.valueOf(byteBuf.skipBytes(1).readShortLE())).setId(byteBuf.readLongLE()).setRemainingLength( PAIPUtils.decodeRemainingLength(byteBuf) );
 	}

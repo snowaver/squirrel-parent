@@ -20,29 +20,30 @@ import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
-import  lombok.AllArgsConstructor;
 import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
-@AllArgsConstructor
 @ToString(callSuper=true )
 public  class  QosReceiptPacket<T extends QosReceiptPacket<?>>  extends  Packet<T>
 {
 	public  QosReceiptPacket(ByteBuf  buf )
 	{
-		super( buf,0x00 );
+		super(buf, 0x00 );
 		
 		this.setContactId(buf.readLongLE()).setPacketId(buf.readLongLE()).setAttatchments( new  HashMap<String,Object>().addEntries((java.util.Map<String,Object>)  JsonUtils.fromJson(PAIPUtils.decode(buf))) );
 	}
 	
 	public  QosReceiptPacket( long  contactId,long  packetId )
 	{
+		super(new  Header(PAIPPacketType.QOS_RECEIPT));
+		
 		super.setContactId(contactId).setPacketId( packetId );
 	}
 	
@@ -60,7 +61,7 @@ public  class  QosReceiptPacket<T extends QosReceiptPacket<?>>  extends  Packet<
 		return  byteBuf.writeLongLE(contactId).writeLongLE(packetId).writeBytes( PAIPUtils.encode( JsonUtils.toJson(attatchments) ) );
 	}
 	
-	public  int  getInitialVariableByteBufferSize()
+	public  int      getInitialVariableByteBufferSize()
 	{
 		return  16 + super.getInitialVariableByteBufferSize();
 	}

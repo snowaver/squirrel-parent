@@ -27,6 +27,7 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
+import cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(   callSuper = true )
@@ -58,7 +59,7 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 	
 	public  ConnectPacket( String  accessKey,byte[]  secretKey,int  keepalive )
 	{
-		super();
+		super( new  Header( PAIPPacketType.CONNECT ) );
 		
 		this.setAccessKey(accessKey).setSecretKey(secretKey).setKeepalive(  keepalive );
 	}

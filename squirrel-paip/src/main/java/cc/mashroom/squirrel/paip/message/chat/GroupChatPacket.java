@@ -18,16 +18,15 @@ package cc.mashroom.squirrel.paip.message.chat;
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
-import  lombok.AllArgsConstructor;
 import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
+import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
-@AllArgsConstructor
 @ToString(callSuper=true )
 public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 {	
@@ -40,7 +39,7 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 	
 	public  GroupChatPacket( long  contactId,long  groupId,String  md5,ChatContentType  contentType,byte[]  content )
 	{
-		super();
+		super( new  Header(PAIPPacketType.GROUP_CHAT));
 		
 		setContactId(contactId).setGroupId(groupId).setMd5(md5 ).setContentType( contentType ).setContent( content );
 	}
@@ -62,7 +61,7 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 	@Accessors(chain=true)
 	private  byte[]   content;
 	
-	public  int  getInitialVariableByteBufferSize()
+	public  int      getInitialVariableByteBufferSize()
 	{
 		return  17+super.getInitialVariableByteBufferSize();
 	}

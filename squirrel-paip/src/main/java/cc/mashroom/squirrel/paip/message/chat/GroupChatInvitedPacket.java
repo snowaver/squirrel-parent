@@ -23,7 +23,7 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.message.Packet;
-
+import cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
@@ -38,7 +38,7 @@ public  class  GroupChatInvitedPacket  extends  Packet<GroupChatInvitedPacket>
 	
 	public  GroupChatInvitedPacket( long  contactId,long  groupId )
 	{
-		super();
+		super( new  Header(  PAIPPacketType.GROUP_CHAT_INVITED ) );
 		
 		super.setQos(0,contactId).setGroupId(     groupId );
 	}

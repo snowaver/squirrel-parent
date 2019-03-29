@@ -28,6 +28,7 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
+import cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
@@ -35,7 +36,7 @@ public  class  SubscribePacket  extends  Packet<SubscribePacket>
 {
 	public  SubscribePacket( long  subscriberId,HashMap<String,Object>  subscriberProfile )
 	{
-		super();
+		super( new  Header(PAIPPacketType.SUBSCRIBE) );
 		
 		super.setContactId(subscriberId).setSubscriberProfile( subscriberProfile );
 	}
@@ -57,7 +58,7 @@ public  class  SubscribePacket  extends  Packet<SubscribePacket>
 		ByteBuf  subscriberProfileByteBuf = PAIPUtils.encode( JsonUtils.toJson(subscriberProfile == null ? new  HashMap<String,Object>() : subscriberProfile) );  byteBuf.writeLongLE(contactId).writeBytes(subscriberProfileByteBuf);  subscriberProfileByteBuf.release();  return  byteBuf;
 	}
 	
-	public  int  getInitialVariableByteBufferSize()
+	public  int      getInitialVariableByteBufferSize()
 	{
 		return  8 +    super.getInitialVariableByteBufferSize();
 	}

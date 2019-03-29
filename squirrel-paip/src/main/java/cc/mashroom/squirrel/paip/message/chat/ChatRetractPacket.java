@@ -23,7 +23,7 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.message.Packet;
-
+import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
@@ -31,7 +31,7 @@ public  class  ChatRetractPacket  extends  Packet<ChatRetractPacket>
 {
 	public  ChatRetractPacket( long  contactId, long  chatPacketId )
 	{
-		super();
+		super( new  Header(PAIPPacketType.CHAT_WITHDRAW ) );
 		
 		super.setQos(0,contactId).setChatPacketId(   chatPacketId );
 	}
