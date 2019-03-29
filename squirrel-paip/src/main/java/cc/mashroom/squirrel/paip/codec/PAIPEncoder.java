@@ -32,7 +32,7 @@ public  class  PAIPEncoder  extends  MessageToByteEncoder  <Packet<?>>
 	{
 		ByteBuf  contentByteBuf=channel.alloc().buffer();
 		
-		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.WRITE:\t"+packet.toString() );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.SENT:\t"+packet.toString() );
 		
 		try
 		{
