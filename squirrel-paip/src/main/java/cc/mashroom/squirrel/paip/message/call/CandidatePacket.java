@@ -16,14 +16,13 @@
 package cc.mashroom.squirrel.paip.message.call;
 
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
-import cc.mashroom.squirrel.paip.message.Header;
+import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
@@ -57,9 +56,10 @@ public  class  CandidatePacket      extends  AbstractCallPacket<CandidatePacket>
 	{
 		return  12  +  super.getInitialVariableByteBufferSize();
 	}
-	
+	/*
 	public  void  writeTo(  ByteBuf  buf )
 	{
 		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CALL_CANDIDATE );
 	}
+	*/
 }

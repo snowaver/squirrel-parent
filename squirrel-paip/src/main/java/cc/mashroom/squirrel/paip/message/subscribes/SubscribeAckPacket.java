@@ -23,7 +23,6 @@ import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
@@ -71,9 +70,10 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	{
 		return  9+super.getInitialVariableByteBufferSize();
 	}
-	
+	/*
 	public  void  writeTo(  ByteBuf  buf )
 	{
 		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.SUBSCRIBE_ACK );
 	}
+	*/
 }

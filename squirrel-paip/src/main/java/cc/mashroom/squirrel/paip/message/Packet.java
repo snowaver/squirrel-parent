@@ -16,6 +16,7 @@
 package cc.mashroom.squirrel.paip.message;
 
 import  io.netty.buffer.ByteBuf;
+import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
@@ -40,20 +41,16 @@ public  abstract  class  Packet  <T extends Packet>
 	*/
 	public  Packet(       Header  header )
 	{
-		this.setHeader(header).setId( Packet.forId(DateTime.now(DateTimeZone.UTC).getMillis() ) );
+		this.setHeader( header.setId(Packet.forId(DateTime.now(DateTimeZone.UTC).getMillis()) ) );
 	}
-
+	/*
 	public  abstract  void  writeTo(ByteBuf  buf );
+	*/
 	//  the  id  should  be  greater  than  previous  id,  else  a  new  id  ( the  old  id  plus  one )  will  be  generated.
 	public  static  long  forId(long  id )
 	{
 		return  ID_GENERATOR.get() >= id ? ID_GENERATOR.incrementAndGet() : ID_GENERATOR.addAndGet( (id-ID_GENERATOR.get()) );
 	}
-	
-	@Setter( value=AccessLevel.PROTECTED )
-	@Getter
-	@Accessors(  chain = true )
-	protected  long    id;
 	@Getter
 	@Accessors(  chain = true )
 	protected  long  contactId;
@@ -62,13 +59,16 @@ public  abstract  class  Packet  <T extends Packet>
 	@Accessors(  chain = true )
 	protected  Header   header;
 	
+	public  long  getId()
+	{
+		return  header.getId();
+	}
+	
 	protected  final  static  AtomicLong  ID_GENERATOR  = new  AtomicLong( 0x00 );
 	
 	public  T  setContactId(      long  contactId )
 	{
-		this.contactId        = contactId;
-		
-		return  (T)  this;
+		this.contactId        = contactId;  return  (T)  this;
 	}
 	
 	public  T  setQos(  int  qos, long  contactId )
@@ -78,9 +78,7 @@ public  abstract  class  Packet  <T extends Packet>
 			throw  new  IllegalArgumentException("SQUIRREL-PAIP:  ** PACKET **  contact  id  is  invalidate." );
 		}
 		
-		this.setContactId(contactId).getHeader().setQos(qos );
-		
-		return  (T)  this;
+		this.setContactId(contactId).getHeader().setQos(qos );  return  (T)  this;
 	}
 		
 	public  int  getInitialVariableByteBufferSize()
@@ -89,14 +87,14 @@ public  abstract  class  Packet  <T extends Packet>
 	}
 	
 	public  abstract  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf );
-	
-	protected  void  write( ByteBuf  byteBuf,ByteBuf  variableByteBuf,PAIPPacketType  packetType )
+		
+	public  void  write( ByteBuf  writableByteBuf )
 	{
-		ByteBuf  decodeRemainingLengthByteBuf=PAIPUtils.encodeRemainingLength(variableByteBuf.readableBytes() );
+		ByteBuf  variableByteBuf= writeToVariableByteBuf( Unpooled.buffer(getInitialVariableByteBufferSize()) );  ByteBuf  decodeRemainingLengthByteBuf = PAIPUtils.encodeRemainingLength( variableByteBuf.readableBytes() );
 		
 		try
 		{
-			byteBuf.writeByte(header.toByte()).writeByte(0).writeShortLE(packetType.getValue()).writeLongLE(id).writeBytes(decodeRemainingLengthByteBuf).writeBytes( variableByteBuf );
+			writableByteBuf.writeByte(header.toByte()).writeByte(0).writeShortLE(header.getPacketType().getValue()).writeLongLE(getId()).writeBytes(decodeRemainingLengthByteBuf).writeBytes( variableByteBuf );
 		}
 		finally
 		{
@@ -106,6 +104,6 @@ public  abstract  class  Packet  <T extends Packet>
 	
 	public  Packet( ByteBuf  byteBuf, Integer  expectedFlags )
 	{
-		this.setHeader(new  Header(byteBuf.resetReaderIndex(),expectedFlags)).setId( this.getHeader().getId() );
+		this.setHeader(   new  Header(byteBuf.resetReaderIndex(),expectedFlags) );
 	}
 }

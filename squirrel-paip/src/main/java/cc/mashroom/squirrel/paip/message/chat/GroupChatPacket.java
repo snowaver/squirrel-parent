@@ -16,7 +16,6 @@
 package cc.mashroom.squirrel.paip.message.chat;
 
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
@@ -70,9 +69,10 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 	{
 		ByteBuf  contentByteBuf= PAIPUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPUtils.encode( md5 );  variableBuf.writeLongLE(contactId).writeLongLE(groupId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableBuf;
 	}
-	
+	/*
 	public  void  writeTo(  ByteBuf  buf )
 	{
 		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.GROUP_CHAT );
 	}
+	*/
 }

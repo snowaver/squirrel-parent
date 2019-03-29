@@ -16,7 +16,6 @@
 package cc.mashroom.squirrel.paip.message.connect;
 
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  io.netty.channel.Channel;
 import  io.netty.handler.codec.CorruptedFrameException;
 import  io.netty.util.AttributeKey;
@@ -27,7 +26,7 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
-import cc.mashroom.squirrel.paip.message.Header;
+import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(   callSuper = true )
@@ -94,9 +93,10 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 	{
 		return  3  + super.getInitialVariableByteBufferSize();
 	}
-	
+	/*
 	public  void  writeTo( ByteBuf  byteBuf )
 	{
 		super.write( byteBuf , this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())), PAIPPacketType.CONNECT );
 	}
+	*/
 }

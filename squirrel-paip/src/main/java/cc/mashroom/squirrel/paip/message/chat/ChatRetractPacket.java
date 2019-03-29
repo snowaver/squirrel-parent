@@ -16,7 +16,6 @@
 package cc.mashroom.squirrel.paip.message.chat;
 
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
@@ -33,7 +32,7 @@ public  class  ChatRetractPacket  extends  Packet<ChatRetractPacket>
 	{
 		super( new  Header(PAIPPacketType.CHAT_WITHDRAW ) );
 		
-		super.setQos(0,contactId).setChatPacketId(   chatPacketId );
+		super.setQos(1,contactId).setChatPacketId(   chatPacketId );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -57,11 +56,10 @@ public  class  ChatRetractPacket  extends  Packet<ChatRetractPacket>
 	{
 		return  16+super.getInitialVariableByteBufferSize();
 	}
-	
+	/*
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		super.getHeader().setQos(  0x01 );
-		
 		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CHAT_WITHDRAW );
 	}
+	*/
 }

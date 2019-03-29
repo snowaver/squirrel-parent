@@ -36,7 +36,7 @@ public  class  PAIPEncoder  extends  MessageToByteEncoder  <Packet<?>>
 		
 		try
 		{
-			packet.writeTo( contentByteBuf );
+			packet.write( contentByteBuf );
 			
 			if(     contentByteBuf.readableBytes() > Short.MAX_VALUE )
 			{
@@ -49,7 +49,7 @@ public  class  PAIPEncoder  extends  MessageToByteEncoder  <Packet<?>>
 		{
 			e.printStackTrace();
 			
-			log.error(  e.getMessage() , e );
+			log.error(  e.getMessage(),e );
 		}
 		finally
 		{

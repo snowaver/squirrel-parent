@@ -19,7 +19,6 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
@@ -73,9 +72,10 @@ public  class  ConnectAckPacket   extends  Packet  <ConnectAckPacket>
 	{
 		return  2 +super.getInitialVariableByteBufferSize();
 	}
-    
+    /*
 	public  void  writeTo(  ByteBuf  buf )
 	{
 		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CONNECT_ACK );
 	}
+	*/
 }

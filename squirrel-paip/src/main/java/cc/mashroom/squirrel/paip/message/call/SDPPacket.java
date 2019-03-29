@@ -16,7 +16,6 @@
 package cc.mashroom.squirrel.paip.message.call;
 
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
@@ -58,9 +57,10 @@ public  class  SDPPacket       extends  AbstractCallPacket  <SDPPacket>
 	{
 		return  8 +  super.getInitialVariableByteBufferSize();
 	}
-	
+	/*
 	public  void  writeTo(  ByteBuf  buf )
 	{
-		  write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())), PAIPPacketType.CALL_SDP );  
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())), PAIPPacketType.CALL_SDP );  
 	}
+	*/
 }

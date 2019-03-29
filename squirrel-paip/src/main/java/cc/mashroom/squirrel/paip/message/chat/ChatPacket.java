@@ -16,7 +16,6 @@
 package cc.mashroom.squirrel.paip.message.chat;
 
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
@@ -67,11 +66,12 @@ public  class  ChatPacket  extends  Packet<ChatPacket>  //  implements  Receipta
 	{
 		return  9+super.getInitialVariableByteBufferSize();
 	}
-	
+	/*
 	public  void  writeTo(  ByteBuf  buf )
 	{
 		super.getHeader().setQos(  0x01 );
 		
 		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CHAT );  
 	}
+	*/
 }

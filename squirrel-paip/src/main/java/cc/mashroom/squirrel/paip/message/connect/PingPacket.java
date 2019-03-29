@@ -19,10 +19,9 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.ToString;
 
-@ToString( callSuper=true )
+@ToString(    callSuper = true )
 public  class  PingPacket  extends  Packet  <PingPacket>
 {
 	public  PingPacket()
@@ -39,9 +38,10 @@ public  class  PingPacket  extends  Packet  <PingPacket>
 	{
 		return  variableByteBuf;
 	}
-	
+	/*
 	public  void  writeTo(  ByteBuf  buf )
 	{
 		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.PING );
 	}
+	*/
 }

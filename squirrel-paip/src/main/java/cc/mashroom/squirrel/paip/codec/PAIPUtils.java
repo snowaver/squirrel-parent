@@ -17,100 +17,72 @@ package cc.mashroom.squirrel.paip.codec;
 
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
-
-import java.io.UnsupportedEncodingException;
-
-import  cc.mashroom.squirrel.paip.message.Packet;
+import  lombok.SneakyThrows;
 
 public  class  PAIPUtils
 {
-    public  static  ByteBuf  encodeRemainingLength(  int  length )
+    public  static  ByteBuf  encodeBytes(     byte[]  bytes )
     {
-        ByteBuf  byteBuf = Unpooled.buffer( 4 );
+    	if( bytes.length   > Short.MAX_VALUE )
+    	{
+    		throw  new  IllegalArgumentException( "SQUIRREL-PAIP:  ** PAIP  UTILS **  encode  bytes  length  should  not  greater  than  or  equals  32767." );
+    	}
+    	
+        return  Unpooled.buffer().writeShortLE(bytes.length).writeBytes( bytes );
+    }
+	
+    public  static  ByteBuf  encodeRemainingLength(int  len )
+    {
+        ByteBuf  byteBuf= Unpooled.buffer(4 );
         
-        for( Byte  remainingLengthByte = null;remainingLengthByte == null || length >= 1; )
+        for( Byte  remainingLengthByte = null;remainingLengthByte == null || len >= 1; )
         {
-        	remainingLengthByte=(byte)  (length%128);
+        	remainingLengthByte = (byte)  (len % 128);
         	
-        	length = length/ 128;
+        	len=len/128;
         	
-            if( length >= 1 )
-            {
-                remainingLengthByte = (byte)  (remainingLengthByte | 0x80);
-            }
+            if( len >= 1 )  remainingLengthByte = (byte)  (remainingLengthByte | 0x80 );
             
-            byteBuf.writeByte( remainingLengthByte );
+            byteBuf.writeByte(  remainingLengthByte );
         }
         
         return  byteBuf;
     }
-	
-    public  static  int  decodeRemainingLength( ByteBuf  byteBuf )
+
+    public  static  int  decodeRemainingLength(ByteBuf  buf )
     {
         int  remainingLength = 0;
         
         for( Byte  remainingLengthByte = null;remainingLengthByte == null || (remainingLengthByte & 0x80) != 0; )
         {
-        	if( byteBuf.readableBytes() <= 0 )
-        	{
-        		return  -1;
-        	}
+        	if( buf.readableBytes() <= 0 )  return -1;
         	
-        	remainingLength = (remainingLength << 8)+((remainingLengthByte = byteBuf.readByte()) & 0x7F);
+        	remainingLength = ( remainingLength << 8 )+( (remainingLengthByte = buf.readByte()) & 0x7F );
         }
         
         return   remainingLength;
     }
     
-    public  static  ByteBuf  encodeBytes( byte[]    bytes )
+    @SneakyThrows
+    public  static  ByteBuf  encode(  String  string )
     {
-        return  Unpooled.buffer(2).writeShortLE(bytes.length).writeBytes( bytes );
+    	return  encodeBytes(string.getBytes("UTF-8"));
     }
     
-    public  static  byte[]  decodeBytes( ByteBuf  byteBuf )
+    public  static  byte[]  decodeBytes(   ByteBuf  byteBuf )
     {
-        if( byteBuf.readableBytes() <= 1 )
-        {
-            return  null;
-        }
+        if( byteBuf.readableBytes()     <= 1 )  return  null;
         
-        byte[]  bytes = new  byte[ byteBuf.readShortLE() ];
+        byte[]  bytes   = new  byte[ byteBuf.readShortLE() ];
         
         byteBuf.readBytes(bytes);
 
         return  bytes;
     }
     
-    public  static  ByteBuf  encode(  String  string )
-    {
-    	try
-    	{
-			return  encodeBytes(string.getBytes("UTF-8") );
-		}
-    	catch( UnsupportedEncodingException  e )
-    	{
-    		return  null;
-		}
-    }
-    
+    @SneakyThrows
 	public  static  String  decode( ByteBuf  byteBuf )
 	{
-		try
-		{
-			return  new  String( decodeBytes( byteBuf ),"UTF-8" );
-		}
-		catch( UnsupportedEncodingException  e )
-		{
-			return  null;
-		}
+		return  new  String( decodeBytes(byteBuf), "UTF-8" );
 	}
-	
-    public  static  ByteBuf  encodePacket(   Packet  <?>  packet )
-    {
-    	ByteBuf  byteBuf = Unpooled.buffer( 2 );
-    	
-        packet.writeTo(byteBuf );
-        
-        return   byteBuf;
-    }
 }

@@ -19,7 +19,6 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.ToString;
 
 @ToString(  callSuper = true )
@@ -39,9 +38,10 @@ public  class  DisconnectPacket  extends  Packet  <DisconnectPacket>
 	{
 		return    variableBuf;
 	}
-	
+	/*
 	public  void  writeTo(    ByteBuf  byteBuf )
 	{
 		write( byteBuf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.DISCONNECT );
 	}
+	*/
 }
