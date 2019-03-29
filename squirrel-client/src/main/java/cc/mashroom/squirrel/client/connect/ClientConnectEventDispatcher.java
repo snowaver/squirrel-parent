@@ -28,7 +28,7 @@ public  class  ClientConnectEventDispatcher
 	{
 		if( listener != null )
 		{
-			listeners.add(    listener );
+			listeners.add(      listener );
 		}
 	}
 
@@ -44,7 +44,7 @@ public  class  ClientConnectEventDispatcher
 	{
 		if( listener != null )
 		{
-			listeners.remove( listener );
+			listeners.remove(   listener );
 		}
 	}
 }

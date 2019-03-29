@@ -18,6 +18,8 @@ package cc.mashroom.squirrel.client;
 import  java.util.concurrent.ScheduledThreadPoolExecutor;
 import  java.util.concurrent.TimeUnit;
 
+import org.joda.time.DateTime;
+
 import  cc.mashroom.squirrel.client.connect.ClientConnectEventDispatcher;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.PacketEventDispatcher;
@@ -47,7 +49,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 	{
 		Packet  packet= ObjectUtils.cast( object );
 		
-		System.out.println( "//*RCV:\t\t"+packet );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+ packet.toString() );
 		
 		SquirrelClient  adapter  = ObjectUtils.cast( context.pipeline().get( "squirrel.client" ) );
 		

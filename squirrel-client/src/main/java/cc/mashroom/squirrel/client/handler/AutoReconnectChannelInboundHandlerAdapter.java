@@ -21,6 +21,8 @@ import  java.util.concurrent.TimeUnit;
 
 import  javax.net.ssl.SSLContext;
 
+import org.joda.time.DateTime;
+
 import  cc.mashroom.squirrel.client.ClientChannelInitailizer;
 import  cc.mashroom.squirrel.client.QosHandler;
 import  cc.mashroom.squirrel.client.connect.ClientConnectEventDispatcher;
@@ -110,7 +112,7 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 	
 	private  synchronized  void  connect()
 	{
-		System.out.println( "//*CONNECTING:  "+connectState+"+"+authenticated+"+"+bootstrap+"+"+channel );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.CONN:\tCONNECT.STATE="+connectState.name()+",AUTHENTICATED="+authenticated+",BOOTSTRAP="+bootstrap+",CHANNEL="+channel );
 		
         try
         {
@@ -126,9 +128,6 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
         }
         catch(  Throwable  e )
         {
-        	/*
-        	this.eventLooperGroup.schedule( new  Runnable(){public  void  run(){connect();}}, 15, TimeUnit.SECONDS );
-        	*/
         	Tracer.trace( e );
         	
 			ClientConnectEventDispatcher.connectStateChanged(  connectState = ConnectState.DISCONNECTED );
