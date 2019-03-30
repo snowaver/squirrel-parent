@@ -223,10 +223,10 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		PacketEventDispatcher.removeListener( this );
 		
 		context.setCall(   null );
-		//  video  source,   connection  or  peer  connection  factory  may  be  null  if  some  permission  was  rejected  by  user.
-		if( videoSource  != null )this.videoSource.dispose();
 		
 		if( this.connection  != null )  connection.dispose();
+		//  video  source,   connection  or  peer  connection  factory  may  be  null  if  some  permission  was  rejected  by  user.
+		if( videoSource  != null )this.videoSource.dispose();
 		
 		if( this.peerConnectionFactory!= null )    this.peerConnectionFactory.dispose();
 		
