@@ -148,7 +148,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	@Accessors(chain=true)
     private  MediaConstraints  connectionMediaConstraints     = new  MediaConstraints();
 
-	public  CallState  getState()
+	public  CallState   getState()
 	{
 		return   state.get();
 	}
@@ -223,12 +223,12 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		PacketEventDispatcher.removeListener( this );
 		
 		context.setCall(   null );
+		//  video  source,   connection  or  peer  connection  factory  may  be  null  if  some  permission  was  rejected  by  user.
+		if( videoSource  != null )this.videoSource.dispose();
 		
-		this.connection.dispose();
+		if( this.connection  != null )  connection.dispose();
 		
-		if( videoSource != null ) this.videoSource.dispose();
-    	
-        this.peerConnectionFactory.dispose(  );
+		if( this.peerConnectionFactory!= null )    this.peerConnectionFactory.dispose();
 		
 		CallEventDispatcher.onClose(this,proactively,reason);
 	}
