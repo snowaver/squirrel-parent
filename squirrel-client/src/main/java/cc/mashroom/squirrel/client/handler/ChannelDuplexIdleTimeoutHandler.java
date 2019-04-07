@@ -28,9 +28,9 @@ public  class  ChannelDuplexIdleTimeoutHandler  extends  ChannelDuplexHandler
 	{
 		if( event instanceof IdleStateEvent )
 		{
-			if( ObjectUtils.cast(event,IdleStateEvent.class).state() == IdleState.ALL_IDLE )
+			if( ObjectUtils.cast(event,IdleStateEvent.class).state() == IdleState.READER_IDLE )
 			{
-				context.channel().close();
+				context.channel().close(   );
 			}
 			else
 			if( ObjectUtils.cast(event,IdleStateEvent.class).state() == IdleState.WRITER_IDLE )

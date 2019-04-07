@@ -61,8 +61,8 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 	/*
 	public  final  static  SSLSocketFactory  SSL_SOCKET_FACTORY = SecureUtils.getSSLSocketFactory( "/squirrel.cer" );
 	*/
-	@Getter( value=AccessLevel.PROTECTED )
-	private  int  keepalive  = 80;
+	@Getter( value=   AccessLevel.PUBLIC )
+	private  int  keepalive = 600;
 	@Setter( value=AccessLevel.PROTECTED )
 	@Accessors(chain=true)
 	private  String  accessKey;

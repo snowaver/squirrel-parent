@@ -15,7 +15,6 @@
  */
 package cc.mashroom.squirrel.client;
 
-import  io.netty.channel.ChannelHandlerAdapter;
 import  io.netty.channel.ChannelInitializer;
 import  io.netty.channel.socket.SocketChannel;
 import  io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -25,15 +24,16 @@ import  lombok.AllArgsConstructor;
 
 import  javax.net.ssl.SSLEngine;
 
+import  cc.mashroom.squirrel.client.handler.AutoReconnectChannelInboundHandlerAdapter;
 import  cc.mashroom.squirrel.client.handler.ChannelDuplexIdleTimeoutHandler;
 import  cc.mashroom.squirrel.paip.codec.PAIPDecoder;
 import  cc.mashroom.squirrel.paip.codec.PAIPEncoder;
 
 @AllArgsConstructor
 
-public  class  ClientChannelInitailizer  extends  ChannelInitializer<SocketChannel>
+public  class  ClientChannelInitailizer  extends  ChannelInitializer  <SocketChannel>
 {
-	private  ChannelHandlerAdapter  client;
+	private  AutoReconnectChannelInboundHandlerAdapter  adapter;
 	
 	protected  void  initChannel( SocketChannel  channel )  throws  Exception
 	{
@@ -41,6 +41,6 @@ public  class  ClientChannelInitailizer  extends  ChannelInitializer<SocketChann
 		
 		sslEngine.setUseClientMode( true );
 		
-		channel.pipeline().addLast("handler.ssl",new  SslHandler(sslEngine)).addLast("handler.idle.state",new  IdleStateHandler(0,100,120)).addLast("handler.idle.timeout",new  ChannelDuplexIdleTimeoutHandler()).addLast("length-based.decoder",new  LengthFieldBasedFrameDecoder(2*1024*1024,0,4,0,4)).addLast("decoder",new  PAIPDecoder()).addLast("encoder",new  PAIPEncoder())/*.addLast("qos.handler",QosHandler.INSTANCE)*/.addLast( "squirrel.client",client );
+		channel.pipeline().addLast("handler.ssl",new  SslHandler(sslEngine)).addLast("handler.idle.state",new  IdleStateHandler((int)  (adapter.getKeepalive()*1.5),adapter.getKeepalive(),0)).addLast("handler.idle.timeout",new  ChannelDuplexIdleTimeoutHandler()).addLast("length-based.decoder",new  LengthFieldBasedFrameDecoder(2*1024*1024,0,4,0,4)).addLast("decoder",new  PAIPDecoder()).addLast("encoder",new  PAIPEncoder())/*.addLast("qos.handler",QosHandler.INSTANCE)*/.addLast( "squirrel.client",adapter );
 	}
 }
