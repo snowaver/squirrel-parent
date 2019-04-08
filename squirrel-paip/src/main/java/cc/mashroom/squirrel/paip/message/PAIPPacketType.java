@@ -46,7 +46,7 @@ public  enum  PAIPPacketType
 	@Getter
 	private  int  value;
 	@Getter
-	private  Class<? extends Packet>    packetClass;
+	private  Class  <? extends Packet>  packetClass;
 
 	public  static  PAIPPacketType  valueOf( int  value )
 	{

@@ -20,5 +20,8 @@ import  io.netty.buffer.ByteBuf;
 
 public  interface  PAIPExternalDecoder
 {
-	public  Packet<? extends Packet<?>>  decode( ByteBuf  byteBuf );
+	/**
+	 *  return  null  if  can  not  decode  the  packet  for  packet  type.  NOTE:  do  not  move  the  reader  index  if  can  not  recognise  the  packet.
+	 */
+	public  Packet<? extends Packet<?>>  decode( int  packetTypeShortValue,ByteBuf  byteBuf );
 }

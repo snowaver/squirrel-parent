@@ -15,70 +15,80 @@
  */
 package cc.mashroom.squirrel.paip.codec;
 
+import  java.util.ArrayList;
 import  java.util.List;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import  com.fasterxml.jackson.core.type.TypeReference;
 
 import  io.netty.buffer.ByteBuf;
 import  io.netty.channel.Channel;
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.handler.codec.ByteToMessageDecoder;
 import  io.netty.handler.codec.CorruptedFrameException;
+import  lombok.SneakyThrows;
 import  lombok.extern.slf4j.Slf4j;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.Packet;
-import cc.mashroom.util.ObjectUtils;
+import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.StringUtils;
 
 @Slf4j
 
-public  class  PAIPDecoder  extends  ByteToMessageDecoder
+public  class  PAIPDecoder   extends  ByteToMessageDecoder
 {
+	@SneakyThrows
+	public  PAIPDecoder()//throws  InstantiationException,IllegalAccessException,ClassNotFoundException
+	{
+		for( String  decoderClassName : System.getProperty("squirrel.paip.packet.externalDecoderClasses","").split("," ) )
+		{
+			if( StringUtils.isNotBlank(decoderClassName) )
+			{
+				externalDecoders.add( ObjectUtils.cast(Class.forName(decoderClassName),new  TypeReference<Class<? extends PAIPExternalDecoder>>(){}).newInstance() );
+			}
+		}
+	}
+	
+	protected  List<PAIPExternalDecoder>  externalDecoders     = new  ArrayList<PAIPExternalDecoder>();
+	
 	protected  void  decode( ChannelHandlerContext  context,ByteBuf  byteBuf,List<Object>  objectList )  throws  Exception
 	{
 		try
 		{
-			objectList.add(decode(context.channel(),byteBuf.markReaderIndex().resetReaderIndex()) );
+			objectList.add( decode( context.channel(),byteBuf.markReaderIndex().resetReaderIndex() ) );
 		}
-		catch( Exception  e )
+		catch(  Exception  e )
 		{
-			e.printStackTrace();
-			
 			log.error( e.getMessage(),e );
 		}
 	}
 	
-	public  static  Packet<?>  decode( Channel  channel,ByteBuf  byteBuf )
+	protected  Packet<?>  decode( Channel  channel , ByteBuf  byteBuf )
 	{
-		byteBuf.skipBytes(  2 );
+		byteBuf.skipBytes(2 );
+		
+		int  packetTypeShortValue = byteBuf.readShortLE();
+		
+		PAIPPacketType  packetType= PAIPPacketType.valueOf( packetTypeShortValue );
 		
 		try
 		{
-			int  packetTypeValue = byteBuf.readShortLE();
-			
-			PAIPPacketType  packetType = PAIPPacketType.valueOf( packetTypeValue );
-			
-			if( packetType   != PAIPPacketType.RESERVED )
+			if( packetType    != PAIPPacketType.RESERVED )
 			{
 				return  packetType.getPacketClass().getConstructor(packetType == PAIPPacketType.CONNECT ? new  Class[]{Channel.class,ByteBuf.class} : new  Class[]{ByteBuf.class}).newInstance( packetType == PAIPPacketType.CONNECT ? new  Object[]{channel,byteBuf} : new  Object[]{byteBuf} );
 			}
 			else
 			{
-				String  externalDecoderClassName = System.getProperty( "squirrel.paip.packet.externalDecoderClass" , "" );
-				
-				if( StringUtils.isNotBlank(   externalDecoderClassName ) )
+				for( PAIPExternalDecoder  externalDecoder : this.externalDecoders )
 				{
-					ObjectUtils.cast(Class.forName(externalDecoderClassName),new  TypeReference<Class<? extends PAIPExternalDecoder>>(){}).newInstance().decode( byteBuf );
+					Packet<?>  decodedPacket = externalDecoder.decode( packetTypeShortValue, byteBuf );  if( decodedPacket != null )  return  decodedPacket;
 				}
 			}
-			
-			return  null;
 		}
-		catch( Exception  e )
+		catch(  Exception  e )
 		{
-			e.printStackTrace();
-			
-			throw  new  CorruptedFrameException(  "SQUIRREL-PAIP:  ** PAIP  DECODER **  can  not  decode  the  packet." );
+			throw  new  CorruptedFrameException("SQUIRREL-PAIP:  ** PAIP  DECODER **  can  not  decode  the  packet.",e );
 		}
+		
+		return  null;
 	}
 }
