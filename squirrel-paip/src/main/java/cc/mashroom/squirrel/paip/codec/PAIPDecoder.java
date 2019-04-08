@@ -17,6 +17,8 @@ package cc.mashroom.squirrel.paip.codec;
 
 import  java.util.List;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import  io.netty.buffer.ByteBuf;
 import  io.netty.channel.Channel;
 import  io.netty.channel.ChannelHandlerContext;
@@ -25,32 +27,13 @@ import  io.netty.handler.codec.CorruptedFrameException;
 import  lombok.extern.slf4j.Slf4j;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.Packet;
-import  cc.mashroom.squirrel.paip.message.call.CallAckPacket;
-import  cc.mashroom.squirrel.paip.message.call.CallPacket;
-import  cc.mashroom.squirrel.paip.message.call.CandidatePacket;
-import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
-import  cc.mashroom.squirrel.paip.message.call.SDPPacket;
-import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
-import  cc.mashroom.squirrel.paip.message.chat.ChatRetractPacket;
-import  cc.mashroom.squirrel.paip.message.chat.GroupChatInvitedPacket;
-import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
-import  cc.mashroom.squirrel.paip.message.connect.ConnectAckPacket;
-import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
-import  cc.mashroom.squirrel.paip.message.connect.DisconnectAckPacket;
-import  cc.mashroom.squirrel.paip.message.connect.DisconnectPacket;
-import  cc.mashroom.squirrel.paip.message.connect.PingAckPacket;
-import  cc.mashroom.squirrel.paip.message.connect.PingPacket;
-import  cc.mashroom.squirrel.paip.message.connect.QosReceiptPacket;
-import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
-import  cc.mashroom.squirrel.paip.message.subscribes.SubscribePacket;
+import cc.mashroom.util.ObjectUtils;
+import  cc.mashroom.util.StringUtils;
 
 @Slf4j
 
 public  class  PAIPDecoder  extends  ByteToMessageDecoder
 {
-	/*
-	private  final  org.slf4j.Logger  logger= LoggerFactory.getLogger( ByteToMessageDecoder.class );
-	*/
 	protected  void  decode( ChannelHandlerContext  context,ByteBuf  byteBuf,List<Object>  objectList )  throws  Exception
 	{
 		try
@@ -69,86 +52,33 @@ public  class  PAIPDecoder  extends  ByteToMessageDecoder
 	{
 		byteBuf.skipBytes(  2 );
 		
-		int  packetType    = byteBuf.readShortLE();
-		
-		switch(    PAIPPacketType.valueOf( packetType ) )
+		try
 		{
-			case  CONNECT:
+			int  packetTypeValue = byteBuf.readShortLE();
+			
+			PAIPPacketType  packetType = PAIPPacketType.valueOf( packetTypeValue );
+			
+			if( packetType   != PAIPPacketType.RESERVED )
 			{
-				return  new  ConnectPacket( channel, byteBuf );
+				return  packetType.getPacketClass().getConstructor(packetType == PAIPPacketType.CONNECT ? new  Class[]{Channel.class,ByteBuf.class} : new  Class[]{ByteBuf.class}).newInstance( packetType == PAIPPacketType.CONNECT ? new  Object[]{channel,byteBuf} : new  Object[]{byteBuf} );
 			}
-			case  CONNECT_ACK:
+			else
 			{
-				return  new  ConnectAckPacket( byteBuf );
+				String  externalDecoderClassName = System.getProperty( "squirrel.paip.packet.externalDecoderClass" , "" );
+				
+				if( StringUtils.isNotBlank(   externalDecoderClassName ) )
+				{
+					ObjectUtils.cast(Class.forName(externalDecoderClassName),new  TypeReference<Class<? extends PAIPExternalDecoder>>(){}).newInstance().decode( byteBuf );
+				}
 			}
-			case  PING:
-			{
-				return  new  PingPacket( byteBuf );
-			}
-			case  PING_ACK:
-			{
-				return  new  PingAckPacket( byteBuf );
-			}
-			case  CHAT:
-			{
-				return  new  ChatPacket( byteBuf );
-			}
-			case  QOS_RECEIPT:
-			{
-				return  new  QosReceiptPacket<>(     byteBuf );
-			}
-			case  SUBSCRIBE:
-			{
-				return  new  SubscribePacket(  byteBuf );
-			}
-			case  SUBSCRIBE_ACK:
-			{
-				return  new  SubscribeAckPacket(     byteBuf );
-			}
-			case  DISCONNECT:
-			{
-				return  new  DisconnectPacket( byteBuf );
-			}
-			case  DISCONNECT_ACK:
-			{
-				return  new  DisconnectAckPacket(    byteBuf );
-			}
-			case  CALL:
-			{
-				return  new  CallPacket( byteBuf );
-			}
-			case  CALL_ACK:
-			{
-				return  new  CallAckPacket( byteBuf );
-			}
-			case  CALL_SDP:
-			{
-				return  new  SDPPacket(  byteBuf );
-			}
-			case  CALL_CANDIDATE:
-			{
-				return  new  CandidatePacket(  byteBuf );
-			}
-			case  CLOSE_CALL:
-			{
-				return  new  CloseCallPacket(  byteBuf );
-			}
-			case  GROUP_CHAT:
-			{
-				return  new  GroupChatPacket(  byteBuf );
-			}
-			case  GROUP_CHAT_INVITED:
-			{
-				return  new  GroupChatInvitedPacket( byteBuf );
-			}
-			case  CHAT_WITHDRAW:
-			{
-				return  new  ChatRetractPacket(byteBuf );
-			}
-			default:
-			{
-				throw  new  CorruptedFrameException( "SQUIRREL-PAIP:  ** PAIP  DECODER **  can  not  recognise  the  packet  for  unknown  type:  "+packetType+",  length:  "+byteBuf.resetReaderIndex().readableBytes() );
-			}
+			
+			return  null;
+		}
+		catch( Exception  e )
+		{
+			e.printStackTrace();
+			
+			throw  new  CorruptedFrameException(  "SQUIRREL-PAIP:  ** PAIP  DECODER **  can  not  decode  the  packet." );
 		}
 	}
 }

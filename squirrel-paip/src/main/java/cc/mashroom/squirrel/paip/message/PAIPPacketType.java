@@ -15,16 +15,38 @@
  */
 package cc.mashroom.squirrel.paip.message;
 
+import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
+import  cc.mashroom.squirrel.paip.message.call.CallAckPacket;
+import  cc.mashroom.squirrel.paip.message.call.CallPacket;
+import  cc.mashroom.squirrel.paip.message.call.CandidatePacket;
+import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
+import  cc.mashroom.squirrel.paip.message.call.SDPPacket;
+import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
+import  cc.mashroom.squirrel.paip.message.chat.ChatRetractPacket;
+import  cc.mashroom.squirrel.paip.message.chat.GroupChatInvitedPacket;
+import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
+import  cc.mashroom.squirrel.paip.message.connect.ConnectAckPacket;
+import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
+import  cc.mashroom.squirrel.paip.message.connect.DisconnectAckPacket;
+import  cc.mashroom.squirrel.paip.message.connect.DisconnectPacket;
+import  cc.mashroom.squirrel.paip.message.connect.PingAckPacket;
+import  cc.mashroom.squirrel.paip.message.connect.PingPacket;
+import  cc.mashroom.squirrel.paip.message.connect.QosReceiptPacket;
+import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
+import  cc.mashroom.squirrel.paip.message.subscribes.SubscribePacket;
+
 import  lombok.AllArgsConstructor;
 import  lombok.Getter;
 
 @AllArgsConstructor
 public  enum  PAIPPacketType
 {
-	RESERVED(0x00),CONNECT(0x01),CONNECT_ACK(0x02),SUBSCRIBE(0x03),SUBSCRIBE_ACK(0x04),UNSUBSCRIBE(0x05),UNSUBSCRIBE_ACK(0x06),PING(0x07),PING_ACK(0x08),DISCONNECT(0x09),DISCONNECT_ACK(0x0A),CHAT(0x0B),QOS_RECEIPT(0x0C),CALL(0x0D),CALL_ACK(0x0E),CALL_SDP(0x0F),CALL_CANDIDATE(0x10),CLOSE_CALL(0x11),GROUP_CHAT(0x12),GROUP_CHAT_INVITED(0x13),CHAT_WITHDRAW(0x14);
+	RESERVED(0x00,null),CONNECT(0x01,ConnectPacket.class),CONNECT_ACK(0x02,ConnectAckPacket.class),SUBSCRIBE(0x03,SubscribePacket.class),SUBSCRIBE_ACK(0x04,SubscribeAckPacket.class),UNSUBSCRIBE(0x05,null),UNSUBSCRIBE_ACK(0x06,null),PING(0x07,PingPacket.class),PING_ACK(0x08,PingAckPacket.class),DISCONNECT(0x09,DisconnectPacket.class),DISCONNECT_ACK(0x0A,DisconnectAckPacket.class),CHAT(0x0B,ChatPacket.class),QOS_RECEIPT(0x0C,QosReceiptPacket.class),CALL(0x0D,CallPacket.class),CALL_ACK(0x0E,CallAckPacket.class),CALL_SDP(0x0F,SDPPacket.class),CALL_CANDIDATE(0x10,CandidatePacket.class),CLOSE_CALL(0x11,CloseCallPacket.class),GROUP_CHAT(0x12,GroupChatPacket.class),GROUP_CHAT_INVITED(0x13,GroupChatInvitedPacket.class),CHAT_WITHDRAW( 0x14,ChatRetractPacket.class );
 	
 	@Getter
 	private  int  value;
+	@Getter
+	private  Class<? extends Packet>    packetClass;
 
 	public  static  PAIPPacketType  valueOf( int  value )
 	{
