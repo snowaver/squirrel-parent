@@ -30,7 +30,7 @@ public  class  ChatRetractPacket  extends  Packet<ChatRetractPacket>
 {
 	public  ChatRetractPacket( long  contactId, long  chatPacketId )
 	{
-		super( new  Header(PAIPPacketType.CHAT_WITHDRAW ) );
+		super( new  Header( PAIPPacketType.CHAT_RETRACT ) );
 		
 		super.setQos(1,contactId).setChatPacketId(   chatPacketId );
 	}

@@ -15,41 +15,21 @@
  */
 package cc.mashroom.squirrel.paip.codec;
 
-import  java.util.ArrayList;
 import  java.util.List;
-
-import  com.fasterxml.jackson.core.type.TypeReference;
 
 import  io.netty.buffer.ByteBuf;
 import  io.netty.channel.Channel;
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.handler.codec.ByteToMessageDecoder;
 import  io.netty.handler.codec.CorruptedFrameException;
-import  lombok.SneakyThrows;
 import  lombok.extern.slf4j.Slf4j;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.Packet;
-import  cc.mashroom.util.ObjectUtils;
-import  cc.mashroom.util.StringUtils;
+import  cc.mashroom.util.collection.map.LinkedMap;
 
 @Slf4j
-
 public  class  PAIPDecoder   extends  ByteToMessageDecoder
 {
-	@SneakyThrows
-	public  PAIPDecoder()//throws  InstantiationException,IllegalAccessException,ClassNotFoundException
-	{
-		for( String  decoderClassName : System.getProperty("squirrel.paip.packet.externalDecoderClasses","").split("," ) )
-		{
-			if( StringUtils.isNotBlank(decoderClassName) )
-			{
-				externalDecoders.add( ObjectUtils.cast(Class.forName(decoderClassName),new  TypeReference<Class<? extends PAIPExternalDecoder>>(){}).newInstance() );
-			}
-		}
-	}
-	
-	protected  List<PAIPExternalDecoder>  externalDecoders     = new  ArrayList<PAIPExternalDecoder>();
-	
 	protected  void  decode( ChannelHandlerContext  context,ByteBuf  byteBuf,List<Object>  objectList )  throws  Exception
 	{
 		try
@@ -61,6 +41,15 @@ public  class  PAIPDecoder   extends  ByteToMessageDecoder
 			log.error( e.getMessage(),e );
 		}
 	}
+	
+	public  PAIPDecoder  addExternalDecoder( PAIPExternalDecoder  externalDecoder )
+	{
+		externalDecoders.put(externalDecoder.getClass().getName(),externalDecoder);
+		
+		return  this;
+	}
+	
+	protected  LinkedMap<String, PAIPExternalDecoder>  externalDecoders   = new  LinkedMap<String, PAIPExternalDecoder>();
 	
 	protected  Packet<?>  decode( Channel  channel , ByteBuf  byteBuf )
 	{
@@ -78,9 +67,9 @@ public  class  PAIPDecoder   extends  ByteToMessageDecoder
 			}
 			else
 			{
-				for( PAIPExternalDecoder  externalDecoder : this.externalDecoders )
+				for(PAIPExternalDecoder  decoder : this.externalDecoders.values() )
 				{
-					Packet<?>  decodedPacket = externalDecoder.decode( packetTypeShortValue, byteBuf );  if( decodedPacket != null )  return  decodedPacket;
+					Packet<?>  decodedPacket = decoder.decode( packetTypeShortValue, byteBuf );  if( decodedPacket != null )  return  decodedPacket;
 				}
 			}
 		}
