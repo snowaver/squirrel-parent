@@ -42,6 +42,11 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	{
 		super( new  Header(PAIPPacketType.SUBSCRIBE_ACK) );
 		
+		if( responseCode   == ACK_ACCEPT )
+		{
+			throw  new  IllegalArgumentException("SQUIRREL-PAIP:  ** SUBSCRIBE ACK PACKET **  only  ACK_ACCEPT  is  supported  according  to  the  protocol." );
+		}
+		
 		super.setContactId(contactId).setResponseCode(responseCode).setSubscribeeProfile( subscribeeProfile );
 	}
 	
