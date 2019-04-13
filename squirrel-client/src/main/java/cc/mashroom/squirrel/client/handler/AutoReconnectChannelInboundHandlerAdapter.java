@@ -21,7 +21,7 @@ import  java.util.concurrent.TimeUnit;
 
 import  javax.net.ssl.SSLContext;
 
-import org.joda.time.DateTime;
+import  org.joda.time.DateTime;
 
 import  cc.mashroom.squirrel.client.ClientChannelInitailizer;
 import  cc.mashroom.squirrel.client.QosHandler;
@@ -30,6 +30,8 @@ import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.DefaultGenericFutureListener;
 import  cc.mashroom.squirrel.client.connect.PacketEventDispatcher;
 import  cc.mashroom.squirrel.common.Tracer;
+import  cc.mashroom.squirrel.paip.codec.PAIPDecoder;
+import  cc.mashroom.squirrel.paip.codec.PAIPExternalDecoder;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
@@ -39,6 +41,7 @@ import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
 import  cc.mashroom.squirrel.paip.message.connect.DisconnectPacket;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.SecureUtils;
+import  cc.mashroom.util.collection.map.LinkedMap;
 import  io.netty.bootstrap.Bootstrap;
 import  io.netty.channel.Channel;
 import  io.netty.channel.ChannelHandlerContext;
@@ -85,6 +88,8 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 	@Accessors(chain=true)
 	private  ConnectState  connectState = ConnectState.NONE;
 
+	private  LinkedMap<String , PAIPExternalDecoder>  externalDecoders   = new  LinkedMap<String , PAIPExternalDecoder>();
+	
 	public  void  channelInactive( ChannelHandlerContext  context )  throws  Exception
 	{
 		System.out.println( "//*DISCONNECT:  NONE" );
@@ -123,6 +128,11 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
         			bootstrap = bootstrap != null ? bootstrap : new  Bootstrap().group(eventLooperGroup).channel(NioSocketChannel.class)/*.option(ChannelOption.SO_KEEPALIVE,true)*/.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,5*1000).handler( new  ClientChannelInitailizer(this) );
         			
         			setChannel(bootstrap.connect(host,port).sync().channel()).send( new  ConnectPacket(id,accessKey.getBytes(),keepalive),10,TimeUnit.SECONDS );
+        			
+        			for(  PAIPExternalDecoder  externalDecoder : this.externalDecoders.values() )
+        			{
+        				ObjectUtils.cast(   this.channel.pipeline().get("decoder"),PAIPDecoder.class).addExternalDecoder( externalDecoder );
+        			}
         		}
         	}
         }
@@ -133,7 +143,17 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 			ClientConnectEventDispatcher.connectStateChanged(  connectState = ConnectState.DISCONNECTED );
 		}
 	}
+	
+	public  void  addExternalDecorder(  PAIPExternalDecoder  externalDecoder )
+	{
+		this.externalDecoders.put(      externalDecoder.getClass().getName() , externalDecoder );
 		
+		if( channel  != null )
+		{
+			ObjectUtils.cast(channel.pipeline().get("decoder") , PAIPDecoder.class).addExternalDecoder( externalDecoder );
+		}
+	}
+	
 	@SneakyThrows
 	public  void  close()
 	{
