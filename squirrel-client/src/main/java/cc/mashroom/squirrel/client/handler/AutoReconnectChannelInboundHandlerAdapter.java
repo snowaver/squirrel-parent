@@ -38,7 +38,6 @@ import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
-import  cc.mashroom.squirrel.paip.message.connect.DisconnectPacket;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.SecureUtils;
 import  cc.mashroom.util.collection.map.LinkedMap;
@@ -181,7 +180,9 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 	
 	public  void  disconnect()
 	{
+		/*
 		send( new  DisconnectPacket(),10,TimeUnit.SECONDS );
+		*/
 	}
 	
 	public  void  clear()
