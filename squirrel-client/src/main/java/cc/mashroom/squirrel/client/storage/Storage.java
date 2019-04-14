@@ -36,7 +36,7 @@ import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
 import cc.mashroom.squirrel.paip.message.chat.ChatRetractPacket;
-import  cc.mashroom.squirrel.paip.message.chat.GroupChatInvitedPacket;
+import  cc.mashroom.squirrel.paip.message.chat.GroupChatEventPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribePacket;
@@ -150,7 +150,7 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatMessage.dao.upsert(context,cacheDir,ObjectUtils.cast(packet,ChatPacket.class),TransportState.RECEIVED);}} );
 		}
 		else
-		if( packet instanceof GroupChatInvitedPacket )
+		if( packet instanceof GroupChatEventPacket )
 		{
 			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatGroup.dao.attach(context);}} );
 		}

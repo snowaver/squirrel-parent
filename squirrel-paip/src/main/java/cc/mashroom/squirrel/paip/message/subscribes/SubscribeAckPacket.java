@@ -34,7 +34,7 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 {
 	public  final  static  int  ACK_IGNORE  = 0x03;
 	
-	public  final  static  int  ACK_DENY    = 0x05;
+	public  final  static  int  ACK_REJECT  = 0x05;
 	
 	public  final  static  int  ACK_ACCEPT  = 0x07;
 	

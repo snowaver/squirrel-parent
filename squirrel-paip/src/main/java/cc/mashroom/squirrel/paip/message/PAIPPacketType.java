@@ -23,7 +23,7 @@ import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
 import  cc.mashroom.squirrel.paip.message.call.SDPPacket;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
 import  cc.mashroom.squirrel.paip.message.chat.ChatRetractPacket;
-import  cc.mashroom.squirrel.paip.message.chat.GroupChatInvitedPacket;
+import  cc.mashroom.squirrel.paip.message.chat.GroupChatEventPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectAckPacket;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
@@ -43,7 +43,7 @@ import  lombok.Getter;
 @AllArgsConstructor
 public  enum  PAIPPacketType
 {
-	RESERVED(0x00,null),CONNECT(0x01,ConnectPacket.class),CONNECT_ACK(0x02,ConnectAckPacket.class),SUBSCRIBE(0x03,SubscribePacket.class),SUBSCRIBE_ACK(0x04,SubscribeAckPacket.class),UNSUBSCRIBE(0x05,null),UNSUBSCRIBE_ACK(0x06,null),PING(0x07,PingPacket.class),PING_ACK(0x08,PingAckPacket.class),DISCONNECT(0x09,DisconnectPacket.class),DISCONNECT_ACK(0x0A,DisconnectAckPacket.class),CHAT(0x0B,ChatPacket.class),QOS_RECEIPT(0x0C,QosReceiptPacket.class),CALL(0x0D,CallPacket.class),CALL_ACK(0x0E,CallAckPacket.class),CALL_SDP(0x0F,SDPPacket.class),CALL_CANDIDATE(0x10,CandidatePacket.class),CLOSE_CALL(0x11,CloseCallPacket.class),GROUP_CHAT(0x12,GroupChatPacket.class),GROUP_CHAT_INVITED(0x13,GroupChatInvitedPacket.class),CHAT_RETRACT(0x14,ChatRetractPacket.class),STRING(0x15,StringPacket.class),BYTE_ARRAY( 0x16,ByteArrayPacket.class );
+	RESERVED(0x00,null),CONNECT(0x01,ConnectPacket.class),CONNECT_ACK(0x02,ConnectAckPacket.class),SUBSCRIBE(0x03,SubscribePacket.class),SUBSCRIBE_ACK(0x04,SubscribeAckPacket.class),UNSUBSCRIBE(0x05,null),UNSUBSCRIBE_ACK(0x06,null),PING(0x07,PingPacket.class),PING_ACK(0x08,PingAckPacket.class),DISCONNECT(0x09,DisconnectPacket.class),DISCONNECT_ACK(0x0A,DisconnectAckPacket.class),CHAT(0x0B,ChatPacket.class),QOS_RECEIPT(0x0C,QosReceiptPacket.class),CALL(0x0D,CallPacket.class),CALL_ACK(0x0E,CallAckPacket.class),CALL_SDP(0x0F,SDPPacket.class),CALL_CANDIDATE(0x10,CandidatePacket.class),CLOSE_CALL(0x11,CloseCallPacket.class),GROUP_CHAT(0x12,GroupChatPacket.class),GROUP_CHAT_EVENT(0x13,GroupChatEventPacket.class),CHAT_RETRACT(0x14,ChatRetractPacket.class),STRING(0x15,StringPacket.class),BYTE_ARRAY( 0x16,ByteArrayPacket.class );
 	
 	@Getter
 	private  int  value;
