@@ -13,35 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cc.mashroom.squirrel.paip.message.connect;
+package cc.mashroom.squirrel.paip.message.subscribes;
+
+import  io.netty.buffer.ByteBuf;
+import  lombok.ToString;
 
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
-import  io.netty.buffer.ByteBuf;
-import  lombok.ToString;
 
-@ToString(  callSuper = true )
-public  class  DisconnectPacket  extends  Packet  <DisconnectPacket>
+@ToString( callSuper  = true )
+public  class  UnsubscribePacket    extends  Packet <UnsubscribePacket>
 {
-	public  DisconnectPacket()
-	{
-		super( new  Header(PAIPPacketType.DISCONNECT) );
-	}
-	
-	public  DisconnectPacket( ByteBuf  byteBuf )
+	public  UnsubscribePacket(   ByteBuf  byteBuf )
 	{
 		super( byteBuf,0x00 );
+		
+		super.setContactId( byteBuf.readLongLE() );
 	}
-
-	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableBuf )
+	
+	public  UnsubscribePacket(     long  unsubscriberId )
 	{
-		return    variableBuf;
+		super( new  Header(PAIPPacketType.UNSUBSCRIBE) );
+		
+		super.setContactId( unsubscriberId );
 	}
-	/*
-	public  void  writeTo(    ByteBuf  byteBuf )
+	
+	public  int  getInitialVariableByteBufferSize()
 	{
-		write( byteBuf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.DISCONNECT );
+		return  8   + super.getInitialVariableByteBufferSize();
 	}
-	*/
+	
+	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf )
+	{
+		return  variableByteBuf.writeLongLE( super.contactId );
+	}
 }

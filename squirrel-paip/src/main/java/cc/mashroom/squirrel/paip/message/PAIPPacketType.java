@@ -28,13 +28,13 @@ import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectAckPacket;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
 import  cc.mashroom.squirrel.paip.message.connect.DisconnectAckPacket;
-import  cc.mashroom.squirrel.paip.message.connect.DisconnectPacket;
 import  cc.mashroom.squirrel.paip.message.connect.PingAckPacket;
 import  cc.mashroom.squirrel.paip.message.connect.PingPacket;
 import  cc.mashroom.squirrel.paip.message.connect.QosReceiptPacket;
 import  cc.mashroom.squirrel.paip.message.extensions.ByteArrayPacket;
 import  cc.mashroom.squirrel.paip.message.extensions.StringPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
+import  cc.mashroom.squirrel.paip.message.subscribes.UnsubscribePacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribePacket;
 
 import  lombok.AllArgsConstructor;
@@ -43,7 +43,7 @@ import  lombok.Getter;
 @AllArgsConstructor
 public  enum  PAIPPacketType
 {
-	RESERVED(0x00,null),CONNECT(0x01,ConnectPacket.class),CONNECT_ACK(0x02,ConnectAckPacket.class),SUBSCRIBE(0x03,SubscribePacket.class),SUBSCRIBE_ACK(0x04,SubscribeAckPacket.class),UNSUBSCRIBE(0x05,null),UNSUBSCRIBE_ACK(0x06,null),PING(0x07,PingPacket.class),PING_ACK(0x08,PingAckPacket.class),DISCONNECT(0x09,DisconnectPacket.class),DISCONNECT_ACK(0x0A,DisconnectAckPacket.class),CHAT(0x0B,ChatPacket.class),QOS_RECEIPT(0x0C,QosReceiptPacket.class),CALL(0x0D,CallPacket.class),CALL_ACK(0x0E,CallAckPacket.class),CALL_SDP(0x0F,SDPPacket.class),CALL_CANDIDATE(0x10,CandidatePacket.class),CLOSE_CALL(0x11,CloseCallPacket.class),GROUP_CHAT(0x12,GroupChatPacket.class),GROUP_CHAT_EVENT(0x13,GroupChatEventPacket.class),CHAT_RETRACT(0x14,ChatRetractPacket.class),STRING(0x15,StringPacket.class),BYTE_ARRAY( 0x16,ByteArrayPacket.class );
+	RESERVED(0x00,null),CONNECT(0x01,ConnectPacket.class),CONNECT_ACK(0x02,ConnectAckPacket.class),PING(0x03,PingPacket.class),PING_ACK(0x04,PingAckPacket.class),DISCONNECT_ACK(0x05,DisconnectAckPacket.class),SUBSCRIBE(0x06,SubscribePacket.class),SUBSCRIBE_ACK(0x07,SubscribeAckPacket.class),UNSUBSCRIBE(0x08,UnsubscribePacket.class),QOS_RECEIPT(0x09,QosReceiptPacket.class),CHAT(0x0A,ChatPacket.class),CHAT_RETRACT(0x0B,ChatRetractPacket.class),GROUP_CHAT(0x0C,GroupChatPacket.class),GROUP_CHAT_EVENT(0x0D,GroupChatEventPacket.class),CALL(0x0E,CallPacket.class),CALL_ACK(0x0F,CallAckPacket.class),CALL_SDP(0x10,SDPPacket.class),CALL_CANDIDATE(0x11,CandidatePacket.class),CLOSE_CALL(0x12,CloseCallPacket.class),STRING(0x13,StringPacket.class),BYTE_ARRAY( 0x14,ByteArrayPacket.class );
 	
 	@Getter
 	private  int  value;

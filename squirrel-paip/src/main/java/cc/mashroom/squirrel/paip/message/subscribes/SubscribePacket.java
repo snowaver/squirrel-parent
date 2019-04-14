@@ -30,7 +30,7 @@ import  cc.mashroom.util.collection.map.Map;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
-@ToString(callSuper=true )
+@ToString( callSuper = true )
 public  class  SubscribePacket  extends  Packet<SubscribePacket>
 {
 	public  SubscribePacket( long  subscriberId,HashMap<String,Object>  subscriberProfile )
@@ -42,14 +42,14 @@ public  class  SubscribePacket  extends  Packet<SubscribePacket>
 	
 	public  SubscribePacket(ByteBuf  buf )
 	{
-		super( buf,0x00 );
+		super( buf ,  0x00 );
 		
 		super.setContactId(buf.readLongLE()).setSubscriberProfile( new  HashMap<String,Object>().addEntries((java.util.Map<String,Object>)  JsonUtils.fromJson(PAIPUtils.decode(buf))) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
-	@Accessors( chain = true )
+	@Accessors( chain= true )
 	private  Map<String,Object>  subscriberProfile = new  HashMap<String,Object>();
 
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
