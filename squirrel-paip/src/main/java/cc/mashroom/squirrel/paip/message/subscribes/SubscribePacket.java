@@ -22,6 +22,8 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
+import  com.fasterxml.jackson.core.type.TypeReference;
+
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.util.JsonUtils;
@@ -44,7 +46,7 @@ public  class  SubscribePacket  extends  Packet<SubscribePacket>
 	{
 		super( buf ,  0x00 );
 		
-		super.setContactId(buf.readLongLE()).setSubscriberProfile( new  HashMap<String,Object>().addEntries((java.util.Map<String,Object>)  JsonUtils.fromJson(PAIPUtils.decode(buf))) );
+		super.setContactId(buf.readLongLE()).setSubscriberProfile( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPUtils.decode(buf),new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )

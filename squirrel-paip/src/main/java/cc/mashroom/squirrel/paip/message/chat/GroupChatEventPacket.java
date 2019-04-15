@@ -22,10 +22,13 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.message.Packet;
-import cc.mashroom.util.JsonUtils;
-import cc.mashroom.util.collection.map.HashMap;
-import cc.mashroom.util.collection.map.Map;
-import cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.util.JsonUtils;
+import  cc.mashroom.util.collection.map.HashMap;
+import  cc.mashroom.util.collection.map.Map;
+
+import  com.fasterxml.jackson.core.type.TypeReference;
+
+import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
@@ -42,7 +45,7 @@ public  class  GroupChatEventPacket  extends  Packet  <GroupChatEventPacket>
 	{
 		super( byteBuf,0x00 );
 		
-		this.setGroupId(byteBuf.readLongLE()).setAttatchments( new  HashMap<String,Object>().addEntries((java.util.Map<String,Object>)  JsonUtils.fromJson(PAIPUtils.decode(byteBuf))) );
+		this.setGroupId(byteBuf.readLongLE()).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPUtils.decode(byteBuf),new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	public  GroupChatEventPacket( long  groupId,int  event,Map<String,Object>  attatchments )

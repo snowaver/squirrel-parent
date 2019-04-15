@@ -19,6 +19,9 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
+
+import  com.fasterxml.jackson.core.type.TypeReference;
+
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
@@ -36,7 +39,7 @@ public  class  QosReceiptPacket<T extends QosReceiptPacket<?>>  extends  Packet<
 	{
 		super(buf, 0x00 );
 		
-		this.setContactId(buf.readLongLE()).setPacketId(buf.readLongLE()).setAttatchments( new  HashMap<String,Object>().addEntries((java.util.Map<String,Object>)  JsonUtils.fromJson(PAIPUtils.decode(buf))) );
+		this.setContactId(buf.readLongLE()).setPacketId(buf.readLongLE()).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPUtils.decode(buf),new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	public  QosReceiptPacket( long  contactId,long  packetId )

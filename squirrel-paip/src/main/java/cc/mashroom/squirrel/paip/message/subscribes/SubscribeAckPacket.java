@@ -19,6 +19,9 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
+
+import  com.fasterxml.jackson.core.type.TypeReference;
+
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
@@ -54,7 +57,7 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	{
 		super( byteBuf, 0x00 );
 		
-		super.setContactId(byteBuf.readLongLE()).setResponseCode(byteBuf.readByte()).setSubscribeeProfile( new  HashMap<String,Object>().addEntries((java.util.Map<String,Object>)  JsonUtils.fromJson(PAIPUtils.decode(byteBuf))) );
+		super.setContactId(byteBuf.readLongLE()).setResponseCode(byteBuf.readByte()).setSubscribeeProfile( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPUtils.decode(byteBuf),new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
