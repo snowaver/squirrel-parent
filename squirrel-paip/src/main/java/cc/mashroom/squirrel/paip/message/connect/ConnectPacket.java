@@ -44,7 +44,9 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 	{
 		super( byteBuf, 0x00 );
 		
-		if( !"PAIP".equals(PAIPUtils.decode(byteBuf)) )
+		setProtocolName(  PAIPUtils.decode(byteBuf ) );
+		
+		if( !"PAIP".equals( protocolName ) )
 		{
 			throw  new  CorruptedFrameException( String.format("SQUIRREL-PAIP:  ** CONNECT  PACKET **  invalid  protocol:  %s",protocolName) );
 		}
@@ -63,30 +65,30 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 		this.setAccessKey(accessKey).setSecretKey(secretKey).setKeepalive(  keepalive );
 	}
 	
-	@Setter(  value = AccessLevel.PROTECTED )
+	@Setter( value = AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
 	private  int  protocolVersion;
-	@Setter(  value = AccessLevel.PROTECTED )
+	@Setter( value = AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
     private  String  accessKey;
-	@Setter(  value = AccessLevel.PROTECTED )
+	@Setter( value = AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
     private  int  keepalive;
-	@Setter(  value = AccessLevel.PROTECTED )
+	@Setter( value = AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
     private  byte[]  secretKey;
-	@Setter(  value = AccessLevel.PROTECTED )
+	@Setter( value = AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
     private  String  protocolName;
 
 	public  ByteBuf  writeToVariableByteBuf(ByteBuf  byteBuf )
 	{
-		ByteBuf  protocolByteBuf = PAIPUtils.encode( "PAIP" );  ByteBuf  accessKeyByteBuf = PAIPUtils.encode( accessKey );  ByteBuf  secretKeyByteBuf = PAIPUtils.encodeBytes( secretKey );  byteBuf.writeBytes(protocolByteBuf).writeByte(4).writeShortLE(keepalive).writeBytes(accessKeyByteBuf).writeBytes(secretKeyByteBuf);  protocolByteBuf.release();  accessKeyByteBuf.release();  secretKeyByteBuf.release();  return  byteBuf;
+		ByteBuf  protocolByteBuf = PAIPUtils.encode( "PAIP" );  ByteBuf  accessKeyByteBuf = PAIPUtils.encode( accessKey );  ByteBuf  secretKeyByteBuf = PAIPUtils.encodeBytes( secretKey );  byteBuf.writeBytes(protocolByteBuf).writeByte(1).writeShortLE(keepalive).writeBytes(accessKeyByteBuf).writeBytes(secretKeyByteBuf);  protocolByteBuf.release();  accessKeyByteBuf.release();  secretKeyByteBuf.release();  return  byteBuf;
 	}
 	
 	public  int      getInitialVariableByteBufferSize()
@@ -94,7 +96,7 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 		return  3  + super.getInitialVariableByteBufferSize();
 	}
 	/*
-	public  void  writeTo( ByteBuf  byteBuf )
+	public  void  writeTo(ByteBuf  byteBuf )
 	{
 		super.write( byteBuf , this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())), PAIPPacketType.CONNECT );
 	}
