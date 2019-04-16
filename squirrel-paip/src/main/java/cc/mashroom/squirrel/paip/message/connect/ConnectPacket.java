@@ -44,7 +44,7 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 	{
 		super( byteBuf, 0x00 );
 		
-		setProtocolName(  PAIPUtils.decode(byteBuf ) );
+		this.protocolName= PAIPUtils.decode( byteBuf );
 		
 		if( !"PAIP".equals( protocolName ) )
 		{
