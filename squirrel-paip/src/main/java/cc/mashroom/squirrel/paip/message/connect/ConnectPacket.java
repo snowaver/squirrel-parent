@@ -34,6 +34,8 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 {
 	public  final  static  AttributeKey<Integer>  PROTOCOL_VERSION  = AttributeKey.newInstance( "PROTOCOL_VERSION" );
 	
+	public  final  static  int  CURRENT_PROTOCOL_VERSION  = 1;
+	
 	public  final  static  AttributeKey<Boolean>  CONNECT_STATUS = AttributeKey.newInstance( "CONNECT_STATUS" );
 	
 	public  final  static  AttributeKey<Long>  CLIENT_ID    = AttributeKey.newInstance( "CLIENT_ID" );
@@ -88,7 +90,7 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 
 	public  ByteBuf  writeToVariableByteBuf(ByteBuf  byteBuf )
 	{
-		ByteBuf  protocolByteBuf = PAIPUtils.encode( "PAIP" );  ByteBuf  accessKeyByteBuf = PAIPUtils.encode( accessKey );  ByteBuf  secretKeyByteBuf = PAIPUtils.encodeBytes( secretKey );  byteBuf.writeBytes(protocolByteBuf).writeByte(1).writeShortLE(keepalive).writeBytes(accessKeyByteBuf).writeBytes(secretKeyByteBuf);  protocolByteBuf.release();  accessKeyByteBuf.release();  secretKeyByteBuf.release();  return  byteBuf;
+		ByteBuf  protocolByteBuf = PAIPUtils.encode( "PAIP" );  ByteBuf  accessKeyByteBuf = PAIPUtils.encode( accessKey );  ByteBuf  secretKeyByteBuf = PAIPUtils.encodeBytes( secretKey );  byteBuf.writeBytes(protocolByteBuf).writeByte(CURRENT_PROTOCOL_VERSION).writeShortLE(keepalive).writeBytes(accessKeyByteBuf).writeBytes(secretKeyByteBuf);  protocolByteBuf.release();  accessKeyByteBuf.release();  secretKeyByteBuf.release();  return  byteBuf;
 	}
 	
 	public  int      getInitialVariableByteBufferSize()
