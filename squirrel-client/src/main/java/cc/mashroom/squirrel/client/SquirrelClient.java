@@ -46,6 +46,7 @@ import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.client.storage.model.user.User;
 import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.message.call.CallContentType;
+import cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
 import  cc.mashroom.util.DigestUtils;
@@ -170,7 +171,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			
 			User  user=User.dao.getOne( "SELECT  USERNAME,PASSWORD  FROM  "+User.dao.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
 			
-			setConnectParameters( new  HashMap<String,Object>().addEntry("username",user.getString("USERNAME")).addEntry("password",user.getString("PASSWORD")).addEntry("isConnectingById",true).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac) );
+			setConnectParameters( new  HashMap<String,Object>().addEntry("username",user.getString("USERNAME")).addEntry("password",user.getString("PASSWORD")).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("isConnectingById",true).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac) );
 		
 			this.connect( null , null , null , null ,null,lifecycleListener );
 		}
@@ -205,7 +206,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		//  reset  the  connnectivity  error  to  normal  state, which  should  be  changed  by  the  special  situation.
 		this.setConnectivityError( 0x00 );
 		
-		try( Response  response = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(2,TimeUnit.SECONDS).build().newCall(new  Request.Builder().url("https://"+host+":"+httpPort+"/user/signin").post(HttpUtils.form(connectParameters = connectParameters != null ? connectParameters.addEntry("isAutoReconnect",true) : new  HashMap<String,Object>().addEntry("username",username).addEntry("password",new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
+		try( Response  response = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(2,TimeUnit.SECONDS).build().newCall(new  Request.Builder().url("https://"+host+":"+httpPort+"/user/signin").post(HttpUtils.form(connectParameters = connectParameters != null ? connectParameters.addEntry("isAutoReconnect",true) : new  HashMap<String,Object>().addEntry("username",username).addEntry("password",new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
 		{
 			if( response.code()   == 200 )
 			{
