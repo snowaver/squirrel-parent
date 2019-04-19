@@ -22,53 +22,35 @@ import  cc.mashroom.squirrel.paip.message.call.CloseCallReason;
 
 public  class  CallEventDispatcher
 {
-	private  static  List<CallListener>  LISTENERS= new  CopyOnWriteArrayList<CallListener>();
+	private  static  List<CallListener>  LISTENERS = new  CopyOnWriteArrayList<CallListener>();
 	
 	public  static  void  addListener(    CallListener  listener )
 	{
-		if( listener != null )
-		{
-			LISTENERS.add(      listener );
-		}
+		if( listener != null )  LISTENERS.add(    listener );
 	}
 	
-	public  static  void  onRoomCreated(   Call  call )
+	public  static  void  onClose( Call  call, boolean  proactively , CloseCallReason  reason )
 	{
-		for( CallListener  listener : LISTENERS )
-		{
-			listener.onRoomCreated( call );
-		}
+		for( CallListener  listener : LISTENERS )  listener.onClose( call,proactively,reason );
 	}
-
+	
+	public  static  void  onRoomCreated( Call  call )
+	{
+		for( CallListener  listener : LISTENERS )  listener.onRoomCreated(     call );
+	}
+	
 	public  static  void  removeListener( CallListener  listener )
 	{
-		if( listener != null )
-		{
-			LISTENERS.remove(   listener );
-		}
+		if( listener != null )  LISTENERS.remove( listener );
+	}
+		
+	public  static  void  onStart( Call  call   )
+	{
+		for( CallListener  listener : LISTENERS )  listener.onStart( call );
 	}
 	
-	public  static  void  onStart(   Call  call )
+	public  static  void  onError( Call  call,CallError  error,Throwable  stacktrace )
 	{
-		for( CallListener  listener : LISTENERS )
-		{
-			listener.onStart( call );
-		}
-	}
-	
-	public  static  void  onClose(   Call  call,boolean  proactively,CloseCallReason  reason )
-	{
-		for( CallListener  listener : LISTENERS )
-		{
-			listener.onClose( call,proactively,reason );
-		}
-	}
-	
-	public  static  void  onError( Call  call , CallError  error )
-	{
-		for( CallListener  listener : LISTENERS )
-		{
-			listener.onError( call,error );
-		}
+		for( CallListener  listener : LISTENERS )  listener.onError( call, error, stacktrace );
 	}
 }

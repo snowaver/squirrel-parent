@@ -17,8 +17,8 @@ package cc.mashroom.squirrel.client;
 
 import  java.io.File;
 import  java.net.SocketTimeoutException;
-import java.util.LinkedList;
-import java.util.List;
+import  java.util.Collection;
+import  java.util.LinkedHashSet;
 import  java.util.concurrent.LinkedBlockingQueue;
 import  java.util.concurrent.ScheduledThreadPoolExecutor;
 import  java.util.concurrent.ThreadPoolExecutor;
@@ -48,7 +48,7 @@ import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.client.storage.model.user.User;
 import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.message.call.CallContentType;
-import cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
+import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
 import  cc.mashroom.util.DigestUtils;
@@ -88,15 +88,19 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	@Setter
 	@Accessors(chain=true)
 	private  Call  call;
+	@Getter( value=AccessLevel.PROTECTED )
+	@Setter
+	@Accessors(chain=true)
+	private  LinkedHashSet<LifecycleListener>  lifecycleListeners = new  LinkedHashSet<LifecycleListener>();
 	@Setter( value=AccessLevel.PROTECTED )
-	//  0. normal.  1. connecting  by  id,  but  network  error. 2. (deprecated:  deliver  to  qos  handler,  it  makes  connecting  immediately )  secret  key  expired,  a  new  secret  key  should  be  requested.
+	//  0. normal,  do  nothing.  1. connecting  by  id,  but  network  error. 2. (deprecated:  deliver  to  qos  handler,  it  makes  connecting  immediately )  secret  key  expired,  a  new  secret  key  should  be  requested.
 	private  int  connectivityError= 0x00;
 	
 	Runnable  connectivityGuarantor = new  Runnable(){ public  void run(){ check(); } };
 	
 	private  void  check()
 	{
-		if( this.connectivityError  == 0x01|| this.connectivityError == 0x02 )
+		if( this.connectivityError == 0x01 || this.connectivityError == 0x02 )
 		{
 			connect( null, null , null, null, null, this.lifecycleListeners );
 		}
@@ -143,7 +147,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 					{
 						if( response.code()!= 200 )
 						{
-							CallEventDispatcher.onError( null  /* CALL  ABSENT. */ ,CallError.CREATE_ROOM );
+							CallEventDispatcher.onError(null/* CALL  ABSENT */,CallError.CREATE_ROOM,null );
 						}
 						else
 						{
@@ -153,9 +157,8 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 					catch(  Exception  e )
 					{
 						{
-							CallEventDispatcher.onError( null  /* CALL  ABSENT. */ ,CallError.CREATE_ROOM );
+							CallEventDispatcher.onError(null/* CALL  ABSENT */,CallError.CREATE_ROOM,   e );
 						}
-						e.getStackTrace();
 					}
 				}}
 			);
@@ -169,46 +172,49 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		*/
 	}
 	/**
-	 *  connect  by  id.  username  and  password  encrypted  can  be  queried  by  id  from  local  h2  database.  a  new  connect  parameters  will  be  generated  for  the  http  authenticate  request.
+	 *  connect  by  the  user  id.  the  username  and  encrypted  password,  which  are  stored  in  local  h2  database,  can  be  fetched  by  the  unique  user  id.  a  new  connect  parameters  will  be  created  for  the  https  authenticate  request.
 	 */
-	public  SquirrelClient  connect( @NonNull  Long  id,Double  longitude,Double  latitude,String  mac,@NonNull  LifecycleListener  lifecycleListener )
+	public  SquirrelClient  connect( @NonNull  Long  id,Double  longitude,Double  latitude,String  mac,  @NonNull  Collection<LifecycleListener>  lifecycleListeners )
 	{
-		addLifecycleListener(  lifecycleListener );
-		
 		try
 		{
-			Storage.INSTANCE.initialize(this,lifecycleListener,cacheDir,new  HashMap<String,Object>().addEntry("ID",id));
+			Storage.INSTANCE.initialize( this,lifecycleListeners,this.cacheDir,new  HashMap<String,Object>().addEntry("ID", id) );
 			
 			User  user=User.dao.getOne( "SELECT  USERNAME,PASSWORD  FROM  "+User.dao.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
 			
 			setConnectParameters( new  HashMap<String,Object>().addEntry("username",user.getString("USERNAME")).addEntry("password",user.getString("PASSWORD")).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("isConnectingById",true).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac) );
 		
-			this.connect( null , null , null , null ,null,lifecycleListener );
+			this.connect( null,null,null,null,null, lifecycleListeners );
 		}
 		catch( Throwable  e )
 		{
-			Tracer.trace(e );  lifecycleListener.onAuthenticateComplete(500 );
+			Tracer.trace(e );  LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,500);
 		}
 		
 		return   this;
 	}
 	
-	public  void  asynchronousConnect( final  @NonNull  Long  id,final  Double  longitude,final  Double  latitude,final  String  mac,final  @NonNull  LifecycleListener  lifecycleListener )
+	public  void  asynchronousConnect( final  @NonNull  Long  id, final  Double  longitude, final  Double  latitude, final  String  mac,    @NonNull  final  Collection<LifecycleListener>  lifecycleListeners )
 	{
-		synchronousRunner.execute( new  Runnable(){public  void  run(){connect(id,longitude,latitude,mac,lifecycleListener);}} );
+		synchronousRunner.execute( new  Runnable(){public  void  run(){connect(id,longitude,latitude,mac,lifecycleListeners);}} );
 	}
 	/**
 	 *  connect  the  server.  throws  illegal  state  exception  if  not  routed.  use  latest  connect  parameters  if  the  username  is  not  blank.  http  request  ( include  username,  password  encrypted,  longitude,  latitude  and  mac.  connect  and  read  timeout  are  5  seconds )  will  be  used  to  retrieve  the  secret  key.  initialize  user  metadata  and  offline  datas,  connect  to  paip  protocol  server  after  successful  authentication.  authenticate  complete  method  on  lifecycle  listener  will  be  called  no  matter  authentication  error  or  not.  connectivity  guarantor  will  be  scheduled  at  fixed  rate  (5  seconds)  after  connecting  by  id  or  authenticated  successfully.
 	 */
-	public  SquirrelClient  connect( String  username,String  password,Double  longitude,Double  latitude,String  mac,@NonNull  LifecycleListener  lifecycleListener )
+	public  SquirrelClient  connect( String  username,String  password,Double  longitude,Double  latitude,String  mac,@NonNull  Collection<LifecycleListener>  lifecycleListeners )
 	{
 		if( StringUtils.isBlank(host) || this.port<= 0 || this.httpPort <= 0 )
 		{
 			throw  new  IllegalStateException(   "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  no  route  is  available." );
 		}
 		
-		LifecycleEventDispatcher.addListener(             lifecycleListener );
+		if( lifecycleListeners.isEmpty() )
+		{
+			throw  new  IllegalArgumentException("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  lifecycle  listeners  is  empty."  );
+		}
 		
+		this.lifecycleListeners.addAll(lifecycleListeners );
+		//  clear  the  connect  parameters  if  the  username  isn' t  blank.
 		if( StringUtils.isNotBlank(    username ) )
 		{
 			setConnectParameters(  null );
@@ -222,12 +228,12 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			{
 				this.userMetadata.addEntries( JsonUtils.mapper.readValue(response.body().string(),java.util.Map.class) );
 				//  connecting  to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
-				Storage.INSTANCE.initialize(this,lifecycleListener,cacheDir,new  HashMap<String,Object>().addEntries(userMetadata.addEntry("ID",Long.parseLong(userMetadata.get("ID").toString()))).addEntry("PASSWORD",connectParameters.getString("password")) );
+				Storage.INSTANCE.initialize(this,lifecycleListeners,cacheDir,new  HashMap<String,Object>().addEntries(userMetadata.addEntry("ID",Long.parseLong(userMetadata.get("ID").toString()))).addEntry("PASSWORD",connectParameters.getString("password")) );
 			
 				this.connect( userMetadata.get("ID").toString(),userMetadata.get("SECRET_KEY").toString() );
 			}
 			
-			LifecycleEventDispatcher.onAuthenticateComplete(response.code() );
+			LifecycleEventDispatcher.onAuthenticateComplete(    this.lifecycleListeners , response.code() );
 		}
 		catch( Throwable  e )
 		{
@@ -238,7 +244,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			
 			Tracer.trace(e );
 			
-			LifecycleEventDispatcher.onAuthenticateComplete(      ((e instanceof SocketTimeoutException) ? 501 : 500 ) );
+			LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,(e instanceof SocketTimeoutException) ? 501  /* TIMEOUT */ : 500 );
 		}
 		finally
 		{
@@ -263,7 +269,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		
 		this.setConnectParameters( null );
 		call   = null;
-		this.setLifecycleListener( null );
+		this.lifecycleListeners.clear(  );
 	}
 	/**
 	 *  close  the  client.  send  a  disconnect  packet  to  the  server,  then  close  the  netty  nio  event  loop  group  and  connectiviy  guarantor  thread  pool.  the  client  instance  can  not  be  used  anymore  after  closed.
@@ -279,7 +285,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	 */
 	public  void disconnect()
 	{
-		//  deprecated:  it  is  not  necessary  that  close  the  channel,  while  the  socket  channel  can  be  reused  anyway.  sending  packet  should  be  limited  by  id,  connect  state  or  authenticate  state.
+		//  deprecated:  it  is  not  necessary  that  close  the  channel,  while  the  socket  channel  can  be  reused  anyway.  sending  packet  should  be  restricted  by  id,  connect  state  and  authenticate  state.
 		/*
 		send(   new  DisconnectPacket() );
 		*/
@@ -292,8 +298,8 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		*/
 	}
 	
-	public  void  asynchronousConnect( final  String  username,final  String  password,final  Double  longitude,final  Double  latitude,final  String  mac,final  @NonNull  LifecycleListener  lifecycleListener )
+	public  void  asynchronousConnect( final  String  username,final  String  password,final  Double  longitude,final  Double  latitude,final  String  mac,final  @NonNull  Collection<LifecycleListener>  lifecycleListeners )
 	{
-		this.synchronousRunner.execute(new  Runnable(){public  void  run(){ connect(username,password,longitude,latitude,mac,lifecycleListener); } } );
+		this.synchronousRunner.execute(new  Runnable(){public  void  run(){ connect(username,password,longitude,latitude,mac,lifecycleListeners); }} );
 	}
 }

@@ -20,7 +20,7 @@ import  cc.mashroom.squirrel.paip.message.call.CloseCallReason;
 public  interface  CallListener
 {
 	/**
-	 *  this  method  will  be  triggered  when  a  new  room  is  created.
+	 *  will  be  triggered  when  a  new  room  is  created.
 	 */
 	public  void  onRoomCreated( Call  call );
 	/**
@@ -28,7 +28,7 @@ public  interface  CallListener
 	 */
 	public  void  onStart( Call  call );
 	
-	public  void  onError( Call  call,CallError  error );
+	public  void  onError( Call  call,CallError  error,Throwable  stacktrace );
 	
 	public  void  onClose( Call  call,boolean  proactively,CloseCallReason  reason );
 }

@@ -18,6 +18,7 @@ package cc.mashroom.squirrel.client.storage;
 import  java.io.File;
 import  java.io.InputStream;
 import  java.sql.Connection;
+import  java.util.Collection;
 import  java.util.List;
 
 import  com.fasterxml.jackson.core.type.TypeReference;
@@ -26,6 +27,7 @@ import  cc.mashroom.db.ConnectionFactory;
 import  cc.mashroom.db.common.Db;
 import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.db.config.JDBCConfig;
+import cc.mashroom.squirrel.client.LifecycleEventDispatcher;
 import  cc.mashroom.squirrel.client.LifecycleListener;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.connect.PacketListener;
@@ -38,7 +40,7 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
-import cc.mashroom.squirrel.paip.message.chat.ChatRetractPacket;
+import  cc.mashroom.squirrel.paip.message.chat.ChatRetractPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatEventPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
@@ -57,7 +59,7 @@ import  lombok.experimental.Accessors;
 
 public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.client.LifecycleListener
 {
-	public  void  initialize( final  SquirrelClient  context,final  LifecycleListener  lifecycleListener,File  cacheDir,final  Map<String,Object>  metadata )  throws  Exception
+	public  void  initialize( final  SquirrelClient  context,final  Collection<LifecycleListener>  lifecycleListeners,File  cacheDir,final  Map<String,Object>  metadata )  throws  Exception
 	{
 		this.setContext(context).setCacheDir(cacheDir).setId( metadata.getLong("ID") );
 		
@@ -73,7 +75,7 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		{
 			try( InputStream  is =  getClass().getResourceAsStream( "/squirrel.ddl" ) )
 			{
-				Db.tx( String.valueOf(id),java.sql.Connection.TRANSACTION_SERIALIZABLE,new  Callback(){public  Object  execute( cc.mashroom.db.connection.Connection  connection )  throws  Throwable{ connection.runScripts( IOUtils.toString(is,"UTF-8") );  User.dao.upsert( metadata );  lifecycleListener.onReceiveOfflineData( false );  Offline.dao.attach( context );  lifecycleListener.onReceiveOfflineData( true );  return  true; }});
+				Db.tx( String.valueOf(id),java.sql.Connection.TRANSACTION_SERIALIZABLE,new  Callback(){public  Object  execute( cc.mashroom.db.connection.Connection  connection )  throws  Throwable{ connection.runScripts( IOUtils.toString(is,"UTF-8") );  User.dao.upsert( metadata );  LifecycleEventDispatcher.onReceiveOfflineData( lifecycleListeners,false );  Offline.dao.attach( context );  LifecycleEventDispatcher.onReceiveOfflineData( lifecycleListeners,true );  return  true; }});
 			}
 		}
 	}

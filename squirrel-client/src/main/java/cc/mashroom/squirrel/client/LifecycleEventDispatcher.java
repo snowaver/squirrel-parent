@@ -1,40 +1,21 @@
 package cc.mashroom.squirrel.client;
 
-import  java.util.List;
-import  java.util.concurrent.CopyOnWriteArrayList;
+import  java.util.Collection;
 
-class   LifecycleEventDispatcher
+public  class  LifecycleEventDispatcher
 {
-	protected  final  static  List<LifecycleListener>  LISTENERS   = new  CopyOnWriteArrayList<LifecycleListener>();
-	
-	public  static  void  removeListener( LifecycleListener  listener )
+	public  static  void  onDisconnected(     Collection<LifecycleListener>  listeners,boolean  proactively )
 	{
-		if( listener   != null )
-		{
-			LISTENERS.remove( listener );
-		}
+		for( LifecycleListener  listener : listeners )  listener.onDisconnected(    proactively );
 	}
 	
-	public  static  void  addListener(    LifecycleListener  listener )
+	public  static  void  onAuthenticateComplete( Collection<LifecycleListener>  listeners,int  authenticateResponseCode )
 	{
-		if( listener   != null )
-		{
-			LISTENERS.add(    listener );
-		}
+		for( LifecycleListener  listener : listeners )  listener.onAuthenticateComplete( authenticateResponseCode );
 	}
 	
-	public  static  void  onDisconnected( boolean  active )
+	public  static  void  onReceiveOfflineData( Collection<LifecycleListener>  listeners,boolean   finished )
 	{
-		for( LifecycleListener  listener : LISTENERS )  listener.onDisconnected( active );
-	}
-	
-	public  static  void  onAuthenticateComplete( int  authenticateResponseCode )
-	{
-		for( LifecycleListener  listener : LISTENERS )  listener.onAuthenticateComplete( authenticateResponseCode );
-	}
-	
-	public  static  void  onReceiveOfflineData(    boolean   finished )
-	{
-		for( LifecycleListener  listener : LISTENERS )  listener.onReceiveOfflineData( finished );
+		for( LifecycleListener  listener : listeners )  listener.onReceiveOfflineData( finished );
 	}
 }
