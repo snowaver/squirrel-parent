@@ -17,6 +17,8 @@ package cc.mashroom.squirrel.client;
 
 import  java.io.File;
 import  java.net.SocketTimeoutException;
+import java.util.LinkedList;
+import java.util.List;
 import  java.util.concurrent.LinkedBlockingQueue;
 import  java.util.concurrent.ScheduledThreadPoolExecutor;
 import  java.util.concurrent.ThreadPoolExecutor;
@@ -87,10 +89,6 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	@Accessors(chain=true)
 	private  Call  call;
 	@Setter( value=AccessLevel.PROTECTED )
-	@Getter
-	@Accessors(chain=true)
-	private  LifecycleListener   lifecycleListener;
-	@Setter( value=AccessLevel.PROTECTED )
 	//  0. normal.  1. connecting  by  id,  but  network  error. 2. (deprecated:  deliver  to  qos  handler,  it  makes  connecting  immediately )  secret  key  expired,  a  new  secret  key  should  be  requested.
 	private  int  connectivityError= 0x00;
 	
@@ -100,7 +98,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	{
 		if( this.connectivityError  == 0x01|| this.connectivityError == 0x02 )
 		{
-			connect( null , null , null, null , null,this.lifecycleListener );
+			connect( null, null , null, null, null, this.lifecycleListeners );
 		}
 		else
 		if( getConnectState() == ConnectState.DISCONNECTED )
@@ -108,7 +106,19 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			super.connect( userMetadata.get("ID").toString() , userMetadata.get("SECRET_KEY" ).toString() );
 		}
 	}
-
+		
+	public  SquirrelClient  addLifecycleListener(LifecycleListener  listener )
+	{
+		lifecycleListeners.add(listener );     return  this;
+	}
+	
+	public  SquirrelClient  removeLifecycleListener(       LifecycleListener  listener )
+	{
+		this.lifecycleListeners.remove( listener );
+		
+		return  this;
+	}
+	
 	protected  SquirrelClient  setConnectState(   ConnectState  connectState )
 	{
 		return  ObjectUtils.cast(     super.setConnectState( connectState ) );
@@ -163,7 +173,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	 */
 	public  SquirrelClient  connect( @NonNull  Long  id,Double  longitude,Double  latitude,String  mac,@NonNull  LifecycleListener  lifecycleListener )
 	{
-		setLifecycleListener(  lifecycleListener );
+		addLifecycleListener(  lifecycleListener );
 		
 		try
 		{
@@ -197,7 +207,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			throw  new  IllegalStateException(   "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  no  route  is  available." );
 		}
 		
-		setLifecycleListener(  lifecycleListener );
+		LifecycleEventDispatcher.addListener(             lifecycleListener );
 		
 		if( StringUtils.isNotBlank(    username ) )
 		{
@@ -217,7 +227,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 				this.connect( userMetadata.get("ID").toString(),userMetadata.get("SECRET_KEY").toString() );
 			}
 			
-			this.lifecycleListener.onAuthenticateComplete(  response.code() );
+			LifecycleEventDispatcher.onAuthenticateComplete(response.code() );
 		}
 		catch( Throwable  e )
 		{
@@ -228,7 +238,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			
 			Tracer.trace(e );
 			
-			this.getLifecycleListener().onAuthenticateComplete(  ( (e instanceof SocketTimeoutException) ? 501 : 500 ) );
+			LifecycleEventDispatcher.onAuthenticateComplete(      ((e instanceof SocketTimeoutException) ? 501 : 500 ) );
 		}
 		finally
 		{

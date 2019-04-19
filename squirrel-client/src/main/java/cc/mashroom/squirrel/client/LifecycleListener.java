@@ -17,9 +17,9 @@ package cc.mashroom.squirrel.client;
 
 public  interface  LifecycleListener
 {
-	public  void  onAuthenticateComplete( int  authenticatedCode );
-	
 	public  void  onReceiveOfflineData( boolean  finished );
 	
-	public  void  onDisconnected( boolean  active );
+	public  void  onDisconnected( boolean  proactively );
+	
+	public  void  onAuthenticateComplete( int  authenticatedResponseCode );
 }

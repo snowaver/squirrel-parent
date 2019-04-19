@@ -18,7 +18,7 @@ package cc.mashroom.squirrel.client;
 import  java.util.concurrent.ScheduledThreadPoolExecutor;
 import  java.util.concurrent.TimeUnit;
 
-import org.joda.time.DateTime;
+import  org.joda.time.DateTime;
 
 import  cc.mashroom.squirrel.client.connect.ClientConnectEventDispatcher;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
@@ -57,7 +57,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		{
 			if( ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.ACTIVE || ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REMOTE_LOGIN_ERROR )
 			{
-				adapter.getLifecycleListener().onDisconnected( ObjectUtils.cast( packet,DisconnectAckPacket.class ).getReason() == DisconnectAckPacket.ACTIVE );
+				LifecycleEventDispatcher.onDisconnected(     ObjectUtils.cast( packet , DisconnectAckPacket.class ).getReason() == DisconnectAckPacket.ACTIVE );
 				
 				adapter.clear();
 				
@@ -79,7 +79,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 				{
 					System.err.println( "still  authenticated,  disconnection  of  network  may  result  in  an  authentication  error  (secret  key  unavailable  now),  so  retrive  a  new  secret  key." );
 					
-					adapter.connect( null, null, null, null, null,adapter.getLifecycleListener() );
+					adapter.connect( null , null , null , null , null , null );
 				}
 			}
 		}
