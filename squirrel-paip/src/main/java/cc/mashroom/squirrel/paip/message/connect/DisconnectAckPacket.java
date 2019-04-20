@@ -28,11 +28,11 @@ import  lombok.experimental.Accessors;
 @ToString(callSuper=true )
 public  class  DisconnectAckPacket  extends  Packet<DisconnectAckPacket>
 {
-	public  final  static  int  NETWORK_ERROR=0x01;
+	public  final  static  int  REASON_PROACTIVELY   = 0x00;
 	
-	public  final  static  int  PROACTIVELY  =0x00;
+	public  final  static  int  REASON_NETWORK_ERROR = 0x01;
 	
-	public  final  static  int  REMOTE_LOGIN =0x02;
+	public  final  static  int  REASON_REMOTE_LOGIN  = 0x02;
 		
 	public  DisconnectAckPacket(int reason )
 	{

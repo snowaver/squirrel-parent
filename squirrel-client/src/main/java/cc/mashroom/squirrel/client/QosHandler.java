@@ -55,7 +55,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		
 		if( packet instanceof DisconnectAckPacket )
 		{
-			if( ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.PROACTIVELY || ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REMOTE_LOGIN )
+			if( ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_PROACTIVELY || ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_REMOTE_LOGIN )
 			{
 				LifecycleEventDispatcher.onDisconnected( adapter.getLifecycleListeners(),ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() );
 				
