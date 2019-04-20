@@ -41,7 +41,7 @@ import  io.netty.util.concurrent.DefaultThreadFactory;
 */
 public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 {
-	private  ScheduledThreadPoolExecutor  pendingScheduledChecker = new  ScheduledThreadPoolExecutor(1,new  DefaultThreadFactory("QOS-HANDLE-THREAD",false,1) );
+	private  ScheduledThreadPoolExecutor  pendingScheduledChecker = new  ScheduledThreadPoolExecutor(1,new  DefaultThreadFactory("QOS-CHECKER",false,1) );
 	
 	private  Map<Long,Packet>  pendings= new  ConcurrentHashMap<Long,Packet>();
 	
@@ -55,9 +55,9 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		
 		if( packet instanceof DisconnectAckPacket )
 		{
-			if( ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.ACTIVE || ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REMOTE_LOGIN_ERROR )
+			if( ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.PROACTIVELY || ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REMOTE_LOGIN )
 			{
-				LifecycleEventDispatcher.onDisconnected( adapter.getLifecycleListeners(),ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.ACTIVE );
+				LifecycleEventDispatcher.onDisconnected( adapter.getLifecycleListeners(),ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() );
 				
 				adapter.clear();
 				

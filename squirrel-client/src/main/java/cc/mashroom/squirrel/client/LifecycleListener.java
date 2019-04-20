@@ -19,7 +19,7 @@ public  interface  LifecycleListener
 {
 	public  void  onReceiveOfflineData( boolean  finished );
 	
-	public  void  onDisconnected( boolean  proactively );
+	public  void  onDisconnected( int  reason );
 	
 	public  void  onAuthenticateComplete( int  authenticatedResponseCode );
 }

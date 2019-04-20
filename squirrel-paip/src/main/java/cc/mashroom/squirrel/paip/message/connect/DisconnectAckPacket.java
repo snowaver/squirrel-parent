@@ -30,22 +30,22 @@ public  class  DisconnectAckPacket  extends  Packet<DisconnectAckPacket>
 {
 	public  final  static  int  NETWORK_ERROR=0x01;
 	
-	public  final  static  int  ACTIVE=0x00;
+	public  final  static  int  PROACTIVELY  =0x00;
 	
-	public  final  static  int  REMOTE_LOGIN_ERROR  = 0x02;
+	public  final  static  int  REMOTE_LOGIN =0x02;
+		
+	public  DisconnectAckPacket(int reason )
+	{
+		super( new  Header(PAIPPacketType.DISCONNECT_ACK) );
+		
+		this.setReason( reason );
+	}
 	
 	public  DisconnectAckPacket(     ByteBuf  buf )
 	{
 		super( buf,0x00 );
 		
 		this.setReason( buf.readShortLE() );
-	}
-	
-	public  DisconnectAckPacket(int reason )
-	{
-		super( new  Header(PAIPPacketType.DISCONNECT_ACK));
-		
-		this.setReason( reason );
 	}
 	
 	@Setter( value = AccessLevel.PROTECTED )
@@ -55,12 +55,12 @@ public  class  DisconnectAckPacket  extends  Packet<DisconnectAckPacket>
 
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableByteBuf )
 	{
-		return  variableByteBuf.writeShortLE(this.reason );
+		return  variableByteBuf.writeShortLE( this.reason );
 	}
 	
 	public  int  getInitialVariableByteBufferSize()
 	{
-		return  2+super.getInitialVariableByteBufferSize();
+		return  2+ super.getInitialVariableByteBufferSize();
 	}
 	/*
 	public  void  writeTo(ByteBuf  byteBuf )
