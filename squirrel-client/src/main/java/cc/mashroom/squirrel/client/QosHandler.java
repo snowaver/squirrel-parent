@@ -79,7 +79,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 				{
 					System.err.println( "still  authenticated,  disconnection  of  network  may  result  in  an  authentication  error  (secret  key  unavailable  now),  so  retrive  a  new  secret  key." );
 					
-					adapter.connect( null , null , null , null , null , null );
+					adapter.connect(null,null,null, null , null, adapter.getLifecycleListeners() );
 				}
 			}
 		}
