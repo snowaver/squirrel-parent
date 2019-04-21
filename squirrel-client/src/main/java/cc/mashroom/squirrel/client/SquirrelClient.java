@@ -135,7 +135,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	/**
 	 *  return  null  if  a  call  exists  or  a  new  call.
 	 */
-	public  synchronized  void  newCall(final  long  roomId,final  long  contactId,@NonNull  final  CallContentType  contentType)
+	public  synchronized  void  newCall(final  long  roomId,final  long  contactId,@NonNull  final  CallContentType  contentType )
 	{
 		if( roomId <= 0 )
 		{
@@ -210,7 +210,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		
 		if( lifecycleListeners.isEmpty() )
 		{
-			throw  new  IllegalArgumentException("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  lifecycle  listeners  is  empty."  );
+			throw  new  IllegalArgumentException( "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  lifecycle  listeners  is  empty."  );
 		}
 		
 		this.lifecycleListeners.addAll(lifecycleListeners );
@@ -227,7 +227,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			if( response.code()   == 200 )
 			{
 				this.userMetadata.addEntries( JsonUtils.mapper.readValue(response.body().string(),java.util.Map.class) );
-				//  connecting  to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
+				//  connecting   to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
 				Storage.INSTANCE.initialize(this,lifecycleListeners,cacheDir,new  HashMap<String,Object>().addEntries(userMetadata.addEntry("ID",Long.parseLong(userMetadata.get("ID").toString()))).addEntry("PASSWORD",connectParameters.getString("password")) );
 			
 				this.connect( userMetadata.get("ID").toString(),userMetadata.get("SECRET_KEY").toString() );
