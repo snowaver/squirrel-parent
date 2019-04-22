@@ -17,7 +17,7 @@ package cc.mashroom.squirrel.client.storage;
 
 import  java.io.IOException;
 import  java.util.List;
-import java.util.concurrent.TimeUnit;
+import  java.util.concurrent.TimeUnit;
 
 import  com.fasterxml.jackson.core.type.TypeReference;
 
@@ -38,7 +38,7 @@ import  okhttp3.Response;
 
 public  class  Offline
 {
-	public  void  attach( SquirrelClient  context )  throws  IOException
+	public  Map<String,List<Map<String,Object>>>  attach( SquirrelClient  context )  throws  IOException
 	{
 		ChatGroup  chatGroupLatestModifyTime = ChatGroup.dao.getOne( "SELECT  MAX(LAST_MODIFY_TIME)  AS  LAST_MODIFY_TIME  FROM  "+ChatGroup.dao.getDataSourceBind().table(),new  Object[]{} );
 		
@@ -52,13 +52,13 @@ public  class  Offline
 			{
 				Map<String,List<Map<String,Object>>>  offline    = JsonUtils.mapper.readValue( response.body().string(),new  TypeReference<HashMap<String,List<HashMap<String,Object>>>>(){} );
 				
-				Contact.dao.recache().attach( offline.get("CONTACTS") );
+				Contact.dao.recache().attach(offline.get("CONTACTS"));  ChatGroup.dao.attach( offline );
 				
-				ChatGroup.dao.attach( offline );
-				
-				ChatMessage.dao.attach( context,context.getCacheDir(),offline.get("OFFLINE_MESSAGES") );
+				ChatMessage.dao.attach( context,context.getCacheDir(),offline.get("OFFLINE_MESSAGES") );  return  offline;
 			}
 		}
+		
+		return  null;
 	}
 	
 	public  final  static  Offline  dao = new  Offline();

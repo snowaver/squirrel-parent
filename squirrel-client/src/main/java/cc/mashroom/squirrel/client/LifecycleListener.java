@@ -15,9 +15,13 @@
  */
 package cc.mashroom.squirrel.client;
 
+import  java.util.List;
+
+import  cc.mashroom.util.collection.map.Map;
+
 public  interface  LifecycleListener
 {
-	public  void  onReceiveOfflineData( boolean  finished );
+	public  void  onReceivedOfflineData( Map<String,List<Map<String,Object>>>  offlineDatas );
 	
 	public  void  onDisconnected( int  reason );
 	

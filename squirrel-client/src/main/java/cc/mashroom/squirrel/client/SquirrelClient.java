@@ -178,7 +178,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	{
 		try
 		{
-			Storage.INSTANCE.initialize( this,lifecycleListeners,this.cacheDir,new  HashMap<String,Object>().addEntry("ID", id) );
+			Storage.INSTANCE.initialize( this,true,lifecycleListeners,cacheDir,new  HashMap<String,Object>().addEntry("ID", id) );
 			
 			User  user=User.dao.getOne( "SELECT  USERNAME,PASSWORD  FROM  "+User.dao.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
 			
@@ -210,7 +210,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		
 		if( lifecycleListeners.isEmpty() )
 		{
-			throw  new  IllegalArgumentException( "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  lifecycle  listeners  is  empty."  );
+			throw  new  IllegalArgumentException("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  lifecycle  listeners  is  empty."   );
 		}
 		
 		this.lifecycleListeners.addAll(lifecycleListeners );
@@ -228,7 +228,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			{
 				this.userMetadata.addEntries( JsonUtils.mapper.readValue(response.body().string(),java.util.Map.class) );
 				//  connecting   to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
-				Storage.INSTANCE.initialize(this,lifecycleListeners,cacheDir,new  HashMap<String,Object>().addEntries(userMetadata.addEntry("ID",Long.parseLong(userMetadata.get("ID").toString()))).addEntry("PASSWORD",connectParameters.getString("password")) );
+				Storage.INSTANCE.initialize(this,false,lifecycleListeners,cacheDir,new  HashMap<String,Object>().addEntries(userMetadata.addEntry("ID",Long.parseLong(userMetadata.get("ID").toString()))).addEntry("PASSWORD",connectParameters.getString("password")) );
 			
 				this.connect( userMetadata.get("ID").toString(),userMetadata.get("SECRET_KEY").toString() );
 			}

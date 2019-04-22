@@ -45,6 +45,7 @@ import  cc.mashroom.squirrel.paip.message.chat.GroupChatEventPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribePacket;
+import cc.mashroom.squirrel.paip.message.subscribes.UnsubscribePacket;
 import  cc.mashroom.util.FileUtils;
 import  cc.mashroom.util.IOUtils;
 import  cc.mashroom.util.JsonUtils;
@@ -59,7 +60,7 @@ import  lombok.experimental.Accessors;
 
 public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.client.LifecycleListener
 {
-	public  void  initialize( final  SquirrelClient  context,final  Collection<LifecycleListener>  lifecycleListeners,File  cacheDir,final  Map<String,Object>  metadata )  throws  Exception
+	public  void  initialize( final  SquirrelClient  context,boolean  isConnectDataSourceOnly,final  Collection<LifecycleListener>  lifecycleListeners,File  cacheDir,final  Map<String,Object>  metadata )  throws  Exception
 	{
 		this.setContext(context).setCacheDir(cacheDir).setId( metadata.getLong("ID") );
 		
@@ -67,7 +68,7 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		
 		JDBCConfig.addDataSource( new  HashMap<String,Object>().addEntry(String.format("jdbc.%s.driverClass",String.valueOf(id)),"org.h2.Driver").addEntry(String.format("jdbc.%s.jdbcUrl",String.valueOf(id)),"jdbc:h2:"+FileUtils.createFileIfAbsent(new  File(cacheDir,"db/"+StringUtils.leftPad(String.valueOf(id),20,String.valueOf(0))+".db;FILE_LOCK=FS;DB_CLOSE_DELAY=-1;AUTO_RECONNECT=TRUE"),null).getPath()) );
 		//  recache  the  contacts  if  no  connection  or  connecting  by  stored  credential  (only  ID  is  provided  for  username  and  encryped  password).
-		if( !metadata.containsKey(F_INI) )
+		if(      isConnectDataSourceOnly )
 		{
 			Contact.dao.recache();
 		}
@@ -75,17 +76,22 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		{
 			try( InputStream  is =  getClass().getResourceAsStream( "/squirrel.ddl" ) )
 			{
-				Db.tx( String.valueOf(id),java.sql.Connection.TRANSACTION_SERIALIZABLE,new  Callback(){public  Object  execute( cc.mashroom.db.connection.Connection  connection )  throws  Throwable{ connection.runScripts( IOUtils.toString(is,"UTF-8") );  User.dao.upsert( metadata );  LifecycleEventDispatcher.onReceiveOfflineData( lifecycleListeners,false );  Offline.dao.attach( context );  LifecycleEventDispatcher.onReceiveOfflineData( lifecycleListeners,true );  return  true; }});
+				Db.tx( String.valueOf(id),java.sql.Connection.TRANSACTION_SERIALIZABLE,new  Callback(){public  Object  execute( cc.mashroom.db.connection.Connection  connection )  throws  Throwable{ connection.runScripts( IOUtils.toString(is,"UTF-8") );  User.dao.upsert( metadata );  LifecycleEventDispatcher.onReceiveOfflineData(lifecycleListeners,Offline.dao.attach(context));  return  true; }});
 			}
 		}
 	}
+		
+	@Getter( value=AccessLevel.PROTECTED )
+	@Setter
+	@Accessors( chain=true )
+	protected  long  id;
 	
 	public  void  stop()
 	{
 		ConnectionFactory.stop( );
 	}
 	
-	protected  String  F_INI = "USERNAME";
+	public  final  static  Storage  INSTANCE  = new  Storage();
 	
 	@Getter( value=AccessLevel.PROTECTED )
 	@Setter
@@ -94,12 +100,7 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 	@Getter( value=AccessLevel.PROTECTED )
 	@Setter
 	@Accessors( chain=true )
-	protected  long  id;
-	public  final  static  Storage  INSTANCE  = new  Storage();
-	@Getter( value=AccessLevel.PROTECTED )
-	@Setter
-	@Accessors( chain=true )
-	protected  File  cacheDir;
+	protected  File      cacheDir;
 
 	public  boolean  beforeSend( final Packet packet )  throws  Exception
 	{
@@ -134,6 +135,11 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		}
 		else
 		if( packet instanceof CloseCallPacket )
+		{
+			
+		}
+		else
+		if( packet instanceof      UnsubscribePacket )
 		{
 			
 		}
