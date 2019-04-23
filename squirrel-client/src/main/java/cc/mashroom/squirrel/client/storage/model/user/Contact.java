@@ -119,12 +119,11 @@ public  class  Contact  extends  AbstractModel< Contact >
 		return  this;
 	}
 	
-	public  void  remove( long  contactId )
+	public  boolean  remove( long  contactId )
 	{
-		if( Contact.dao.update("UPDATE  "+Contact.dao.getDataSourceBind().table()+"  SET  IS_DELETED = 1  WHERE  ID = ?",new  Object[]{contactId}) >= 1 )
-		{
-			contactGroups.removeMapping( contactId,contactDirect.remove(contactId) );
-		}
+		Contact.dao.update( "UPDATE  "+Contact.dao.getDataSourceBind().table()+"  SET  IS_DELETED = 1  WHERE  ID = ?" , new  Object[]{contactId} );
+		
+		return  this.contactGroups.removeMapping( contactId ,  this.contactDirect.remove( contactId ) );
 	}
 	
 	public  void  attach( List<Map<String, Object>>  contacts )

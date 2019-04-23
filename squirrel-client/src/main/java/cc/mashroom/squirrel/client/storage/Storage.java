@@ -141,7 +141,7 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		else
 		if( packet instanceof      UnsubscribePacket )
 		{
-			
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  Contact.dao.remove( ObjectUtils.cast(packet,UnsubscribePacket.class).getContactId() );}} );
 		}
 		else
 		if( packet instanceof GroupChatPacket )
@@ -178,6 +178,11 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		if( packet instanceof CloseCallPacket )
 		{
 			
+		}
+		else
+		if( packet instanceof      UnsubscribePacket )
+		{
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  Contact.dao.remove( ObjectUtils.cast(packet,UnsubscribePacket.class).getContactId() );}} );
 		}
 		else
 		if( packet instanceof ChatRetractPacket      )
