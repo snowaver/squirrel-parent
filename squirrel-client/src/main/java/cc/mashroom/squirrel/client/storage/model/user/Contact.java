@@ -72,7 +72,7 @@ public  class  Contact  extends  AbstractModel< Contact >
 		else
 		if( contact.getInteger("SUBSCRIBE_STATUS") == 0 || contact.getInteger("SUBSCRIBE_STATUS") == 1 )
 		{
-			if( isUpdateNewsProfile )
+//			if( isUpdateNewsProfile )
 			{
 				NewsProfile.dao.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfile.dao.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{contact.getLong("ID"),contact.get("CREATE_TIME"),PAIPPacketType.SUBSCRIBE.getValue(),contact.getLong("ID"),  contact.getInteger("SUBSCRIBE_STATUS"),1} );
 			}
@@ -87,12 +87,12 @@ public  class  Contact  extends  AbstractModel< Contact >
 	{
 		Contact  contact = contactDirect.get( packet.getContactId() );
 		
-		return  upsert( ObjectUtils.cast(new  Contact().addEntry("ID",packet.getContactId()).addEntry("USERNAME",packet.getSubscribeeProfile().getString("USERNAME")).addEntry("CREATE_TIME",null).addEntry("LAST_MODIFY_TIME",null).addEntry("IS_DELETED",false).addEntry("SUBSCRIBE_STATUS",transportState == TransportState.RECEIVED ? 7 : 6).addEntry("REMARK",contact.get("REMARK")).addEntry("GROUP_NAME",transportState == TransportState.RECEIVED ? contact.get("GROUP_NAME") : packet.getSubscribeeProfile().getString("GROUP")),Contact.class),false );
+		return  upsert( ObjectUtils.cast(new  Contact().addEntry("ID",packet.getContactId()).addEntry("USERNAME",packet.getSubscribeeProfile().getString("USERNAME")).addEntry("CREATE_TIME",null).addEntry("LAST_MODIFY_TIME",null).addEntry("IS_DELETED",false).addEntry("SUBSCRIBE_STATUS",transportState == TransportState.RECEIVED ? 7 : 6).addEntry("REMARK",contact.get("REMARK")).addEntry("GROUP_NAME",transportState == TransportState.RECEIVED ? contact.get("GROUP_NAME") : packet.getSubscribeeProfile().getString("GROUP")),Contact.class),true );
 	}
 		
 	private  int  upsert( SubscribePacket  packet,   TransportState  transportState )
 	{
-		return  upsert( ObjectUtils.cast(new  Contact().addEntry("ID",packet.getContactId()).addEntry("USERNAME",packet.getSubscriberProfile().getString("USERNAME")).addEntry("CREATE_TIME",null).addEntry("LAST_MODIFY_TIME",null).addEntry("IS_DELETED",false).addEntry("SUBSCRIBE_STATUS",transportState == TransportState.RECEIVED ? 1 : 0).addEntry("REMARK",packet.getSubscriberProfile().getString("NICKNAME")).addEntry("GROUP_NAME",transportState == TransportState.RECEIVED ? "" : packet.getSubscriberProfile().getString("GROUP")),Contact.class),false );
+		return  upsert( ObjectUtils.cast(new  Contact().addEntry("ID",packet.getContactId()).addEntry("USERNAME",packet.getSubscriberProfile().getString("USERNAME")).addEntry("CREATE_TIME",null).addEntry("LAST_MODIFY_TIME",null).addEntry("IS_DELETED",false).addEntry("SUBSCRIBE_STATUS",transportState == TransportState.RECEIVED ? 1 : 0).addEntry("REMARK",packet.getSubscriberProfile().getString("NICKNAME")).addEntry("GROUP_NAME",transportState == TransportState.RECEIVED ? "" : packet.getSubscriberProfile().getString("GROUP")),Contact.class),true );
 	}
 	
 	public  ArrayListValuedHashMap<String,Contact>  getContactGroups()

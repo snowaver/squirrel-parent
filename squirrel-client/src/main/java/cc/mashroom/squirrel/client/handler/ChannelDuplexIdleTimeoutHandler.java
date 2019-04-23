@@ -30,6 +30,8 @@ public  class  ChannelDuplexIdleTimeoutHandler  extends  ChannelDuplexHandler
 		{
 			if( ObjectUtils.cast(event,IdleStateEvent.class).state() == IdleState.READER_IDLE )
 			{
+				System.err.println( "SQUIRREL-CLIENT:  ** CHANNEL  DUPLEX  IDLE  TIMEOUT  HANDLER **  reader  idle,  so  close  the  channel." );
+				
 				context.channel().close(   );
 			}
 			else
