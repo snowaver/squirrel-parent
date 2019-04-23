@@ -28,7 +28,6 @@ import  cc.mashroom.squirrel.client.storage.model.chat.NewsProfile;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.TransportState;
-import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribePacket;
 import  cc.mashroom.util.ObjectUtils;
@@ -64,7 +63,7 @@ public  class  Contact  extends  AbstractModel< Contact >
 			{
 				NewsProfile.dao.update( "DELETE  FROM  "+NewsProfile.dao.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{contact.getLong("ID"),PAIPPacketType.SUBSCRIBE.getValue()} );
 				
-				NewsProfile.dao.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfile.dao.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{contact.getLong("ID"),contact.get("CREATE_TIME"),PAIPPacketType.CHAT.getValue(),contact.getLong("ID"),"&"+StringUtils.leftPad(Integer.toHexString(PAIPPacketType.CHAT.getValue()),2,"0")+StringUtils.leftPad(Integer.toHexString(ChatContentType.WORDS.getValue()),2,"0")+";",1} );
+				NewsProfile.dao.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfile.dao.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{contact.getLong("ID"),contact.get("CREATE_TIME"),PAIPPacketType.CHAT.getValue(),contact.getLong("ID"),"&"+StringUtils.leftPad(Integer.toHexString(PAIPPacketType.SUBSCRIBE_ACK.getValue()),2,"0")+StringUtils.leftPad(Integer.toHexString(SubscribeAckPacket.ACK_ACCEPT),2,"0")+";",1} );
 			}
 			
 			return  Contact.dao.insert( new  Reference<Object>(),"MERGE  INTO  "+Contact.dao.getDataSourceBind().table()+"  (ID,USERNAME,CREATE_TIME,LAST_MODIFY_TIME,SUBSCRIBE_STATUS,REMARK,GROUP_NAME,IS_DELETED)  VALUES  (?,?,?,?,?,?,?,?)",new  Object[]{contact.getLong("ID"),contact.getString("USERNAME"),contact.get("CREATE_TIME"),contact.get("LAST_MODIFY_TIME"),contact.getInteger("SUBSCRIBE_STATUS"),contact.getString("REMARK"),contact.getString("GROUP_NAME"),contact.getBoolean("IS_DELETED")} );
