@@ -91,7 +91,7 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 	
 	public  void  channelInactive( ChannelHandlerContext  context )  throws  Exception
 	{
-		System.out.println( "//*DISCONNECT:  NONE" );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS") +"  CHANNEL.LEFT:\tNONE" );
 		
 		super.channelInactive(  context );
 		
