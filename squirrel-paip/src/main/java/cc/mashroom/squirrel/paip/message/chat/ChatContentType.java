@@ -21,10 +21,12 @@ import  lombok.Getter;
 @AllArgsConstructor
 public  enum  ChatContentType
 {
-	WORDS(0x00),IMAGE(0x01),AUDIO(0x02),VIDEO(0x03);
+	WORDS(0x00,null),IMAGE(0x01,"$(0a01)"),AUDIO(0x02,"$(0a02)"),VIDEO(0x03,"$(0a03)");
 	
 	@Getter
 	private  int  value;
+	@Getter
+	private  String  placeholder;
 	
 	public  static  ChatContentType  valueOf( int  value )
 	{
