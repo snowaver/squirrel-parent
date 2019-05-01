@@ -28,13 +28,13 @@ import  com.fasterxml.jackson.core.type.TypeReference;
 
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
-import cc.mashroom.squirrel.client.storage.model.chat.NewsProfile;
+import  cc.mashroom.squirrel.client.storage.model.chat.NewsProfile;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupUser;
 import  cc.mashroom.squirrel.client.storage.model.user.Contact;
-import cc.mashroom.squirrel.paip.message.PAIPPacketType;
+import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.util.NoopX509TrustManager;
-import cc.mashroom.util.Reference;
+import  cc.mashroom.util.Reference;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.NoopHostnameVerifier;
 import  cc.mashroom.util.collection.map.HashMap;
