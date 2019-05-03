@@ -16,8 +16,9 @@
 package cc.mashroom.squirrel.client.storage.model.chat.group;
 
 import  java.sql.Timestamp;
+import  java.util.LinkedList;
 import  java.util.List;
-import java.util.concurrent.TimeUnit;
+import  java.util.concurrent.TimeUnit;
 
 import  org.joda.time.DateTime;
 import  org.joda.time.DateTimeZone;
@@ -27,9 +28,12 @@ import  com.fasterxml.jackson.core.type.TypeReference;
 import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.AbstractModel;
+import  cc.mashroom.squirrel.client.storage.model.chat.NewsProfile;
+import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.util.NoopX509TrustManager;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.ObjectUtils;
+import  cc.mashroom.util.Reference;
 import  cc.mashroom.util.NoopHostnameVerifier;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
@@ -44,7 +48,7 @@ public  class  ChatGroup  extends  AbstractModel< ChatGroup >
 {
 	public  final  static  ChatGroup  dao = new  ChatGroup();
 	
-	public  boolean  attach( SquirrelClient  context )  throws  Exception
+	public  boolean  attach(    SquirrelClient  context )  throws  Exception
 	{
 		ChatGroup  chatGroupLatestModifyTime = ChatGroup.dao.getOne( "SELECT  MAX(LAST_MODIFY_TIME)  AS  LAST_MODIFY_TIME  FROM  "+ChatGroup.dao.getDataSourceBind().table(),new  Object[]{} );
 		
@@ -54,9 +58,7 @@ public  class  ChatGroup  extends  AbstractModel< ChatGroup >
 		{
 			if( response.code() == 200 )
 			{
-				attach( ObjectUtils.cast(JsonUtils.mapper.readValue(response.body().string(),new  TypeReference<Map<String,List<Map<String,Object>>>>(){}),new  TypeReference<Map<String,List<Map<String,Object>>>>(){}) );
-			
-				return  true;
+				return  attach( ObjectUtils.cast(JsonUtils.mapper.readValue(response.body().string(),new  TypeReference<Map<String,List<Map<String,Object>>>>(){}),new  TypeReference<Map<String,List<Map<String,Object>>>>(){}) );
 			}
 		}
 		
@@ -65,18 +67,46 @@ public  class  ChatGroup  extends  AbstractModel< ChatGroup >
 	
 	public  boolean  attach( Map<String,List<Map<String,Object>>>  addedChatGroups )
 	{
-		for( Map<String,Object>  chatGroup : addedChatGroups.get("CHAT_GROUPS") )
+		/*
+		Timestamp  now      = new  Timestamp( DateTime.now(DateTimeZone.UTC).getMillis() );
+		*/
+		List<Object[]>  insertNewsProfileParameters   = new  LinkedList<Object[]>();
+		
+		List<Object[]>  removeNewsProfileParameters   = new  LinkedList<Object[]>();
+		
+		long  nowMillis    = DateTime.now(DateTimeZone.UTC).getMillis() - 1;
+		
+		for(    Map<String,Object>  chatGroup : addedChatGroups.get("CHAT_GROUPS") )
 		{
 			chatGroup.addEntry("ID",new  Long(chatGroup.get("ID").toString())).addEntry("CREATE_TIME",new  Timestamp(DateTime.parse(chatGroup.get("CREATE_TIME").toString()).withZone(DateTimeZone.UTC).getMillis())).addEntry( "LAST_MODIFY_TIME",new  Timestamp(DateTime.parse(chatGroup.get("LAST_MODIFY_TIME").toString()).withZone(DateTimeZone.UTC).getMillis()) );
+		
+			if( !chatGroup.getBoolean("IS_DELETED") )
+			{
+				insertNewsProfileParameters.add( new  Object[]{new  Long(chatGroup.get("ID").toString()),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
+			}
+			else
+			{
+				removeNewsProfileParameters.add( new  Object[]{new  Long(chatGroup.get("ID").toString()),PAIPPacketType.GROUP_CHAT.getValue()} );
+			}
 		}
 		
 		super.upsert( addedChatGroups.get( "CHAT_GROUPS" ) );
+		
+		if( ! removeNewsProfileParameters.isEmpty() )
+		{
+			NewsProfile.dao.update( "DELETE  FROM  "+NewsProfile.dao.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",removeNewsProfileParameters.toArray(new  Object[removeNewsProfileParameters.size()][]) );
+		}
+		
+		if( ! insertNewsProfileParameters.isEmpty() )
+		{
+			NewsProfile.dao.insert( new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+NewsProfile.dao.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",insertNewsProfileParameters.toArray(new  Object[insertNewsProfileParameters.size()][]) );
+		}
 		
 		for( Map<String,Object>  chatGroupUser : addedChatGroups.get("CHAT_GROUP_USERS" ) )
 		{
 			chatGroupUser.addEntry("ID",new  Long(chatGroupUser.get("ID").toString())).addEntry("CREATE_TIME",new  Timestamp(DateTime.parse(chatGroupUser.get("CREATE_TIME").toString()).withZone(DateTimeZone.UTC).getMillis())).addEntry("LAST_MODIFY_TIME",new  Timestamp(DateTime.parse(chatGroupUser.get("LAST_MODIFY_TIME").toString()).withZone(DateTimeZone.UTC).getMillis())).addEntry("CHAT_GROUP_ID",new  Long(chatGroupUser.get("CHAT_GROUP_ID").toString())).addEntry( "CONTACT_ID",new  Long(chatGroupUser.get("CONTACT_ID").toString()) );
 		}
 		
-		ChatGroupUser.dao.upsert( addedChatGroups.get("CHAT_GROUP_USERS") );  return  true; 
+		ChatGroupUser.dao.upsert( addedChatGroups.get("CHAT_GROUP_USERS") );  return  true;
 	}
 }
