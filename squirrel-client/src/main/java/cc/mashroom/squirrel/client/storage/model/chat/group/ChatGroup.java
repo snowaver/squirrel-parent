@@ -48,7 +48,7 @@ public  class  ChatGroup  extends  AbstractModel< ChatGroup >
 {
 	public  final  static  ChatGroup  dao = new  ChatGroup();
 	
-	public  boolean  attach(    SquirrelClient  context )  throws  Exception
+	public  boolean  attach( SquirrelClient  context )  throws  Exception
 	{
 		ChatGroup  chatGroupLatestModifyTime = ChatGroup.dao.getOne( "SELECT  MAX(LAST_MODIFY_TIME)  AS  LAST_MODIFY_TIME  FROM  "+ChatGroup.dao.getDataSourceBind().table(),new  Object[]{} );
 		
@@ -58,55 +58,41 @@ public  class  ChatGroup  extends  AbstractModel< ChatGroup >
 		{
 			if( response.code() == 200 )
 			{
-				return  attach( ObjectUtils.cast(JsonUtils.mapper.readValue(response.body().string(),new  TypeReference<Map<String,List<Map<String,Object>>>>(){}),new  TypeReference<Map<String,List<Map<String,Object>>>>(){}) );
+				return  attach( context,ObjectUtils.cast(JsonUtils.mapper.readValue(response.body().string(),new  TypeReference<Map<String,List<Map<String,Object>>>>(){}),new  TypeReference<Map<String,List<Map<String,Object>>>>(){}) );
 			}
 		}
 		
 		return  false;
 	}
 	
-	public  boolean  attach( Map<String,List<Map<String,Object>>>  addedChatGroups )
+	public  boolean  attach( SquirrelClient  context,Map<String,List<Map<String,Object>>>  attachedChatGroups )
 	{
-		/*
-		Timestamp  now      = new  Timestamp( DateTime.now(DateTimeZone.UTC).getMillis() );
-		*/
-		List<Object[]>  insertNewsProfileParameters   = new  LinkedList<Object[]>();
-		
-		List<Object[]>  removeNewsProfileParameters   = new  LinkedList<Object[]>();
-		
-		long  nowMillis    = DateTime.now(DateTimeZone.UTC).getMillis() - 1;
-		
-		for(    Map<String,Object>  chatGroup : addedChatGroups.get("CHAT_GROUPS") )
+		for( Map<String,Object>  chatGroup : attachedChatGroups.get("CHAT_GROUPS") )
 		{
-			chatGroup.addEntry("ID",new  Long(chatGroup.get("ID").toString())).addEntry("CREATE_TIME",new  Timestamp(DateTime.parse(chatGroup.get("CREATE_TIME").toString()).withZone(DateTimeZone.UTC).getMillis())).addEntry( "LAST_MODIFY_TIME",new  Timestamp(DateTime.parse(chatGroup.get("LAST_MODIFY_TIME").toString()).withZone(DateTimeZone.UTC).getMillis()) );
+			chatGroup.addEntry("ID",new  Long(chatGroup.get("ID").toString())).valuesToTimestamp( "CREATE_TIME","LAST_MODIFY_TIME" );
+		}
 		
-			if( !chatGroup.getBoolean("IS_DELETED") )
+		long  nowMillis = DateTime.now(DateTimeZone.UTC).getMillis() - 1;
+		
+		super.upsert( attachedChatGroups.get("CHAT_GROUPS") );
+		
+		for(  Map<String,Object>  chatGroupUser  : attachedChatGroups.get( "CHAT_GROUP_USERS" ) )
+		{
+			chatGroupUser.addEntry("ID",new  Long(chatGroupUser.get("ID").toString())).addEntry("CONTACT_ID",new  Long(chatGroupUser.get("CONTACT_ID").toString())).addEntry("CHAT_GROUP_ID",new  Long(chatGroupUser.get("CHAT_GROUP_ID").toString())).valuesToTimestamp( "CREATE_TIME","LAST_MODIFY_TIME" );
+			
+			if( chatGroupUser.getLong("CONTACT_ID")    == context.getUserMetadata().getLong("ID").longValue() )
 			{
-				insertNewsProfileParameters.add( new  Object[]{new  Long(chatGroup.get("ID").toString()),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
+				if( ! chatGroupUser.getBoolean("IS_DELETED") )
+				{
+					NewsProfile.dao.insert( new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+NewsProfile.dao.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{new  Long(chatGroupUser.get("CHAT_GROUP_ID").toString()),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
+				}
+				else
+				{
+					NewsProfile.dao.update( "DELETE  FROM  "+NewsProfile.dao.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{chatGroupUser.getLong("CHAT_GROUP_ID"),PAIPPacketType.GROUP_CHAT.getValue()} );
+				}
 			}
-			else
-			{
-				removeNewsProfileParameters.add( new  Object[]{new  Long(chatGroup.get("ID").toString()),PAIPPacketType.GROUP_CHAT.getValue()} );
-			}
 		}
 		
-		super.upsert( addedChatGroups.get( "CHAT_GROUPS" ) );
-		
-		if( ! removeNewsProfileParameters.isEmpty() )
-		{
-			NewsProfile.dao.update( "DELETE  FROM  "+NewsProfile.dao.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",removeNewsProfileParameters.toArray(new  Object[removeNewsProfileParameters.size()][]) );
-		}
-		
-		if( ! insertNewsProfileParameters.isEmpty() )
-		{
-			NewsProfile.dao.insert( new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+NewsProfile.dao.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",insertNewsProfileParameters.toArray(new  Object[insertNewsProfileParameters.size()][]) );
-		}
-		
-		for( Map<String,Object>  chatGroupUser : addedChatGroups.get("CHAT_GROUP_USERS" ) )
-		{
-			chatGroupUser.addEntry("ID",new  Long(chatGroupUser.get("ID").toString())).addEntry("CREATE_TIME",new  Timestamp(DateTime.parse(chatGroupUser.get("CREATE_TIME").toString()).withZone(DateTimeZone.UTC).getMillis())).addEntry("LAST_MODIFY_TIME",new  Timestamp(DateTime.parse(chatGroupUser.get("LAST_MODIFY_TIME").toString()).withZone(DateTimeZone.UTC).getMillis())).addEntry("CHAT_GROUP_ID",new  Long(chatGroupUser.get("CHAT_GROUP_ID").toString())).addEntry( "CONTACT_ID",new  Long(chatGroupUser.get("CONTACT_ID").toString()) );
-		}
-		
-		ChatGroupUser.dao.upsert( addedChatGroups.get("CHAT_GROUP_USERS") );  return  true;
+		ChatGroupUser.dao.upsert(      attachedChatGroups.get("CHAT_GROUP_USERS") );return  true;
 	}
 }

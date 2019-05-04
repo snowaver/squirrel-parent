@@ -161,7 +161,7 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		{
 			if( ObjectUtils.cast(packet,GroupChatEventPacket.class).getEvent() == GroupChatEventPacket.EVENT_MEMBER_ADDED    )
 			{
-				Db.tx( String.valueOf(id),Connection.TRANSACTION_SERIALIZABLE,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatGroup.dao.attach(JsonUtils.fromJson(JsonUtils.toJson(ObjectUtils.cast(packet,GroupChatEventPacket.class).getAttatchments()),new  TypeReference<Map<String,List<Map<String,Object>>>>(){}));}} );
+				Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatGroup.dao.attach(context,JsonUtils.fromJson(JsonUtils.toJson(ObjectUtils.cast(packet,GroupChatEventPacket.class).getAttatchments()),new  TypeReference<Map<String,List<Map<String,Object>>>>(){}));}} );
 			}
 		}
 		else

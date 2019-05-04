@@ -15,10 +15,13 @@
  */
 package cc.mashroom.squirrel.client.storage;
 
+import java.sql.Timestamp;
 import  java.util.LinkedList;
 import  java.util.List;
 
 import  org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import  com.google.common.collect.Lists;
 
@@ -31,13 +34,23 @@ public  class  AbstractModel<M extends AbstractModel<?>>  extends  XModel<M>
 {
 	public  void  upsert( List<? extends Map>  records )
 	{
-		if( records.isEmpty() )
+		if( records.isEmpty()   )
 		{
 			return;
 		}
 		
-		List<String>  fields = new  LinkedList<String>( records.get(0).keySet() );
+		List<String>  fields = new  LinkedList<String>( records.get( 0 ).keySet() );
 		
 		ConnectionUtils.batchUpdatedCount( insert(new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+getDataSourceBind().table()+"  ("+StringUtils.join(fields,",")+")  VALUES  ("+StringUtils.rightPad("?",2*(fields.size()-1)+1,",?")+")",ConnectionUtils.prepare(Lists.newArrayList(records),fields).toArray(new  Object[records.size()][])) );
+	}
+	
+	public  M  valuesToTimestamp(    String  ...  keys )
+	{
+		for( String  key : keys )
+		{
+			if( super.containsKey(key) )  super.put( key,new  Timestamp(DateTime.parse(super.get(key).toString()).withZone(DateTimeZone.UTC).getMillis()) );
+		}
+		
+		return  (M)  this;
 	}
 }

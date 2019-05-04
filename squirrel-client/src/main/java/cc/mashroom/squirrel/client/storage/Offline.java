@@ -52,7 +52,7 @@ public  class  Offline
 			{
 				Map<String,List<Map<String,Object>>>  offline    = JsonUtils.mapper.readValue( response.body().string(),new  TypeReference<HashMap<String,List<HashMap<String,Object>>>>(){} );
 				
-				Contact.dao.recache().attach(offline.get("CONTACTS"));  ChatGroup.dao.attach( offline );
+				Contact.dao.recache().attach(offline.get("CONTACTS"));  ChatGroup.dao.attach( context,offline );
 				
 				ChatMessage.dao.attach( context,context.getCacheDir(),offline.get("OFFLINE_MESSAGES") );  return  offline;
 			}
