@@ -21,13 +21,11 @@ import  java.sql.Connection;
 import  java.util.Collection;
 import  java.util.List;
 
-import  com.fasterxml.jackson.core.type.TypeReference;
-
 import  cc.mashroom.db.ConnectionFactory;
 import  cc.mashroom.db.common.Db;
 import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.db.config.JDBCConfig;
-import cc.mashroom.squirrel.client.LifecycleEventDispatcher;
+import  cc.mashroom.squirrel.client.LifecycleEventDispatcher;
 import  cc.mashroom.squirrel.client.LifecycleListener;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.connect.PacketListener;
@@ -45,10 +43,9 @@ import  cc.mashroom.squirrel.paip.message.chat.GroupChatEventPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribePacket;
-import cc.mashroom.squirrel.paip.message.subscribes.UnsubscribePacket;
+import  cc.mashroom.squirrel.paip.message.subscribes.UnsubscribePacket;
 import  cc.mashroom.util.FileUtils;
 import  cc.mashroom.util.IOUtils;
-import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.StringUtils;
 import  cc.mashroom.util.collection.map.HashMap;
@@ -159,10 +156,7 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		else
 		if( packet instanceof GroupChatEventPacket   )
 		{
-			if( ObjectUtils.cast(packet,GroupChatEventPacket.class).getEvent() == GroupChatEventPacket.EVENT_MEMBER_ADDED    )
-			{
-				Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatGroup.dao.attach(context,JsonUtils.fromJson(JsonUtils.toJson(ObjectUtils.cast(packet,GroupChatEventPacket.class).getAttatchments()),new  TypeReference<Map<String,List<Map<String,Object>>>>(){}));}} );
-			}
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatGroup.dao.attach(context,(Map<String,List<Map<String,Object>>>)  ObjectUtils.cast(packet,GroupChatEventPacket.class).getAttatchments());}} );
 		}
 		else
 		if( packet instanceof ChatPacket )
