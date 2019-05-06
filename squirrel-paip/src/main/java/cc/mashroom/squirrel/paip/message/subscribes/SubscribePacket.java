@@ -35,11 +35,11 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 @ToString( callSuper = true )
 public  class  SubscribePacket  extends  Packet<SubscribePacket>
 {
-	public  SubscribePacket( long  subscriberId,HashMap<String,Object>  subscriberProfile )
+	public  SubscribePacket( long  subscriberId,Map<String,?>  subscriberProfile )
 	{
 		super( new  Header(PAIPPacketType.SUBSCRIBE) );
 		
-		super.setContactId(subscriberId).setSubscriberProfile( subscriberProfile );
+		super.setContactId(subscriberId).setSubscriberProfile( subscriberProfile);
 	}
 	
 	public  SubscribePacket(ByteBuf  buf )
@@ -52,7 +52,7 @@ public  class  SubscribePacket  extends  Packet<SubscribePacket>
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors( chain= true )
-	private  Map<String,Object>  subscriberProfile = new  HashMap<String,Object>();
+	private  Map<String,?>  subscriberProfile= new  HashMap<>();
 
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
 	{

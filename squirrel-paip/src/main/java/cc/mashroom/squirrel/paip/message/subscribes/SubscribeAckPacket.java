@@ -41,7 +41,7 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	
 	public  final  static  int  ACK_ACCEPT  = 0x07;
 	
-	public  SubscribeAckPacket( long  contactId , int  responseCode , Map<String, Object>  subscribeeProfile )
+	public  SubscribeAckPacket( long  contactId,int  responseCode,Map<String,?>  subscribeeProfile )
 	{
 		super( new  Header(PAIPPacketType.SUBSCRIBE_ACK) );
 		
@@ -67,7 +67,7 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  Map<String,Object>  subscribeeProfile = new  HashMap<String,Object>();
+	private  Map<String,?>  subscribeeProfile      = new  HashMap<>();
 	
 	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variableByteBuf )
 	{

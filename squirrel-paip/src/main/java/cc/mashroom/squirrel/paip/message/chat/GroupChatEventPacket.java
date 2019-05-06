@@ -33,7 +33,7 @@ import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  GroupChatEventPacket  extends  Packet  <GroupChatEventPacket>
+public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
 {
 	public  final  static  int  EVENT_MEMBER_ADDED     = 0x00;
 	
@@ -48,7 +48,7 @@ public  class  GroupChatEventPacket  extends  Packet  <GroupChatEventPacket>
 		this.setGroupId(byteBuf.readLongLE()).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPUtils.decode(byteBuf),new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
-	public  GroupChatEventPacket( long  groupId,int  event,Map<String,Object>  attatchments )
+	public  GroupChatEventPacket( long  groupId,int  event,Map<String,?>  attatchments )
 	{
 		super( new  Header(PAIPPacketType.GROUP_CHAT_EVENT) );
 		
@@ -66,16 +66,11 @@ public  class  GroupChatEventPacket  extends  Packet  <GroupChatEventPacket>
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors( chain = true )
-	private  Map<String,Object>  attatchments=new  HashMap<String,Object>();
+	private  Map<String,?>  attatchments =   new  HashMap<>();
 
 	public   int  getInitialVariableByteBufferSize()
 	{
 		return  16 + super.getInitialVariableByteBufferSize();
-	}
-	
-	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableBuf )
-	{
-		return  variableBuf.writeLongLE(groupId).writeByte(event).writeBytes( PAIPUtils.encode(JsonUtils.toJson(attatchments)) );
 	}
 	/*
 	public  void  writeTo(  ByteBuf  buf )
@@ -83,4 +78,8 @@ public  class  GroupChatEventPacket  extends  Packet  <GroupChatEventPacket>
 		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.GROUP_CHAT_INVITED );
 	}
 	*/
+	public  ByteBuf  writeToVariableByteBuf(    ByteBuf  variableByteBuf )
+	{
+		return  variableByteBuf.writeLongLE(groupId).writeByte(event).writeBytes( PAIPUtils.encode(JsonUtils.toJson(attatchments)) );
+	}
 }
