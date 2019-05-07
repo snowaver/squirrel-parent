@@ -52,7 +52,7 @@ public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
 	{
 		super( new  Header(PAIPPacketType.GROUP_CHAT_EVENT) );
 		
-		this.setEvent(event).setGroupId(  groupId );
+		setEvent(event).setGroupId(groupId).setAttatchments(attatchments);
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
