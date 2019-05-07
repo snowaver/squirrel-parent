@@ -35,22 +35,22 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 @ToString(callSuper=true )
 public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
 {
-	public  final  static  int  EVENT_MEMBER_ADDED     = 0x00;
+	public  final  static  int  EVENT_MEMBER_ADDED    = 0x00;
 	
-	public  final  static  int  EVENT_MEMBER_UPDATED   = 0x01;
+	public  final  static  int  EVENT_MEMBER_UPDATED  = 0x01;
 	
-	public  final  static  int  EVENT_MEMBER_REMOVED   = 0x02;
+	public  final  static  int  EVENT_MEMBER_REMOVED  = 0x02;
 	
 	public  GroupChatEventPacket( ByteBuf  byteBuf )
 	{
 		super( byteBuf,0x00 );
 		
-		this.setGroupId(byteBuf.readLongLE()).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPUtils.decode(byteBuf),new  TypeReference<Map<String,Object>>(){})) );
+		this.setGroupId(byteBuf.readLongLE()).setEvent(byteBuf.readByte()).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPUtils.decode(byteBuf),new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	public  GroupChatEventPacket( long  groupId,int  event,Map<String,?>  attatchments )
 	{
-		super( new  Header(PAIPPacketType.GROUP_CHAT_EVENT) );
+		super( new  Header(PAIPPacketType.GROUP_CHAT_EVENT));
 		
 		setEvent(event).setGroupId(groupId).setAttatchments(attatchments);
 	}
@@ -66,11 +66,11 @@ public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors( chain = true )
-	private  Map<String,?>  attatchments =   new  HashMap<>();
+	private  Map<String,?>  attatchments =  new  HashMap<>();
 
 	public   int  getInitialVariableByteBufferSize()
 	{
-		return  16 + super.getInitialVariableByteBufferSize();
+		return  9 + super.getInitialVariableByteBufferSize();
 	}
 	/*
 	public  void  writeTo(  ByteBuf  buf )

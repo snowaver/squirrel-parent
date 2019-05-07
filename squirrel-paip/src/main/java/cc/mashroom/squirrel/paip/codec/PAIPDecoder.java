@@ -36,8 +36,10 @@ public  class  PAIPDecoder   extends  ByteToMessageDecoder
 		{
 			objectList.add( decode( context.channel(),byteBuf.markReaderIndex().resetReaderIndex() ) );
 		}
-		catch(  Exception  e )
+		catch( Exception  e )
 		{
+			e.printStackTrace();
+			
 			log.error( e.getMessage(),e );
 		}
 	}
@@ -53,7 +55,7 @@ public  class  PAIPDecoder   extends  ByteToMessageDecoder
 	
 	protected  Packet<?>  decode( Channel  channel , ByteBuf  byteBuf )
 	{
-		byteBuf.skipBytes(2 );
+		byteBuf.skipBytes(2);
 		
 		int  packetTypeShortValue = byteBuf.readShortLE();
 		
@@ -73,7 +75,7 @@ public  class  PAIPDecoder   extends  ByteToMessageDecoder
 				}
 			}
 		}
-		catch(  Exception  e )
+		catch( Exception  e )
 		{
 			throw  new  CorruptedFrameException("SQUIRREL-PAIP:  ** PAIP  DECODER **  can  not  decode  the  packet.",e );
 		}
