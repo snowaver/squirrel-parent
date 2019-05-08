@@ -22,6 +22,8 @@ import  java.util.Collection;
 import  java.util.List;
 
 import  cc.mashroom.db.ConnectionFactory;
+import  cc.mashroom.db.DataSourceLocator;
+import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.db.common.Db;
 import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.db.config.JDBCConfig;
@@ -60,6 +62,8 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 	public  void  initialize( final  SquirrelClient  context,boolean  isConnectDataSourceOnly,final  Collection<LifecycleListener>  lifecycleListeners,File  cacheDir,final  Map<String,Object>  metadata )  throws  Exception
 	{
 		this.setContext(context).setCacheDir(cacheDir).setId( metadata.getLong("ID") );
+		
+		ConnectionFactory.setDataSourceLocator( new  DataSourceLocator(){ public  String  locate(DataSourceBind  dataSourceBind){ return  String.valueOf(getId()); } } );
 		
 		System.setProperty("mashroom.db.datasource.name",String.valueOf(this.getId()));
 		
