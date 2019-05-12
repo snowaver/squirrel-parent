@@ -35,11 +35,17 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 @ToString(callSuper=true )
 public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
 {
-	public  final  static  int  EVENT_MEMBER_ADDED    = 0x00;
+	public  final  static  int  EVENT_GROUP_ADDED     = 0x00;
 	
-	public  final  static  int  EVENT_MEMBER_UPDATED  = 0x01;
+	public  final  static  int  EVENT_GROUP_UPDATED   = 0x01;
 	
-	public  final  static  int  EVENT_MEMBER_REMOVED  = 0x02;
+	public  final  static  int  EVENT_GROUP_REMOVED   = 0x02;
+	
+	public  final  static  int  EVENT_MEMBER_ADDED    = 0x03;
+	
+	public  final  static  int  EVENT_MEMBER_UPDATED  = 0x04;
+	
+	public  final  static  int  EVENT_MEMBER_REMOVED  = 0x05;
 	
 	public  GroupChatEventPacket( ByteBuf  byteBuf )
 	{
