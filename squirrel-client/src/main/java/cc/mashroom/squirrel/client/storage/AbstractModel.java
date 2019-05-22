@@ -29,15 +29,15 @@ import  cc.mashroom.util.collection.map.Map;
 
 public  class  AbstractModel<M extends AbstractModel<?>>  extends  XModel<M>
 {
-	public  void  upsert( List<? extends Map>  records )
+	public  int  upsert( List<? extends Map>  records )
 	{
-		if( records.isEmpty()   )
+		if( records.isEmpty() )
 		{
-			return;
+			return  0;
 		}
 		
 		List<String>  fields = new  LinkedList<String>( records.get( 0 ).keySet() );
 		
-		ConnectionUtils.batchUpdatedCount( insert(new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+getDataSourceBind().table()+"  ("+StringUtils.join(fields,",")+")  VALUES  ("+StringUtils.rightPad("?",2*(fields.size()-1)+1,",?")+")",ConnectionUtils.prepare(Lists.newArrayList(records),fields).toArray(new  Object[records.size()][])) );
+		return  ConnectionUtils.batchUpdatedCount( insert(new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+getDataSourceBind().table()+"  ("+StringUtils.join(fields,",")+")  VALUES  ("+StringUtils.rightPad("?",2*(fields.size()-1)+1,",?")+")",ConnectionUtils.prepare(Lists.newArrayList(records),fields).toArray(new  Object[records.size()][])) );
 	}
 }

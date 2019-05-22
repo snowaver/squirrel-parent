@@ -120,11 +120,6 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 	
 	public  void  sent( final  Packet  packet , final  TransportState  transportState )throws  Exception
 	{
-		if( packet instanceof SubscribePacket || packet instanceof SubscribeAckPacket )
-		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  Contact.dao.upsert(packet,transportState);}} );
-		}
-		else
 		if( packet instanceof ChatPacket )
 		{
 			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatMessage.dao.upsert(context,cacheDir,ObjectUtils.cast(packet,ChatPacket.class),transportState);}} );
@@ -147,7 +142,7 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		else
 		if( packet instanceof GroupChatPacket )
 		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  GroupChatMessage.dao.upsert(context,cacheDir,ObjectUtils.cast(packet,GroupChatPacket.class),TransportState.SENT);}} );
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  GroupChatMessage.dao.upsert(context,cacheDir,ObjectUtils.cast(packet,GroupChatPacket.class),    TransportState.SENT);}} );
 		}
 	}
 	
@@ -188,9 +183,14 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatMessage.dao.remove( ObjectUtils.cast(packet) );}} );
 		}
 		else
-		if( packet instanceof SubscribePacket || packet instanceof SubscribeAckPacket )
+		if( packet instanceof SubscribePacket )
 		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  Contact.dao.upsert(packet,TransportState.RECEIVED);}} );
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  Contact.dao.upsert((Contact)  new  Contact().addEntries((Map<String,Object>)  ObjectUtils.cast(packet,   SubscribePacket.class).getSubscriberProfile()),true);}} );
+		}
+		else
+		if( packet instanceof SubscribeAckPacket     )
+		{
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  Contact.dao.upsert((Contact)  new  Contact().addEntries((Map<String,Object>)  ObjectUtils.cast(packet,SubscribeAckPacket.class).getSubscribeeProfile()),true);}} );
 		}
 	}
 }
