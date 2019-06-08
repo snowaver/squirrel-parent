@@ -185,12 +185,12 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		else
 		if( packet instanceof SubscribePacket )
 		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  Contact.dao.upsert((Contact)  new  Contact().addEntries(((Map<String,Object>)  ObjectUtils.cast(packet,   SubscribePacket.class).getSubscriberProfile()).valuesToLong("ID").valuesToTimestamp("CREATE_TIME","LAST_MODIFY_TIME")),true);}} );
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  Contact.dao.upsert((Contact)  new  Contact().addEntries(((Map<String,Object>)  ObjectUtils.cast(packet,SubscribePacket.class).getSubscriberProfile()).valuesToLong("ID").valuesToTimestamp("CREATE_TIME","LAST_MODIFY_TIME")),true);}} );
 		}
 		else
 		if( packet instanceof SubscribeAckPacket     )
 		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  Contact.dao.upsert((Contact)  new  Contact().addEntries(((Map<String,Object>)  ObjectUtils.cast(packet,SubscribeAckPacket.class).getSubscribeeProfile()).valuesToLong("ID").valuesToTimestamp("CREATE_TIME","LAST_MODIFY_TIME")),true);}} );
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  Contact.dao.upsert((Contact)  Contact.dao.getContactDirect().get(Long.parseLong(ObjectUtils.cast(packet,SubscribeAckPacket.class).getSubscribeeProfile().get("ID").toString())).addEntries(((Map<String,Object>)  ObjectUtils.cast(packet,SubscribeAckPacket.class).getSubscribeeProfile()).valuesToLong("ID").valuesToTimestamp("CREATE_TIME","LAST_MODIFY_TIME")),true);}} );
 		}
 	}
 }
