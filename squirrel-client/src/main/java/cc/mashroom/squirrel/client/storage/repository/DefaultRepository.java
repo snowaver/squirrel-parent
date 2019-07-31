@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cc.mashroom.squirrel.client.storage;
+package cc.mashroom.squirrel.client.storage.repository;
 
 import  java.io.IOException;
 import  java.util.List;
@@ -21,23 +21,31 @@ import  java.util.concurrent.TimeUnit;
 
 import  com.fasterxml.jackson.core.type.TypeReference;
 
+import  cc.mashroom.db.GenericRepository;
+import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupUser;
 import  cc.mashroom.squirrel.client.storage.model.user.Contact;
-import  cc.mashroom.util.NoopX509TrustManager;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.NoopHostnameVerifier;
+import  cc.mashroom.util.NoopX509TrustManager;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
+import  lombok.AccessLevel;
+import  lombok.NoArgsConstructor;
 import  okhttp3.HttpUrl;
 import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 import  okhttp3.Response;
 
-public  class  Offline
+@DataSourceBind(     name="squirrel",table="*" )
+@NoArgsConstructor( access=AccessLevel.PRIVATE )
+public  class  DefaultRepository  extends  GenericRepository
 {
+	public  final  static  GenericRepository  DAO = new  GenericRepository();
+	
 	public  Map<String,List<Map<String,Object>>>  attach( SquirrelClient  context )  throws  IOException
 	{
 		ChatGroup  chatGroupLatestModifyTime = ChatGroup.dao.getOne( "SELECT  MAX(LAST_MODIFY_TIME)  AS  LAST_MODIFY_TIME  FROM  "+ChatGroup.dao.getDataSourceBind().table(),new  Object[]{} );
@@ -60,6 +68,4 @@ public  class  Offline
 		
 		return  null;
 	}
-	
-	public  final  static  Offline  dao = new  Offline();
 }

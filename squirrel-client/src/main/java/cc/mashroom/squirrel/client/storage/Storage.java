@@ -31,6 +31,7 @@ import  cc.mashroom.squirrel.client.LifecycleEventDispatcher;
 import  cc.mashroom.squirrel.client.LifecycleListener;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.connect.PacketListener;
+import cc.mashroom.squirrel.client.storage.model.Offline;
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
 import  cc.mashroom.squirrel.client.storage.model.chat.GroupChatMessage;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;

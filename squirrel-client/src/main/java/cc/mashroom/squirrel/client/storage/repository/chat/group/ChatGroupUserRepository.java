@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cc.mashroom.squirrel.client.storage.model.chat.group;
+package cc.mashroom.squirrel.client.storage.repository.chat.group;
 
-public  class  ChatGroup
+import  cc.mashroom.db.GenericRepository;
+import  cc.mashroom.db.annotation.DataSourceBind;
+import  lombok.AccessLevel;
+import  lombok.NoArgsConstructor;
+
+@DataSourceBind(name="*",table="chat_group_user",primaryKeys="ID")
+@NoArgsConstructor( access=AccessLevel.PRIVATE )
+public  class  ChatGroupUserRepository  extends  GenericRepository
 {
-	
+	public  final  static  ChatGroupUserRepository  DAO = new  ChatGroupUserRepository();
 }

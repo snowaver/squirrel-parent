@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cc.mashroom.squirrel.client.storage.model.chat.group;
+package cc.mashroom.squirrel.client.storage.model;
 
-public  class  ChatGroup
+public  class  Offline
 {
 	
 }
