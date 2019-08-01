@@ -15,17 +15,7 @@
  */
 package cc.mashroom.squirrel.client.storage.model.chat;
 
-import  cc.mashroom.db.annotation.DataSourceBind;
-import  cc.mashroom.squirrel.client.storage.AbstractModel;
-
-@DataSourceBind( name="*",table="news_profile",primaryKeys="ID,PACKET_TYPE" )
-
-public  class  NewsProfile  extends  AbstractModel< NewsProfile >
+public  class  NewsProfile
 {
-	public  final  static  NewsProfile  dao = new  NewsProfile();
-	
-	public  int  clearBadgeCount( long  id,int  packetType )
-	{
-		return  NewsProfile.dao.update( "UPDATE  "+NewsProfile.dao.getDataSourceBind().table()+"  SET  BADGE_COUNT = 0  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{id,packetType} );
-	}
+
 }

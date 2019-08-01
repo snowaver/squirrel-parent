@@ -15,14 +15,19 @@
  */
 package cc.mashroom.squirrel.client.storage.repository.chat;
 
-import  cc.mashroom.db.GenericRepository;
 import  cc.mashroom.db.annotation.DataSourceBind;
+import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 
 @DataSourceBind(name="*",table="news_profile",primaryKeys="ID" )
 @NoArgsConstructor( access=AccessLevel.PRIVATE )
-public  class  NewsProfileRepository  extends  GenericRepository
+public  class  NewsProfileRepository  extends  RepositorySupport
 {
 	public  final  static  NewsProfileRepository  DAO = new  NewsProfileRepository();
+	
+	public  int  clearBadgeCount( long  id,int  packetType )
+	{
+		return  NewsProfileRepository.DAO.update( "UPDATE  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  SET  BADGE_COUNT = 0  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{id,packetType} );
+	}
 }

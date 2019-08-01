@@ -29,7 +29,7 @@ import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.db.util.BatchPrediction;
 import  cc.mashroom.db.util.ConnectionUtils;
 import  cc.mashroom.squirrel.client.SquirrelClient;
-import  cc.mashroom.squirrel.client.storage.AbstractModel;
+import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
@@ -48,7 +48,7 @@ import  okhttp3.Request;
 
 @DataSourceBind( name="*",table="chat_message",primaryKeys="ID" )
 
-public  class  ChatMessage  extends  AbstractModel< ChatMessage >
+public  class  ChatMessage  extends  RepositorySupport< ChatMessage >
 {
 	public  final  static  ChatMessage  dao = new  ChatMessage();
 	

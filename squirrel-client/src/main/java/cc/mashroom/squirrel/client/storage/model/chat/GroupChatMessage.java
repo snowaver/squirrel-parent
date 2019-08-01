@@ -22,7 +22,7 @@ import  java.util.concurrent.TimeUnit;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.squirrel.client.SquirrelClient;
-import  cc.mashroom.squirrel.client.storage.AbstractModel;
+import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
@@ -37,7 +37,7 @@ import  okhttp3.Request;
 
 @DataSourceBind( name="*" , table="group_chat_message" , primaryKeys="ID" )
 
-public  class  GroupChatMessage  extends  AbstractModel< GroupChatMessage >
+public  class  GroupChatMessage  extends  RepositorySupport< GroupChatMessage >
 {
 	public  final  static  GroupChatMessage  dao = new  GroupChatMessage();
 	

@@ -15,14 +15,25 @@
  */
 package cc.mashroom.squirrel.client.storage.repository.user;
 
-import  cc.mashroom.db.GenericRepository;
+import  java.sql.Timestamp;
+
+import  org.joda.time.DateTime;
+
 import  cc.mashroom.db.annotation.DataSourceBind;
+import  cc.mashroom.squirrel.client.storage.RepositorySupport;
+import  cc.mashroom.util.Reference;
+import  cc.mashroom.util.collection.map.Map;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 
 @DataSourceBind( name="*",table="user",primaryKeys="ID" )
-@NoArgsConstructor( access=AccessLevel.PRIVATE )
-public  class  UserRepository  extends  GenericRepository
+@NoArgsConstructor(  access = AccessLevel.PRIVATE )
+public  class  UserRepository  extends  RepositorySupport
 {
 	public  final  static  UserRepository  DAO = new  UserRepository();
+	
+	public  int  upsert( Map<String,Object>  user )
+	{
+		return  UserRepository.DAO.insert( new  Reference<Object>(),"MERGE  INTO  "+UserRepository.DAO.getDataSourceBind().table()+"  (ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME)  VALUES  (?,?,?,?,?,?)",new  Object[]{user.getLong("ID"),new  Timestamp(DateTime.now().getMillis()),user.getString("USERNAME"),user.getString("PASSWORD"),user.getString("NAME"),user.getString("NICKNAME")} );
+	}
 }

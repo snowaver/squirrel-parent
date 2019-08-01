@@ -16,7 +16,7 @@
 package cc.mashroom.squirrel.client.storage.repository;
 
 import  java.io.IOException;
-import java.sql.Timestamp;
+import  java.sql.Timestamp;
 import  java.util.List;
 import  java.util.concurrent.TimeUnit;
 
@@ -29,10 +29,10 @@ import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupUser;
 import  cc.mashroom.squirrel.client.storage.model.user.Contact;
-import cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupRepository;
-import cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupUserRepository;
-import cc.mashroom.squirrel.client.storage.repository.user.ContactRepository;
-import cc.mashroom.util.DateUtils;
+import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupRepository;
+import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupUserRepository;
+import  cc.mashroom.squirrel.client.storage.repository.user.ContactRepository;
+import  cc.mashroom.util.DateUtils;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.NoopHostnameVerifier;
 import  cc.mashroom.util.NoopX509TrustManager;
@@ -51,7 +51,7 @@ public  class  DefaultRepository  extends  GenericRepository
 {
 	public  final  static  GenericRepository  DAO = new  GenericRepository();
 	
-	public  Map<String,List<Map<String,Object>>>  attach( SquirrelClient  context )  throws  IOException
+	public  Map<String,List<Map<String,Object>>>  attach( SquirrelClient  context )  throws  IOException,NumberFormatException,IllegalArgumentException,IllegalAccessException
 	{
 		Timestamp  chatGroupLatestModifyTime = ChatGroupRepository.DAO.lookupOne( Timestamp.class,"SELECT  MAX(LAST_MODIFY_TIME)  AS  LAST_MODIFY_TIME  FROM  "+ChatGroupRepository.DAO.getDataSourceBind().table(),new  Object[]{} );
 		
@@ -65,9 +65,9 @@ public  class  DefaultRepository  extends  GenericRepository
 			{
 				Map<String,List<Map<String,Object>>>  offline    = JsonUtils.mapper.readValue( response.body().string(),new  TypeReference<HashMap<String,List<HashMap<String,Object>>>>(){} );
 				
-				Contact.dao.recache().attach(offline.get("CONTACTS"));  ChatGroup.dao.attach( context,offline );
+				ContactRepository.DAO.recache().attach(  offline.get("CONTACTS") );  ChatGroupRepository.DAO.attach( context,offline );
 				
-				ChatMessage.dao.attach( context,context.getCacheDir(),offline.get("OFFLINE_MESSAGES") );  return  offline;
+				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),offline.get("OFFLINE_MESSAGES") );  return  offline;
 			}
 		}
 		

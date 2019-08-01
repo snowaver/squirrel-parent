@@ -15,23 +15,7 @@
  */
 package cc.mashroom.squirrel.client.storage.model.user;
 
-import  java.sql.Timestamp;
-
-import  org.joda.time.DateTime;
-
-import  cc.mashroom.db.annotation.DataSourceBind;
-import  cc.mashroom.squirrel.client.storage.AbstractModel;
-import  cc.mashroom.util.Reference;
-import  cc.mashroom.util.collection.map.Map;
-
-@DataSourceBind( name="*",table="user",primaryKeys="ID" )
-
-public  class  User  extends  AbstractModel< User >
+public  class  User
 {
-	public  final  static  User  dao = new  User();
-	
-	public  int  upsert( Map<String,Object>  user )
-	{
-		return  User.dao.insert( new  Reference<Object>(),"MERGE  INTO  "+User.dao.getDataSourceBind().table()+"  (ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME)  VALUES  (?,?,?,?,?,?)",new  Object[]{user.getLong("ID"),new  Timestamp(DateTime.now().getMillis()),user.getString("USERNAME"),user.getString("PASSWORD"),user.getString("NAME"),user.getString("NICKNAME")} );
-	}
+
 }

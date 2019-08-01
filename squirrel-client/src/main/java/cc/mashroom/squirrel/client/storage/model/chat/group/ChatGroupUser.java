@@ -15,18 +15,7 @@
  */
 package cc.mashroom.squirrel.client.storage.model.chat.group;
 
-import  cc.mashroom.db.annotation.DataSourceBind;
-import  cc.mashroom.squirrel.client.storage.AbstractModel;
-import  cc.mashroom.util.Reference;
-
-@DataSourceBind(  name="*",table="chat_group_user",primaryKeys="ID" )
-
-public  class  ChatGroupUser  extends  AbstractModel< ChatGroupUser >
+public  class  ChatGroupUser
 {
-	public  final  static  ChatGroupUser  dao = new  ChatGroupUser();
 	
-	public  int  upsert( ChatGroupUser  chatGroupUser )
-	{
-		return  ChatGroupUser.dao.insert( new  Reference<Object>(),"MERGE  INTO  "+ChatGroupUser.dao.getDataSourceBind().table()+"  (ID,CREATE_TIME,LAST_MODIFY_TIME,CHAT_GROUP_ID,CONTACT_ID,VCARD)  VALUES  (?,?,?,?)",new  Object[]{chatGroupUser.getLong("ID"),chatGroupUser.get("CREATE_TIME"),chatGroupUser.get("LAST_MODIFY_TIME"),chatGroupUser.getLong("CHAT_GROUP_ID"),chatGroupUser.getLong("CONTACT_ID"),chatGroupUser.getString("VCARD")} );
-	}
 }
