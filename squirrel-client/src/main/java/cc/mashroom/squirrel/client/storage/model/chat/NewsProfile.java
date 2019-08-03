@@ -15,7 +15,34 @@
  */
 package cc.mashroom.squirrel.client.storage.model.chat;
 
-public  class  NewsProfile
-{
+import  java.sql.Timestamp;
 
+import  com.fasterxml.jackson.annotation.JsonProperty;
+
+import  cc.mashroom.db.annotation.Column;
+import  lombok.Data;
+import  lombok.experimental.Accessors;
+
+@Data
+@Accessors( chain=true )
+public  class     NewsProfile
+{
+	@JsonProperty( value="ID"   )
+	@Column( name="ID" )
+	private  Long  id;
+	@JsonProperty( value="CREATE_TIME" )
+	@Column( name="CREATE_TIME" )
+	private  Timestamp   createTime;
+	@JsonProperty( value="PACKET_TYPE" )
+	@Column( name="PACKET_TYPE" )
+	private  Integer  packetType;
+	@JsonProperty( value="CONTACT_ID"  )
+	@Column( name="CONTACT_ID"  )
+	private  Long  contactId;
+	@JsonProperty( value="CONTENT" )
+	@Column( name="CONTENT" )
+	private  String  content;
+	@JsonProperty( value="BADGE_COUNT" )
+	@Column( name="BADGE_COUNT" )
+	private  Integer  badgeCount;
 }

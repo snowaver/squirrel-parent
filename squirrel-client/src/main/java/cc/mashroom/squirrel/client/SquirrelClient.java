@@ -46,6 +46,7 @@ import  cc.mashroom.squirrel.client.connect.util.HttpUtils;
 import  cc.mashroom.squirrel.client.handler.AutoReconnectChannelInboundHandlerAdapter;
 import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.client.storage.model.user.User;
+import  cc.mashroom.squirrel.client.storage.repository.user.UserRepository;
 import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.message.call.CallContentType;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
@@ -180,9 +181,9 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		{
 			Storage.INSTANCE.initialize( this,true,lifecycleListeners,cacheDir,new  HashMap<String,Object>().addEntry("ID", id) );
 			
-			User  user=User.dao.getOne( "SELECT  USERNAME,PASSWORD  FROM  "+User.dao.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
+			User  user = UserRepository.DAO.lookupOne( User.class,"SELECT  USERNAME,PASSWORD  FROM  "+UserRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
 			
-			setConnectParameters( new  HashMap<String,Object>().addEntry("username",user.getString("USERNAME")).addEntry("password",user.getString("PASSWORD")).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("isConnectingById",true).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac) );
+			setConnectParameters( new  HashMap<String,Object>().addEntry("username",user.getUsername()).addEntry("password",user.getPassword()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("isConnectingById",true).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac) );
 		
 			this.connect( null,null,null,null,null, lifecycleListeners );
 		}

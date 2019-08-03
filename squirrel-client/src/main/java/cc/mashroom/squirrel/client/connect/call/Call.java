@@ -39,11 +39,9 @@ import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.call.CallAckPacket;
 import  cc.mashroom.squirrel.paip.message.call.CallContentType;
 import  cc.mashroom.squirrel.paip.message.call.CallPacket;
-import  cc.mashroom.squirrel.paip.message.call.Candidate;
 import  cc.mashroom.squirrel.paip.message.call.CandidatePacket;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallReason;
-import  cc.mashroom.squirrel.paip.message.call.SDP;
 import  cc.mashroom.squirrel.paip.message.call.SDPPacket;
 import  cc.mashroom.util.ObjectUtils;
 import  lombok.AccessLevel;
@@ -289,14 +287,14 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
     	
     	this.state.set(    CallState.CALLING );
     	
-    	this.context.send(new  SDPPacket(this.contactId,this.id,new  SDP(sessionDescription.type.canonicalForm(),sessionDescription.description)) );
+    	this.context.send(          new  SDPPacket(this.contactId,this.id,sessionDescription.type.canonicalForm(),sessionDescription.description) );
     }
 
     public  void  onIceCandidate(IceCandidate  iceCandidate )
     {
     	super.onIceCandidate(   iceCandidate );
     	
-        this.context.send(new  CandidatePacket( contactId, id, new  Candidate(iceCandidate.sdpMid, iceCandidate.sdpMLineIndex, iceCandidate.sdp)) );
+        this.context.send(new  CandidatePacket(this.contactId ,id,iceCandidate.sdpMid,iceCandidate.sdpMLineIndex,iceCandidate.sdp) );
     }
 
 	public  void  onRemoveStream(   MediaStream   removingMediaStream   )

@@ -15,13 +15,11 @@
  */
 package cc.mashroom.squirrel.client;
 
-import  java.util.List;
-
-import  cc.mashroom.util.collection.map.Map;
+import  cc.mashroom.squirrel.client.storage.model.Offline;
 
 public  interface  LifecycleListener
 {
-	public  void  onReceivedOfflineData( Map<String,List<Map<String,Object>>>  offlineDatas );
+	public  void  onReceivedOfflineData( Offline  offline );
 	
 	public  void  onDisconnected( int  reason );
 	

@@ -46,14 +46,18 @@ public  class  SubscribePacket  extends  Packet<SubscribePacket>
 	{
 		super( buf ,  0x00 );
 		
-		super.setContactId(buf.readLongLE()).setSubscriberProfile( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPUtils.decode(buf),new  TypeReference<Map<String,Object>>(){})) );
+		super.setContactId(buf.readLongLE()).setSubscriberProfileOriginal(PAIPUtils.decode(buf)).setSubscriberProfile( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(this.subscriberProfileOriginal,new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors( chain= true )
 	private  Map<String,?>  subscriberProfile= new  HashMap<>();
-
+	@Setter( value=AccessLevel.PROTECTED )
+	@Getter
+	@Accessors( chain= true )
+	private  String  subscriberProfileOriginal;
+	
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
 	{
 		ByteBuf  subscriberProfileByteBuf = PAIPUtils.encode( JsonUtils.toJson(subscriberProfile == null ? new  HashMap<String,Object>() : subscriberProfile) );  byteBuf.writeLongLE(contactId).writeBytes(subscriberProfileByteBuf);  subscriberProfileByteBuf.release();  return  byteBuf;

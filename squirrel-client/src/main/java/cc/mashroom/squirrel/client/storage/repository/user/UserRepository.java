@@ -34,6 +34,6 @@ public  class  UserRepository  extends  RepositorySupport
 	
 	public  int  upsert( Map<String,Object>  user )
 	{
-		return  UserRepository.DAO.insert( new  Reference<Object>(),"MERGE  INTO  "+UserRepository.DAO.getDataSourceBind().table()+"  (ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME)  VALUES  (?,?,?,?,?,?)",new  Object[]{user.getLong("ID"),new  Timestamp(DateTime.now().getMillis()),user.getString("USERNAME"),user.getString("PASSWORD"),user.getString("NAME"),user.getString("NICKNAME")} );
+		return  super.insert( new  Reference<Object>(),"MERGE  INTO  "+super.getDataSourceBind().table()+"  (ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME)  VALUES  (?,?,?,?,?,?)",new  Object[]{user.getLong("ID"),new  Timestamp(DateTime.now().getMillis()),user.getString("USERNAME"),user.getString("PASSWORD"),user.getString("NAME"),user.getString("NICKNAME")} );
 	}
 }

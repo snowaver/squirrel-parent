@@ -15,7 +15,37 @@
  */
 package cc.mashroom.squirrel.client.storage.model.chat.group;
 
-public  class  ChatGroup
+import  java.sql.Timestamp;
+
+import  com.fasterxml.jackson.annotation.JsonProperty;
+
+import  cc.mashroom.db.annotation.Column;
+import  lombok.Data;
+import  lombok.experimental.Accessors;
+
+@Data
+@Accessors( chain = true )
+public  class    ChatGroup
 {
-	
+	@JsonProperty( value="ID"  )
+	@Column( name="ID"   )
+	private  Long  id;
+	@JsonProperty( value="IS_DELETED" )
+	@Column( name="IS_DELETED" )
+	private  Boolean  isDeleted;
+	@JsonProperty( value="CREATE_TIME")
+	@Column( name="CREATE_TIME")
+	private  Timestamp  createTime;
+	@JsonProperty( value="CREATE_BY"  )
+	@Column( name="CREATE_BY"  )
+	private  String    createBy;
+	@JsonProperty( value="LAST_MODIFY_TIME" )
+	@Column( name="LAST_MODIFY_TIME"  )
+	private  Timestamp  lastModifyTime;
+	@JsonProperty( value="LAST_MODIFY_BY"   )
+	@Column( name="LAST_MODIFY_BY")
+	private  String   lastModifyBy;
+	@JsonProperty( value="NAME")
+	@Column( name="NAME" )
+	private  String  name;
 }

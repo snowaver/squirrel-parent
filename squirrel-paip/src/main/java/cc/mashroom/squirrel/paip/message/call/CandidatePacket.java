@@ -17,6 +17,7 @@ package cc.mashroom.squirrel.paip.message.call;
 
 import  io.netty.buffer.ByteBuf;
 import  lombok.AccessLevel;
+import  lombok.AllArgsConstructor;
 import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
@@ -27,37 +28,55 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
 public  class  CandidatePacket      extends  AbstractCallPacket<CandidatePacket>
-{
-	public  CandidatePacket( long  contactId,long  roomId,Candidate  candidate )
+{	
+	public  CandidatePacket( long  contactId,long  roomId,String  sdpMid,Integer  sdpMLineIndex,String  sdp )
 	{
-		super( new  Header(PAIPPacketType.CALL_CANDIDATE) , roomId );
+		super( new  Header(PAIPPacketType.CALL_CANDIDATE),roomId );
 		
-		super.setContactId(contactId).setCandidate( candidate );
+		super.setContactId(contactId).setCandidate( new  Candidate(sdpMid,sdpMLineIndex,sdp) );
 	}
 	
-	public  CandidatePacket(ByteBuf  buf )
+	public  CandidatePacket(ByteBuf  byteBuf )
 	{
-		super( buf,0x00 );
+		super(     byteBuf,0x00 );
 		
-		this.setContactId(buf.readLongLE()).setCandidate( new  Candidate(PAIPUtils.decode(buf),buf.readIntLE(), PAIPUtils.decode(buf)) );
+		this.setContactId(byteBuf.readLongLE()).setCandidate( new  Candidate(PAIPUtils.decode(byteBuf),byteBuf.readIntLE(), PAIPUtils.decode(byteBuf)) );
 	}
 	
-	@Setter( value=AccessLevel.PROTECTED )
+	@Setter(     value=AccessLevel.PROTECTED )
 	@Getter
-	@Accessors(chain=true)
+	@Accessors(    chain=true)
 	private  Candidate  candidate;
 	
-	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
+	public  ByteBuf  writeToVariableByteBuf(     ByteBuf  byteBuf )
 	{
-		ByteBuf  candidateByteBuf = PAIPUtils.encode( candidate.getCandidate() );  ByteBuf  idBuf= PAIPUtils.encode( candidate.getId() );  super.writeToVariableByteBuf(byteBuf).writeLongLE(contactId).writeBytes(idBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf);  idBuf.release();  candidateByteBuf.release();  return  byteBuf;
+		ByteBuf  candidateByteBuf = PAIPUtils.encode(candidate.getCandidate() );  ByteBuf  idBuf= PAIPUtils.encode( candidate.getId() );  super.writeToVariableByteBuf(byteBuf).writeLongLE(contactId).writeBytes(idBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf);  idBuf.release();  candidateByteBuf.release();  return  byteBuf;
 	}
 	
 	public  int  getInitialVariableByteBufferSize()
 	{
-		return  12  +  super.getInitialVariableByteBufferSize();
+		return   12  +    super.getInitialVariableByteBufferSize();
+	}
+
+	@AllArgsConstructor
+	@ToString
+	public  class    Candidate
+	{
+		@Setter( value=AccessLevel.PROTECTED )
+		@Getter
+		@Accessors(chain=true)
+		private  String    id;
+		@Setter( value=AccessLevel.PROTECTED )
+		@Getter
+		@Accessors(chain=true)
+		private  int    lineIndex;
+		@Setter( value=AccessLevel.PROTECTED )
+		@Getter
+		@Accessors(chain=true)
+		private  String candidate;
 	}
 	/*
-	public  void  writeTo(  ByteBuf  buf )
+	public  void  writeTo(      ByteBuf  buf )
 	{
 		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CALL_CANDIDATE );
 	}

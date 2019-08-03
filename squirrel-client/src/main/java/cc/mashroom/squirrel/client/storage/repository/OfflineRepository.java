@@ -17,18 +17,13 @@ package cc.mashroom.squirrel.client.storage.repository;
 
 import  java.io.IOException;
 import  java.sql.Timestamp;
-import  java.util.List;
 import  java.util.concurrent.TimeUnit;
-
-import  com.fasterxml.jackson.core.type.TypeReference;
 
 import  cc.mashroom.db.GenericRepository;
 import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.squirrel.client.SquirrelClient;
-import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
-import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
-import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupUser;
-import  cc.mashroom.squirrel.client.storage.model.user.Contact;
+import  cc.mashroom.squirrel.client.storage.model.Offline;
+import  cc.mashroom.squirrel.client.storage.repository.chat.ChatMessageRepository;
 import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupRepository;
 import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupUserRepository;
 import  cc.mashroom.squirrel.client.storage.repository.user.ContactRepository;
@@ -37,7 +32,6 @@ import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.NoopHostnameVerifier;
 import  cc.mashroom.util.NoopX509TrustManager;
 import  cc.mashroom.util.collection.map.HashMap;
-import  cc.mashroom.util.collection.map.Map;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 import  okhttp3.HttpUrl;
@@ -47,11 +41,11 @@ import  okhttp3.Response;
 
 @DataSourceBind(     name="squirrel",table="*" )
 @NoArgsConstructor( access=AccessLevel.PRIVATE )
-public  class  DefaultRepository  extends  GenericRepository
+public  class  OfflineRepository  extends  GenericRepository
 {
-	public  final  static  GenericRepository  DAO = new  GenericRepository();
+	public  final  static  OfflineRepository  DAO  = new  OfflineRepository();
 	
-	public  Map<String,List<Map<String,Object>>>  attach( SquirrelClient  context )  throws  IOException,NumberFormatException,IllegalArgumentException,IllegalAccessException
+	public  Offline  attach( SquirrelClient  context )  throws  IOException,NumberFormatException,IllegalArgumentException,IllegalAccessException
 	{
 		Timestamp  chatGroupLatestModifyTime = ChatGroupRepository.DAO.lookupOne( Timestamp.class,"SELECT  MAX(LAST_MODIFY_TIME)  AS  LAST_MODIFY_TIME  FROM  "+ChatGroupRepository.DAO.getDataSourceBind().table(),new  Object[]{} );
 		
@@ -63,14 +57,16 @@ public  class  DefaultRepository  extends  GenericRepository
 		{
 			if( response.code() == 200 )
 			{
-				Map<String,List<Map<String,Object>>>  offline    = JsonUtils.mapper.readValue( response.body().string(),new  TypeReference<HashMap<String,List<HashMap<String,Object>>>>(){} );
+				Offline  offline = JsonUtils.mapper.readValue( response.body().string(),Offline.class );
 				
-				ContactRepository.DAO.recache().attach(  offline.get("CONTACTS") );  ChatGroupRepository.DAO.attach( context,offline );
+				ContactRepository.DAO.recache().attach(offline.getContacts());  ChatGroupRepository.DAO.attach( context,offline );
 				
-				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),offline.get("OFFLINE_MESSAGES") );  return  offline;
+				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),offline.getOfflineChatMessages() );  return  offline;
+			}
+			else
+			{
+				throw  new  IllegalStateException("SQUIRREL-CLIENT:  ** OFFLINE  REPOSITORY **  error  in  retrieving  the  offline  messages" );
 			}
 		}
-		
-		return  null;
 	}
 }

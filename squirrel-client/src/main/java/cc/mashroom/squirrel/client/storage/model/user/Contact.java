@@ -17,6 +17,8 @@ package cc.mashroom.squirrel.client.storage.model.user;
 
 import  java.sql.Timestamp;
 
+import  com.fasterxml.jackson.annotation.JsonProperty;
+
 import  cc.mashroom.db.annotation.Column;
 import  lombok.Data;
 import  lombok.experimental.Accessors;
@@ -25,20 +27,28 @@ import  lombok.experimental.Accessors;
 @Accessors( chain=true )
 public  class  Contact
 {
+	@JsonProperty(value="ID" )
 	@Column( name="ID" )
 	private  Long  id;
+	@JsonProperty(value="USERNAME" )
 	@Column( name="USERNAME" )
 	private  String  username;
+	@JsonProperty(value="CREATE_TIME" )
 	@Column( name="CREATE_TIME" )
-	private  Timestamp  createTime;
+	private  Timestamp   createTime;
+	@JsonProperty(value="LAST_MODIFY_TIME" )
 	@Column( name="LAST_MODIFY_TIME"  )
 	private  Timestamp  lastModifyTime;
+	@JsonProperty(value="SUBSCRIBE_STATUS" )
 	@Column( name="SUBSCRIBE_STATUS"  )
 	private  Integer   subscribeStatus;
+	@JsonProperty(value="REMARK")
 	@Column( name="REMARK"   )
 	private  String  remark;
+	@JsonProperty(value="GROUP_NAME"  )
 	@Column( name="GROUP_NAME"  )
 	private  String    groupName;
+	@JsonProperty(value="IS_DELETED"  )
 	@Column( name="IS_DELETED"  )
 	private  Boolean   isDeleted;
 }

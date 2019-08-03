@@ -17,8 +17,8 @@ package cc.mashroom.squirrel.client.storage.repository.chat.group;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
+import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupUser;
 import  cc.mashroom.util.Reference;
-import  cc.mashroom.util.collection.map.Map;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 
@@ -28,8 +28,8 @@ public  class  ChatGroupUserRepository  extends  RepositorySupport
 {
 	public  final  static  ChatGroupUserRepository  DAO = new  ChatGroupUserRepository();
 	
-	public  int  upsert( Map<String,Object>  chatGroupUser )
+	public  int  upsert( ChatGroupUser  chatGroupUser )
 	{
-		return  super.insert( new  Reference<Object>(),"MERGE  INTO  "+getDataSourceBind().table()+"  (ID,CREATE_TIME,LAST_MODIFY_TIME,CHAT_GROUP_ID,CONTACT_ID,VCARD)  VALUES  (?,?,?,?)",new  Object[]{chatGroupUser.getLong("ID"),chatGroupUser.get("CREATE_TIME"),chatGroupUser.get("LAST_MODIFY_TIME"),chatGroupUser.getLong("CHAT_GROUP_ID"),chatGroupUser.getLong("CONTACT_ID"),chatGroupUser.getString("VCARD")} );
+		return  super.insert( new  Reference<Object>(),"MERGE  INTO  "+super.getDataSourceBind().table()+"  (ID,CREATE_TIME,LAST_MODIFY_TIME,CHAT_GROUP_ID,CONTACT_ID,VCARD)  VALUES  (?,?,?,?)",new  Object[]{chatGroupUser.getId(),chatGroupUser.getCreateTime(),chatGroupUser.getLastModifyTime(),chatGroupUser.getChatGroupId(),chatGroupUser.getContactId(),chatGroupUser.getVcard()} );
 	}
 }

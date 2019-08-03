@@ -28,6 +28,6 @@ public  class  NewsProfileRepository  extends  RepositorySupport
 	
 	public  int  clearBadgeCount( long  id,int  packetType )
 	{
-		return  NewsProfileRepository.DAO.update( "UPDATE  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  SET  BADGE_COUNT = 0  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{id,packetType} );
+		return  super.update( "UPDATE  "+super.getDataSourceBind().table()+"  SET  BADGE_COUNT = 0  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{id,packetType} );
 	}
 }

@@ -51,7 +51,7 @@ public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
 	{
 		super( byteBuf,0x00 );
 		
-		this.setGroupId(byteBuf.readLongLE()).setEvent(byteBuf.readByte()).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPUtils.decode(byteBuf),new  TypeReference<Map<String,Object>>(){})) );
+		this.setGroupId(byteBuf.readLongLE()).setEvent(byteBuf.readByte()).setAttatchmentsOriginal(PAIPUtils.decode(byteBuf)).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(this.attatchmentsOriginal,new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	public  GroupChatEventPacket( long  groupId,int  event,Map<String,?>  attatchments )
@@ -73,6 +73,10 @@ public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
 	@Getter
 	@Accessors( chain = true )
 	private  Map<String,?>  attatchments =  new  HashMap<>();
+	@Setter( value=AccessLevel.PROTECTED )
+	@Getter
+	@Accessors( chain = true )
+	private  String  attatchmentsOriginal;
 
 	public   int  getInitialVariableByteBufferSize()
 	{

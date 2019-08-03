@@ -57,7 +57,7 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	{
 		super( byteBuf, 0x00 );
 		
-		super.setContactId(byteBuf.readLongLE()).setResponseCode(byteBuf.readByte()).setSubscribeeProfile( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPUtils.decode(byteBuf),new  TypeReference<Map<String,Object>>(){})) );
+		super.setContactId(byteBuf.readLongLE()).setResponseCode(byteBuf.readByte()).setSubscribeeProfileOriginal(PAIPUtils.decode(byteBuf)).setSubscribeeProfile( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(this.subscribeeProfileOriginal,new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -68,6 +68,10 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	@Getter
 	@Accessors(chain=true)
 	private  Map<String,?>  subscribeeProfile      = new  HashMap<>();
+	@Setter( value=AccessLevel.PROTECTED )
+	@Getter
+	@Accessors( chain= true )
+	private  String      subscribeeProfileOriginal;
 	
 	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variableByteBuf )
 	{

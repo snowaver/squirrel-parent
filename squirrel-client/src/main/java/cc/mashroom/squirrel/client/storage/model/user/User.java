@@ -15,7 +15,34 @@
  */
 package cc.mashroom.squirrel.client.storage.model.user;
 
+import  java.sql.Timestamp;
+
+import  com.fasterxml.jackson.annotation.JsonProperty;
+
+import  cc.mashroom.db.annotation.Column;
+import  lombok.Data;
+import  lombok.experimental.Accessors;
+
+@Data
+@Accessors( chain = true )
 public  class  User
 {
-
+	@JsonProperty( value="ID"   )
+	@Column( name="ID"   )
+	private  Long  id;
+	@JsonProperty( value="LAST_ACCESS_TIME" )
+	@Column( name="LAST_ACCESS_TIME")
+	private  Timestamp  lastAccessTime;
+	@JsonProperty( value="USERNAME" )
+	@Column( name="USERNAME" )
+	private  String  username;
+	@JsonProperty( value="PASSWORD" )
+	@Column( name="PASSWORD" )
+	private  String  password;
+	@JsonProperty( value="NAME" )
+	@Column( name="NAME" )
+	private  String  name;
+	@JsonProperty( value="NICKNAME" )
+	@Column( name="NICKNAME" )
+	private  String  nickname;
 }

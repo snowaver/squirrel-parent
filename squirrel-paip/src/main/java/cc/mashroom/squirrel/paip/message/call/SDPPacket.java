@@ -16,51 +16,71 @@
 package cc.mashroom.squirrel.paip.message.call;
 
 import  io.netty.buffer.ByteBuf;
+import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
+import  lombok.AllArgsConstructor;
 import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
+
 import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(  callSuper = true )
-public  class  SDPPacket       extends  AbstractCallPacket  <SDPPacket>
+public  class  SDPPacket  extends  AbstractCallPacket<SDPPacket>
 {
-	public  SDPPacket( long  contactId,long  roomId,SDP  sdp )
+	public  SDPPacket( long contactId,long roomId,String  sdpType,String  sdpDescription )
 	{
-		super( new  Header(PAIPPacketType.CALL_SDP), roomId );
+		super( new  Header( PAIPPacketType.CALL_SDP) , roomId );
 		
-		this.setContactId(contactId).setSdp( sdp );
+		setContactId(contactId).setSdp( new  SDP(sdpType,sdpDescription) );
 	}
 	
-	public  SDPPacket(  ByteBuf  byteBuf )
+	public  SDPPacket(      ByteBuf  byteBuf )
 	{
 		super( byteBuf,0x00 );
 		
-		setContactId(byteBuf.readLongLE()).setSdp( new  SDP(PAIPUtils.decode(byteBuf),PAIPUtils.decode(byteBuf)) );
+		setContactId(byteBuf.readLongLE()).setSdp(   new  SDP(PAIPUtils.decode(byteBuf),PAIPUtils.decode(byteBuf)) );
 	}
 	
-	@Setter( value=AccessLevel.PROTECTED )
+	@Setter(     value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors( chain = true )
-	
-	private  SDP    sdp;
+	private  SDP   sdp;
 
-	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf )
+	public  ByteBuf  writeToVariableByteBuf(     ByteBuf  variableByteBuf )
 	{
-		ByteBuf  sdpBuf = sdp.toByteBuf();  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(contactId).writeBytes( sdpBuf );  sdpBuf.release();  return  variableByteBuf;
+		ByteBuf  sdpBuf     = sdp.toByteBuf();  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(contactId).writeBytes( sdpBuf );  sdpBuf.release();  return  variableByteBuf;
 	}
 	
 	public  int  getInitialVariableByteBufferSize()
 	{
-		return  8 +  super.getInitialVariableByteBufferSize();
+		return   8 +   super.getInitialVariableByteBufferSize();
 	}
 	/*
-	public  void  writeTo(  ByteBuf  buf )
+	public  void  writeTo(  ByteBuf  byteBuf )
 	{
-		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())), PAIPPacketType.CALL_SDP );  
+		write( byteBuf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())), PAIPPacketType.CALL_SDP );  
 	}
 	*/
+	@AllArgsConstructor
+	@ToString
+	public   class  SDP
+	{
+		@Setter( value=AccessLevel.PROTECTED )
+		@Getter
+		@Accessors(chain=true)
+		private  String  type;
+		@Setter( value=AccessLevel.PROTECTED )
+		@Getter
+		@Accessors(chain=true)
+		private  String  description;
+
+		public  ByteBuf   toByteBuf()
+		{
+			return  Unpooled.buffer().writeBytes(PAIPUtils.encode(type)).writeBytes( PAIPUtils.encode(description) );
+		}
+	}
 }

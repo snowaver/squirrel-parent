@@ -33,7 +33,6 @@ import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
 import  cc.mashroom.util.Reference;
 import  cc.mashroom.util.StringUtils;
 import  cc.mashroom.util.collection.map.LinkedMap;
-import  cc.mashroom.util.collection.map.Map;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 
@@ -47,7 +46,7 @@ public  class  ContactRepository    extends  RepositorySupport
 	
 	private  ArrayListValuedHashMap<String,Contact>  contactGroups = new  ArrayListValuedHashMap<String,Contact>();
 	
-	public  int  upsert(      Contact  contact,boolean  isUpdateNewsProfile )        throws  IllegalArgumentException,  IllegalAccessException
+	public  int  upsert(      Contact  contact,boolean  isUpdateNewsProfile ) throws  IllegalArgumentException,IllegalAccessException
 	{
 		Timestamp  now = new  Timestamp( DateTime.now(DateTimeZone.UTC).getMillis() );
 		
@@ -60,7 +59,7 @@ public  class  ContactRepository    extends  RepositorySupport
 				this.contactGroups.removeMapping(        older.getGroupName(),older );
 			}
 
-			this.contactGroups.put( contact.getGroupName(),contact );
+			this.contactGroups.put( contact.getGroupName(), contact );
 			//  considering  the  performance,  the  news  profile  should  not  be  updated  while  the  news  profile  of  the  latest  chat  message  will  override  it,  especially  for  offline  messages.
 			if( isUpdateNewsProfile    )
 			{
@@ -69,7 +68,7 @@ public  class  ContactRepository    extends  RepositorySupport
 				NewsProfileRepository.DAO.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{contact.getId(),now,PAIPPacketType.CHAT.getValue(),contact.getId(),"$("+StringUtils.leftPad(Integer.toHexString(PAIPPacketType.SUBSCRIBE_ACK.getValue()),2,"0")+StringUtils.leftPad(Integer.toHexString(SubscribeAckPacket.ACK_ACCEPT),2,"0")+")",1} );
 			}
 			
-			return      ContactRepository.DAO.upsert( Lists.newArrayList( contact ) );
+			return  super.upsert(       Lists.newArrayList(contact) );
 		}
 		else
 		if( contact.getSubscribeStatus() == 0 || contact.getSubscribeStatus()   == 1 )
@@ -79,7 +78,7 @@ public  class  ContactRepository    extends  RepositorySupport
 				NewsProfileRepository.DAO.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{contact.getId(),now,PAIPPacketType.SUBSCRIBE.getValue(),contact.getId(),contact.getSubscribeStatus(),1} );
 			}
 			
-			return      ContactRepository.DAO.upsert( Lists.newArrayList( contact ) );
+			return  super.upsert(       Lists.newArrayList(contact) );
 		}
 
 		throw  new  IllegalArgumentException( String.format("SQUIRREL-CLIENT:  ** CONTACT **  subscribe  status  ( %d )  is  not  supported.",  contact.getSubscribeStatus()) );
@@ -99,7 +98,7 @@ public  class  ContactRepository    extends  RepositorySupport
 	{
 		clearCache();
 		
-		for( Contact  contact : ContactRepository.DAO.lookup(Contact.class,"SELECT  ID,USERNAME,CREATE_TIME,LAST_MODIFY_TIME,SUBSCRIBE_STATUS,REMARK,GROUP_NAME,IS_DELETED  FROM  "+ContactRepository.DAO.getDataSourceBind().table()) )
+		for(Contact  contact : ContactRepository.DAO.lookup(Contact.class,"SELECT  ID,USERNAME,CREATE_TIME,LAST_MODIFY_TIME,SUBSCRIBE_STATUS,REMARK,GROUP_NAME,IS_DELETED  FROM  "+ContactRepository.DAO.getDataSourceBind().table()) )
 		{
 			if( (contact.getSubscribeStatus() == 6 || contact.getSubscribeStatus() == 7) && !contact.getIsDeleted() )  this.contactGroups.put( contact.getGroupName(),contact );
 		
@@ -109,11 +108,12 @@ public  class  ContactRepository    extends  RepositorySupport
 		return  this;
 	}
 	
-	public  boolean  remove( long  contactId )
+	public  void  attach(    List<Contact>   contacts ) throws  NumberFormatException,IllegalArgumentException,IllegalAccessException
 	{
-		ContactRepository.DAO.update( "UPDATE  "+ContactRepository.DAO.getDataSourceBind().table()+"  SET  IS_DELETED = 1  WHERE  ID = ?" , new  Object[]{contactId} );
-		
-		return  this.contactGroups.removeMapping( contactId,this.contactDirect.remove(contactId) );
+		for(Contact  contact :contacts )
+		{
+			this.upsert( contact,true );
+		}
 	}
 	
 	public  void  clearCache()
@@ -123,11 +123,8 @@ public  class  ContactRepository    extends  RepositorySupport
 		contactGroups.clear();
 	}
 	
-	public  void  attach(List<Map<String, Object>>  contacts )  throws  NumberFormatException,IllegalArgumentException,IllegalAccessException
+	public  boolean  remove( long  contactId )
 	{
-		for(  Map<String, Object>  contact : contacts )
-		{
-			upsert( new  Contact().setId(new  Long(contact.get("ID").toString())).setUsername(contact.getString("USERNAME")).setCreateTime(new  Timestamp(DateTime.parse(contact.get("CREATE_TIME").toString()).withZone(DateTimeZone.UTC).getMillis())).setLastModifyTime(new  Timestamp(DateTime.parse(contact.get("LAST_MODIFY_TIME").toString()).withZone(DateTimeZone.UTC).getMillis())).setSubscribeStatus(contact.getInteger("SUBSCRIBE_STATUS")).setRemark(contact.getString("REMARK")).setGroupName(contact.getString("GROUP_NAME")).setIsDeleted(contact.getBoolean("IS_DELETED")),true );
-		}
+		super.update( "UPDATE  "+super.getDataSourceBind().table()+"  SET  IS_DELETED = 1  WHERE  ID = ?",new  Object[]{contactId} );  return  this.contactGroups.removeMapping( contactId,this.contactDirect.remove(contactId) );
 	}
 }
