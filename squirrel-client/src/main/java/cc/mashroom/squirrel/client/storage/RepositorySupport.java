@@ -21,6 +21,7 @@ import  java.util.List;
 
 import  org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import  com.google.common.collect.Lists;
 
 import  cc.mashroom.db.GenericRepository;
@@ -48,7 +49,7 @@ public  class  RepositorySupport  extends  GenericRepository
 		{
 			List<String> fields = new  LinkedList<String>(  ObjectUtils.cast(rcs.get(0),Map.class).keySet() );
 			
-			return  ConnectionUtils.batchUpdatedCount( super.insert(new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+getDataSourceBind().table()+"  ("+StringUtils.join(fields,",")+")  VALUES  ("+StringUtils.rightPad("?",2*(fields.size()-1)+1,",?")+")",ConnectionUtils.prepare((List<? extends Map>)  Lists.newArrayList(rcs),fields).toArray(new  Object[rcs.size()][])) );
+			return  ConnectionUtils.batchUpdatedCount( super.insert(new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+super.getDataSourceBind().table()+"  ("+StringUtils.join(fields,",")+")  VALUES  ("+StringUtils.rightPad("?",2*(fields.size()-1)+1,",?")+")",ConnectionUtils.prepare(ObjectUtils.cast(rcs,new  TypeReference<List<Map<String,Object>>>(){}),fields).toArray(new  Object[rcs.size()][])) );
 		}
 		else
 		{
