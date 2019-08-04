@@ -46,7 +46,7 @@ public  class  ChatGroupRepository  extends  RepositorySupport
 		
 		for( ChatGroupUser  chatGroupUser : offline.getChatGroupUsers() )
 		{
-			if( chatGroupUser.getContactId()   == context.getUserMetadata().getLong("ID").longValue() )
+			if( chatGroupUser.getContactId()   == context.getUserMetadata().getId().longValue() )
 			{
 				if( !chatGroupUser.getIsDeleted() )
 				{

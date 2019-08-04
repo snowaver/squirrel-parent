@@ -21,8 +21,8 @@ import  org.joda.time.DateTime;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
+import  cc.mashroom.squirrel.client.storage.model.user.User;
 import  cc.mashroom.util.Reference;
-import  cc.mashroom.util.collection.map.Map;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 
@@ -32,8 +32,8 @@ public  class  UserRepository  extends  RepositorySupport
 {
 	public  final  static  UserRepository  DAO = new  UserRepository();
 	
-	public  int  upsert( Map<String,Object>  user )
+	public  int  upsert( User  user )
 	{
-		return  super.insert( new  Reference<Object>(),"MERGE  INTO  "+super.getDataSourceBind().table()+"  (ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME)  VALUES  (?,?,?,?,?,?)",new  Object[]{user.getLong("ID"),new  Timestamp(DateTime.now().getMillis()),user.getString("USERNAME"),user.getString("PASSWORD"),user.getString("NAME"),user.getString("NICKNAME")} );
+		return  super.insert( new  Reference<Object>(),"MERGE  INTO  "+super.getDataSourceBind().table()+"  (ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME)  VALUES  (?,?,?,?,?,?)",new  Object[]{user.getId(),new  Timestamp(DateTime.now().getMillis()),user.getUsername(),user.getPassword(),user.getName(),user.getNickname()} );
 	}
 }

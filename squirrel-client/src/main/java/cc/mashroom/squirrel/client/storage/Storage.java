@@ -29,9 +29,11 @@ import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.squirrel.client.LifecycleEventDispatcher;
 import  cc.mashroom.squirrel.client.LifecycleListener;
 import  cc.mashroom.squirrel.client.SquirrelClient;
+import  cc.mashroom.squirrel.client.SquirrelClient.UserMetadata;
 import  cc.mashroom.squirrel.client.connect.PacketListener;
 import  cc.mashroom.squirrel.client.storage.model.Offline;
 import  cc.mashroom.squirrel.client.storage.model.user.Contact;
+import  cc.mashroom.squirrel.client.storage.model.user.User;
 import  cc.mashroom.squirrel.client.storage.repository.OfflineRepository;
 import  cc.mashroom.squirrel.client.storage.repository.chat.GroupChatMessageRepository;
 import  cc.mashroom.squirrel.client.storage.repository.chat.ChatMessageRepository;
@@ -53,7 +55,6 @@ import  cc.mashroom.util.IOUtils;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.StringUtils;
-import  cc.mashroom.util.collection.map.Map;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
@@ -61,9 +62,9 @@ import  lombok.experimental.Accessors;
 
 public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.client.LifecycleListener
 {
-	public  void  initialize( final  SquirrelClient  context,boolean  isConnectDataSourceOnly,final  Collection<LifecycleListener>  lifecycleListeners,File  cacheDir,final  Map<String,Object>  metadata )  throws  Exception
+	public  void  initialize( final  SquirrelClient  context,boolean  isConnectDataSourceOnly,final  Collection<LifecycleListener>  lifecycleListeners,      File  cacheDir,final  UserMetadata  metadata,final  String  encryptPassword )  throws  Exception
 	{
-		this.setContext(context).setCacheDir(cacheDir).setId( metadata.getLong("ID") );
+		setContext(context).setCacheDir(cacheDir).setId( metadata.getId() );
 		
 		ConnectionManager.INSTANCE.setDataSourceLocator( new  DataSourceLocator(){public  String  locate(GenericRepository  repository,DataSourceBind  dataSourceBind){return  String.valueOf(getId());}} );
 		
@@ -75,7 +76,7 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		{
 			try( InputStream  is =  getClass().getResourceAsStream( "/squirrel.ddl" ) )
 			{
-				Db.tx( String.valueOf(id),java.sql.Connection.TRANSACTION_SERIALIZABLE,new  Callback(){public  Object  execute( cc.mashroom.db.connection.Connection  connection )  throws  Throwable{ connection.runScripts( IOUtils.toString(is,"UTF-8") );  UserRepository.DAO.upsert( metadata );  LifecycleEventDispatcher.onReceiveOfflineData(lifecycleListeners,OfflineRepository.DAO.attach(context));  return  true; }});
+				Db.tx( String.valueOf(id),java.sql.Connection.TRANSACTION_SERIALIZABLE,new  Callback(){public  Object  execute( cc.mashroom.db.connection.Connection  connection )  throws  Throwable{ connection.runScripts( IOUtils.toString(is,"UTF-8") );  UserRepository.DAO.upsert( new  User(metadata.getId(),null,metadata.getUsername(),encryptPassword,metadata.getName(),metadata.getNickname()) );  LifecycleEventDispatcher.onReceiveOfflineData(lifecycleListeners,OfflineRepository.DAO.attach(context));  return  true; }});
 			}
 		}
 	}

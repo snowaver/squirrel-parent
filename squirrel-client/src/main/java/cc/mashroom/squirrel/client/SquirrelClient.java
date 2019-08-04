@@ -26,18 +26,23 @@ import  java.util.concurrent.TimeUnit;
 
 import  org.apache.commons.codec.binary.Hex;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import  io.netty.channel.ChannelHandler.Sharable;
 import  io.netty.util.concurrent.DefaultThreadFactory;
 import  lombok.AccessLevel;
+import  lombok.Data;
 import  lombok.Getter;
 import  lombok.NonNull;
 import  lombok.Setter;
+import  lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 import  okhttp3.FormBody;
 import  okhttp3.HttpUrl;
 import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 import  okhttp3.Response;
+import  cc.mashroom.db.annotation.Column;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.call.Call;
 import  cc.mashroom.squirrel.client.connect.call.CallError;
@@ -73,7 +78,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	@Setter( value=AccessLevel.PROTECTED )
 	@Accessors(chain=true)
 	private  Object  context;
-	private  Map<String,Object>  userMetadata = new  HashMap<String,Object>();
+	private  UserMetadata    userMetadata;
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
@@ -108,7 +113,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		else
 		if( getConnectState() == ConnectState.DISCONNECTED )
 		{
-			super.connect( userMetadata.get("ID").toString() , userMetadata.get("SECRET_KEY" ).toString() );
+			super.connect( String.valueOf(this.userMetadata.getId())   , this.userMetadata.getSecretKey() );
 		}
 	}
 		
@@ -129,9 +134,10 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		return  ObjectUtils.cast(     super.setConnectState( connectState ) );
 	}
 	
-	public  Map<String,Object>    getUserMetadata()
+	@SneakyThrows
+	public  UserMetadata getUserMetadata()
 	{
-		return  new  HashMap<String,Object>().addEntries( this.userMetadata );
+		return  ObjectUtils.cast(    userMetadata.clone() );
 	}
 	/**
 	 *  return  null  if  a  call  exists  or  a  new  call.
@@ -144,7 +150,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			(
 				new  Runnable(){public  void  run()
 				{
-					try( Response  response = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(8,TimeUnit.SECONDS).build().newCall(new  Request.Builder().addHeader("SECRET_KEY",getUserMetadata().getString("SECRET_KEY")).url(new  HttpUrl.Builder().scheme("https").host(getHost()).port(getHttpPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
+					try( Response  response = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(8,TimeUnit.SECONDS).build().newCall(new  Request.Builder().addHeader("SECRET_KEY",userMetadata.getSecretKey()).url(new  HttpUrl.Builder().scheme("https").host(getHost()).port(getHttpPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
 					{
 						if( response.code()!= 200 )
 						{
@@ -179,13 +185,13 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	{
 		try
 		{
-			Storage.INSTANCE.initialize( this,true,lifecycleListeners,cacheDir,new  HashMap<String,Object>().addEntry("ID", id) );
+			Storage.INSTANCE.initialize( this,true,lifecycleListeners,this.cacheDir,new  UserMetadata().setId(id),null );
 			
 			User  user = UserRepository.DAO.lookupOne( User.class,"SELECT  USERNAME,PASSWORD  FROM  "+UserRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
 			
 			setConnectParameters( new  HashMap<String,Object>().addEntry("username",user.getUsername()).addEntry("password",user.getPassword()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("isConnectingById",true).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac) );
 		
-			this.connect( null,null,null,null,null, lifecycleListeners );
+			this.connect(      null,null,null,null,null, lifecycleListeners );
 		}
 		catch( Throwable  e )
 		{
@@ -227,11 +233,11 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		{
 			if( response.code()   == 200 )
 			{
-				this.userMetadata.addEntries( JsonUtils.mapper.readValue(response.body().string(),java.util.Map.class) );
-				//  connecting   to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
-				Storage.INSTANCE.initialize(this,false,lifecycleListeners,cacheDir,new  HashMap<String,Object>().addEntries(userMetadata.addEntry("ID",Long.parseLong(userMetadata.get("ID").toString()))).addEntry("PASSWORD",connectParameters.getString("password")) );
+				this.userMetadata =JsonUtils.mapper.readValue(response.body().string(),UserMetadata.class );
+				//  connecting  to  the  user' s  database  and  merge  offline  datas  from  remote  server  to  native  storage.
+				Storage.INSTANCE.initialize(this,false,lifecycleListeners,this.cacheDir,this.userMetadata  , connectParameters.getString("password") );
 			
-				this.connect( userMetadata.get("ID").toString(),userMetadata.get("SECRET_KEY").toString() );
+				this.connect( String.valueOf(this.userMetadata.getId()), this.userMetadata.getSecretKey() );
 			}
 			
 			LifecycleEventDispatcher.onAuthenticateComplete(    this.lifecycleListeners , response.code() );
@@ -266,7 +272,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	{
 		super.clear();
 		
-		userMetadata.clear();
+		userMetadata =  null;
 		
 		this.setConnectParameters( null );
 		call   = null;
@@ -286,17 +292,37 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	 */
 	public  void disconnect()
 	{
-		//  deprecated:  it  is  not  necessary  that  close  the  channel,  while  the  socket  channel  can  be  reused  anyway.  sending  packet  should  be  restricted  by  id,  connect  state  and  authenticate  state.
-		/*
-		send(   new  DisconnectPacket() );
-		*/
 		clear();
-		/*
-		if( super.getChannel()   == null )
+		//  deprecated:  it  is  not  necessary  that  close  the  channel,  while  the  socket  channel  can  be  reused  anyway.  sending  packet  should  be  restricted  by  id,  connect  state  and  authenticate  state.
+//		send(   new  DisconnectPacket() );
+	}
+	
+	@Data
+	@Accessors( chain =true )
+	public  class     UserMetadata  implements     Cloneable
+	{
+		@JsonProperty( value="ID")
+		@Column( name="ID"  )
+		private  Long  id;
+		@Column( name="USERNAME" )
+		private  String  username;
+		@JsonProperty( value="NAME" )
+		@Column( name="NAME")
+		private  String name;
+		@JsonProperty( value="NICKNAME"  )
+		@Column( name="NICKNAME" )
+		private  String  nickname;
+		@JsonProperty( value="ROLETYPE"  )
+		@Column( name="ROLETYPE" )
+		private  Integer roleType;
+		@JsonProperty( value="SECRET_KEY")
+		@Column( name="SECRET_KEY"  )
+		private  String secretKey;
+		
+		protected  UserMetadata    clone()  throws  CloneNotSupportedException
 		{
-			super.getChannel().close();
+			return  (UserMetadata)   super.clone();
 		}
-		*/
 	}
 	
 	public  void  asynchronousConnect( final  String  username,final  String  password,final  Double  longitude,final  Double  latitude,final  String  mac,final  @NonNull  Collection<LifecycleListener>  lifecycleListeners )
