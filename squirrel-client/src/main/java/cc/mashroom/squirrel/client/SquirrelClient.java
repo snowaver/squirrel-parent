@@ -26,13 +26,15 @@ import  java.util.concurrent.TimeUnit;
 
 import  org.apache.commons.codec.binary.Hex;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import  com.fasterxml.jackson.annotation.JsonProperty;
 
 import  io.netty.channel.ChannelHandler.Sharable;
 import  io.netty.util.concurrent.DefaultThreadFactory;
 import  lombok.AccessLevel;
+import  lombok.AllArgsConstructor;
 import  lombok.Data;
 import  lombok.Getter;
+import  lombok.NoArgsConstructor;
 import  lombok.NonNull;
 import  lombok.Setter;
 import  lombok.SneakyThrows;
@@ -187,7 +189,9 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		{
 			Storage.INSTANCE.initialize( this,true,lifecycleListeners,this.cacheDir,new  UserMetadata().setId(id),null );
 			
-			User  user = UserRepository.DAO.lookupOne( User.class,"SELECT  USERNAME,PASSWORD  FROM  "+UserRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
+			User  user = UserRepository.DAO.lookupOne( User.class,"SELECT  ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME  FROM  "+UserRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
+			
+			this.userMetadata      = new  UserMetadata( id,user.getUsername(),user.getName(),user.getNickname(),0,null );
 			
 			setConnectParameters( new  HashMap<String,Object>().addEntry("username",user.getUsername()).addEntry("password",user.getPassword()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("isConnectingById",true).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac) );
 		
@@ -299,6 +303,8 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	
 	@Data
 	@Accessors( chain =true )
+	@NoArgsConstructor
+	@AllArgsConstructor
 	public  class     UserMetadata  implements     Cloneable
 	{
 		@JsonProperty( value="ID")
