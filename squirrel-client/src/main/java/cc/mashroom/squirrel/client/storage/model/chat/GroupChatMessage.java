@@ -18,12 +18,16 @@ package cc.mashroom.squirrel.client.storage.model.chat;
 import  com.fasterxml.jackson.annotation.JsonProperty;
 
 import  cc.mashroom.db.annotation.Column;
+import  lombok.AllArgsConstructor;
 import  lombok.Data;
 import  lombok.EqualsAndHashCode;
+import  lombok.NoArgsConstructor;
 import  lombok.experimental.Accessors;
 
 @Data
 @Accessors( chain=true )
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode( callSuper=false )
 public  class  GroupChatMessage  extends  ChatMessage
 {

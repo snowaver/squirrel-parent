@@ -20,12 +20,14 @@ import  java.sql.Timestamp;
 import  com.fasterxml.jackson.annotation.JsonProperty;
 
 import  cc.mashroom.db.annotation.Column;
-import lombok.AllArgsConstructor;
+import  lombok.AllArgsConstructor;
 import  lombok.Data;
+import  lombok.NoArgsConstructor;
 import  lombok.experimental.Accessors;
 
 @Data
 @Accessors( chain = true )
+@NoArgsConstructor
 @AllArgsConstructor
 public  class  User
 {

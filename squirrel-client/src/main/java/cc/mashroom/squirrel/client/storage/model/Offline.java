@@ -20,15 +20,19 @@ import  java.util.List;
 import  com.fasterxml.jackson.annotation.JsonProperty;
 
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
-import cc.mashroom.squirrel.client.storage.model.chat.GroupChatMessage;
+import  cc.mashroom.squirrel.client.storage.model.chat.GroupChatMessage;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupUser;
 import  cc.mashroom.squirrel.client.storage.model.user.Contact;
+import  lombok.AllArgsConstructor;
 import  lombok.Data;
+import  lombok.NoArgsConstructor;
 import  lombok.experimental.Accessors;
 
 @Data
-@Accessors( chain=true )
+@Accessors(chain=true)
+@NoArgsConstructor
+@AllArgsConstructor
 public  class  Offline
 {
 	@JsonProperty( value="CONTACTS" )
