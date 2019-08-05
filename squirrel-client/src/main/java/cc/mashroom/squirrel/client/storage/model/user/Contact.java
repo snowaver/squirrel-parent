@@ -58,7 +58,7 @@ public  class  Contact  implements  Cloneable
 	private  Boolean   isDeleted;
 	@SneakyThrows
 	@Override
-	protected  Contact    clone()  throws  CloneNotSupportedException
+	public  Contact  clone()  throws  CloneNotSupportedException
 	{
 		return  (Contact)super.clone();
 	}
