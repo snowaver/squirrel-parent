@@ -15,6 +15,7 @@
  */
 package cc.mashroom.squirrel.client.storage.model.user;
 
+import java.io.Serializable;
 import  java.sql.Timestamp;
 
 import  com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,7 +30,7 @@ import  lombok.experimental.Accessors;
 @Accessors( chain = true )
 @NoArgsConstructor
 @AllArgsConstructor
-public  class  User
+public  class  User  implements  Serializable
 {
 	@JsonProperty( value="ID"   )
 	@Column( name="ID"   )

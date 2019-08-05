@@ -23,13 +23,14 @@ import  cc.mashroom.db.annotation.Column;
 import  lombok.AllArgsConstructor;
 import  lombok.Data;
 import  lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 
 @Data
 @Accessors( chain=true )
 @NoArgsConstructor
 @AllArgsConstructor
-public  class    Contact
+public  class  Contact  implements  Cloneable
 {
 	@JsonProperty(value="ID" )
 	@Column( name="ID" )
@@ -40,10 +41,10 @@ public  class    Contact
 	@JsonProperty(value="CREATE_TIME" )
 	@Column( name="CREATE_TIME" )
 	private  Timestamp   createTime;
-	@JsonProperty(value="LAST_MODIFY_TIME" )
+	@JsonProperty(value="LAST_MODIFY_TIME"  )
 	@Column( name="LAST_MODIFY_TIME"  )
 	private  Timestamp  lastModifyTime;
-	@JsonProperty(value="SUBSCRIBE_STATUS" )
+	@JsonProperty(value="SUBSCRIBE_STATUS"  )
 	@Column( name="SUBSCRIBE_STATUS"  )
 	private  Integer   subscribeStatus;
 	@JsonProperty(value="REMARK")
@@ -55,4 +56,10 @@ public  class    Contact
 	@JsonProperty(value="IS_DELETED"  )
 	@Column( name="IS_DELETED"  )
 	private  Boolean   isDeleted;
+	@SneakyThrows
+	@Override
+	protected  Contact    clone()  throws  CloneNotSupportedException
+	{
+		return  (Contact)super.clone();
+	}
 }
