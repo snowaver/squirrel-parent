@@ -33,7 +33,7 @@ import  lombok.experimental.Accessors;
 @Accessors(chain=true)
 @NoArgsConstructor
 @AllArgsConstructor
-public  class  Offline
+public  class  OoIData
 {
 	@JsonProperty( value="CONTACTS" )
 	private  List<Contact>  contacts;

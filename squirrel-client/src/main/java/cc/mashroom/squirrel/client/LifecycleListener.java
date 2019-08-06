@@ -15,11 +15,11 @@
  */
 package cc.mashroom.squirrel.client;
 
-import  cc.mashroom.squirrel.client.storage.model.Offline;
+import  cc.mashroom.squirrel.client.storage.model.OoIData;
 
 public  interface  LifecycleListener
 {
-	public  void  onReceivedOfflineData( Offline  offline );
+	public  void  onReceivedOfflineData( OoIData  ooiData );
 	
 	public  void  onDisconnected( int  reason );
 	

@@ -24,7 +24,7 @@ import  org.joda.time.DateTimeZone;
 import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
-import  cc.mashroom.squirrel.client.storage.model.Offline;
+import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupUser;
 import  cc.mashroom.squirrel.client.storage.repository.chat.NewsProfileRepository;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
@@ -36,15 +36,15 @@ import  lombok.NoArgsConstructor;
 @NoArgsConstructor(  access = AccessLevel.PRIVATE )
 public  class  ChatGroupRepository  extends  RepositorySupport
 {
-	public  final  static  ChatGroupRepository  DAO  = new  ChatGroupRepository();
+	public  final  static  ChatGroupRepository  DAO = new  ChatGroupRepository();
 	
-	public  boolean  attach(   SquirrelClient  context,Offline  offline )  throws  IllegalArgumentException,IllegalAccessException
+	public  boolean  attach(   SquirrelClient  context,OoIData  ooiData )  throws  IllegalArgumentException,IllegalAccessException
 	{
 		long  nowMillis = DateTime.now(DateTimeZone.UTC).getMillis() - 1;
 		
-		super.upsert(    offline.getChatGroups() );
+		super.upsert(    ooiData.getChatGroups() );
 		
-		for( ChatGroupUser  chatGroupUser : offline.getChatGroupUsers() )
+		for( ChatGroupUser  chatGroupUser : ooiData.getChatGroupUsers() )
 		{
 			if( chatGroupUser.getContactId()   == context.getUserMetadata().getId().longValue() )
 			{
@@ -59,6 +59,6 @@ public  class  ChatGroupRepository  extends  RepositorySupport
 			}
 		}
 		
-		ChatGroupUserRepository.DAO.upsert(offline.getChatGroupUsers() );      return  true;
+		ChatGroupUserRepository.DAO.upsert(ooiData.getChatGroupUsers() );      return  true;
 	}
 }

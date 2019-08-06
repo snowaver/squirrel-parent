@@ -22,7 +22,7 @@ import  java.util.concurrent.TimeUnit;
 import  cc.mashroom.db.GenericRepository;
 import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.squirrel.client.SquirrelClient;
-import  cc.mashroom.squirrel.client.storage.model.Offline;
+import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.repository.chat.ChatMessageRepository;
 import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupRepository;
 import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupUserRepository;
@@ -45,7 +45,7 @@ public  class  OfflineRepository  extends  GenericRepository
 {
 	public  final  static  OfflineRepository  DAO  = new  OfflineRepository();
 	
-	public  Offline  attach( SquirrelClient  context )  throws  IOException,NumberFormatException,IllegalArgumentException,IllegalAccessException
+	public  OoIData  attach( SquirrelClient  context )  throws  IOException,NumberFormatException,IllegalArgumentException,IllegalAccessException
 	{
 		Timestamp  chatGroupLatestModifyTime = ChatGroupRepository.DAO.lookupOne( Timestamp.class,"SELECT  MAX(LAST_MODIFY_TIME)  AS  LAST_MODIFY_TIME  FROM  "+ChatGroupRepository.DAO.getDataSourceBind().table(),new  Object[]{} );
 		
@@ -57,11 +57,11 @@ public  class  OfflineRepository  extends  GenericRepository
 		{
 			if( response.code() == 200 )
 			{
-				Offline  offline = JsonUtils.mapper.readValue( response.body().string(),Offline.class );
+				OoIData  ooiData = JsonUtils.mapper.readValue( response.body().string(),OoIData.class );
 				
-				ContactRepository.DAO.recache().attach(offline.getContacts());  ChatGroupRepository.DAO.attach( context,offline );
+				ContactRepository.DAO.recache().attach(ooiData.getContacts());  ChatGroupRepository.DAO.attach( context,ooiData );
 				
-				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),offline.getOfflineChatMessages() );  return  offline;
+				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineChatMessages() );  return  ooiData;
 			}
 			else
 			{

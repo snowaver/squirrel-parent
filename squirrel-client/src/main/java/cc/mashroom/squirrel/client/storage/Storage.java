@@ -31,7 +31,7 @@ import  cc.mashroom.squirrel.client.LifecycleListener;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.SquirrelClient.UserMetadata;
 import  cc.mashroom.squirrel.client.connect.PacketListener;
-import  cc.mashroom.squirrel.client.storage.model.Offline;
+import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.model.user.Contact;
 import  cc.mashroom.squirrel.client.storage.model.user.User;
 import  cc.mashroom.squirrel.client.storage.repository.OfflineRepository;
@@ -154,7 +154,7 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		else
 		if( packet instanceof GroupChatEventPacket   )
 		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatGroupRepository.DAO.attach( context,JsonUtils.fromJson(ObjectUtils.cast(packet,GroupChatEventPacket.class).getAttatchmentsOriginal(),Offline.class) );}} );
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatGroupRepository.DAO.attach( context,JsonUtils.fromJson(ObjectUtils.cast(packet,GroupChatEventPacket.class).getAttatchmentsOriginal(),OoIData.class) );}} );
 		}
 		else
 		if( packet instanceof ChatPacket )
