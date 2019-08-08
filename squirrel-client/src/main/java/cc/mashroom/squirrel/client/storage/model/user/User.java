@@ -32,7 +32,7 @@ import  lombok.experimental.Accessors;
 @AllArgsConstructor
 public  class  User  implements  Serializable
 {
-	@JsonProperty( value="ID"   )
+	@JsonProperty( value="ID")
 	@Column( name="ID"   )
 	private  Long  id;
 	@JsonProperty( value="LAST_ACCESS_TIME" )
