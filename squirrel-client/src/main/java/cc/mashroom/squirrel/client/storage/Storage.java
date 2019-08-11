@@ -29,7 +29,7 @@ import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.squirrel.client.LifecycleEventDispatcher;
 import  cc.mashroom.squirrel.client.LifecycleListener;
 import  cc.mashroom.squirrel.client.SquirrelClient;
-import  cc.mashroom.squirrel.client.SquirrelClient.UserMetadata;
+import  cc.mashroom.squirrel.client.connect.UserMetadata;
 import  cc.mashroom.squirrel.client.connect.PacketListener;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.model.user.Contact;

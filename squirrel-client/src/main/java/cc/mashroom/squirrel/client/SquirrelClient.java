@@ -26,15 +26,10 @@ import  java.util.concurrent.TimeUnit;
 
 import  org.apache.commons.codec.binary.Hex;
 
-import  com.fasterxml.jackson.annotation.JsonProperty;
-
 import  io.netty.channel.ChannelHandler.Sharable;
 import  io.netty.util.concurrent.DefaultThreadFactory;
 import  lombok.AccessLevel;
-import  lombok.AllArgsConstructor;
-import  lombok.Data;
 import  lombok.Getter;
-import  lombok.NoArgsConstructor;
 import  lombok.NonNull;
 import  lombok.Setter;
 import  lombok.SneakyThrows;
@@ -44,8 +39,8 @@ import  okhttp3.HttpUrl;
 import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 import  okhttp3.Response;
-import  cc.mashroom.db.annotation.Column;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
+import  cc.mashroom.squirrel.client.connect.UserMetadata;
 import  cc.mashroom.squirrel.client.connect.call.Call;
 import  cc.mashroom.squirrel.client.connect.call.CallError;
 import  cc.mashroom.squirrel.client.connect.call.CallEventDispatcher;
@@ -299,36 +294,6 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		clear();
 		//  deprecated:  it  is  not  necessary  that  close  the  channel,  while  the  socket  channel  can  be  reused  anyway.  sending  packet  should  be  restricted  by  id,  connect  state  and  authenticate  state.
 //		send(   new  DisconnectPacket() );
-	}
-	
-	@Data
-	@Accessors( chain =true )
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public  class     UserMetadata  implements     Cloneable
-	{
-		@JsonProperty( value="ID")
-		@Column( name="ID"  )
-		private  Long  id;
-		@Column( name="USERNAME" )
-		private  String  username;
-		@JsonProperty( value="NAME" )
-		@Column( name="NAME")
-		private  String name;
-		@JsonProperty( value="NICKNAME"  )
-		@Column( name="NICKNAME" )
-		private  String  nickname;
-		@JsonProperty( value="ROLETYPE"  )
-		@Column( name="ROLETYPE" )
-		private  Integer roleType;
-		@JsonProperty( value="SECRET_KEY")
-		@Column( name="SECRET_KEY"  )
-		private  String secretKey;
-		
-		protected  UserMetadata    clone()  throws  CloneNotSupportedException
-		{
-			return  (UserMetadata)   super.clone();
-		}
 	}
 	
 	public  void  asynchronousConnect( final  String  username,final  String  password,final  Double  longitude,final  Double  latitude,final  String  mac,final  @NonNull  Collection<LifecycleListener>  lifecycleListeners )
