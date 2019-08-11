@@ -139,7 +139,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	@SneakyThrows
 	public  UserMetadata getUserMetadata()
 	{
-		return  ObjectUtils.cast(    userMetadata.clone() );
+		return  this.userMetadata  == null ? null : this.userMetadata.clone();
 	}
 	/**
 	 *  return  null  if  a  call  exists  or  a  new  call.
