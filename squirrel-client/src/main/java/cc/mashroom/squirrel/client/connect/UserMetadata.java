@@ -19,15 +19,16 @@ public  class  UserMetadata  implements  Cloneable
 	@JsonProperty( value="ID")
 	@Column( name="ID"  )
 	private  Long  id;
+	@JsonProperty( value="USERNAME" )
 	@Column( name="USERNAME" )
 	private  String  username;
 	@JsonProperty( value="NAME" )
 	@Column( name="NAME")
 	private  String name;
-	@JsonProperty( value="NICKNAME"   )
+	@JsonProperty( value="NICKNAME" )
 	@Column( name="NICKNAME" )
 	private  String  nickname;
-	@JsonProperty( value="ROLETYPE"   )
+	@JsonProperty( value="ROLETYPE" )
 	@Column( name="ROLETYPE" )
 	private  Integer roleType;
 	@JsonProperty( value="SECRET_KEY" )
