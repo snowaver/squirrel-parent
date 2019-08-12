@@ -16,9 +16,7 @@
 package cc.mashroom.squirrel.paip.message.call;
 
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
-import  lombok.AllArgsConstructor;
 import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
@@ -31,28 +29,28 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 @ToString(  callSuper = true )
 public  class  SDPPacket  extends  AbstractCallPacket<SDPPacket>
 {
-	public  SDPPacket( long contactId,long roomId,String  sdpType,String  sdpDescription )
+	public  SDPPacket( long contactId,long roomId,SDP  sdp )
 	{
 		super( new  Header( PAIPPacketType.CALL_SDP) , roomId );
 		
-		setContactId(contactId).setSdp( new  SDP(sdpType,sdpDescription) );
+		this.setContactId(contactId).setSdp( sdp );
 	}
 	
-	public  SDPPacket(      ByteBuf  byteBuf )
+	public  SDPPacket(  ByteBuf  byteBuf )
 	{
 		super( byteBuf,0x00 );
 		
-		setContactId(byteBuf.readLongLE()).setSdp(   new  SDP(PAIPUtils.decode(byteBuf),PAIPUtils.decode(byteBuf)) );
+		setContactId(byteBuf.readLongLE()).setSdp( new  SDP(PAIPUtils.decode(byteBuf),PAIPUtils.decode(byteBuf)) );
 	}
 	
-	@Setter(     value=AccessLevel.PROTECTED )
+	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors( chain = true )
-	private  SDP   sdp;
+	private  SDP  sdp;
 
-	public  ByteBuf  writeToVariableByteBuf(     ByteBuf  variableByteBuf )
+	public  ByteBuf  writeToVariableByteBuf(   ByteBuf  variableByteBuf )
 	{
-		ByteBuf  sdpBuf     = sdp.toByteBuf();  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(contactId).writeBytes( sdpBuf );  sdpBuf.release();  return  variableByteBuf;
+		ByteBuf  sdpBuf = sdp.toByteBuf();  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(contactId).writeBytes( sdpBuf );  sdpBuf.release();  return  variableByteBuf;
 	}
 	
 	public  int  getInitialVariableByteBufferSize()
@@ -60,27 +58,9 @@ public  class  SDPPacket  extends  AbstractCallPacket<SDPPacket>
 		return   8 +   super.getInitialVariableByteBufferSize();
 	}
 	/*
-	public  void  writeTo(  ByteBuf  byteBuf )
+	public  void  writeTo(  ByteBuf  buf )
 	{
-		write( byteBuf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())), PAIPPacketType.CALL_SDP );  
+		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())), PAIPPacketType.CALL_SDP );  
 	}
 	*/
-	@AllArgsConstructor
-	@ToString
-	public   class  SDP
-	{
-		@Setter( value=AccessLevel.PROTECTED )
-		@Getter
-		@Accessors(chain=true)
-		private  String  type;
-		@Setter( value=AccessLevel.PROTECTED )
-		@Getter
-		@Accessors(chain=true)
-		private  String  description;
-
-		public  ByteBuf   toByteBuf()
-		{
-			return  Unpooled.buffer().writeBytes(PAIPUtils.encode(type)).writeBytes( PAIPUtils.encode(description) );
-		}
-	}
 }
