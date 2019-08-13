@@ -39,7 +39,7 @@ public  class     NewsProfile
 	private  Timestamp   createTime;
 	@JsonProperty( value="PACKET_TYPE" )
 	@Column( name="PACKET_TYPE" )
-	private  Integer  packetType;
+	private  Short    packetType;
 	@JsonProperty( value="CONTACT_ID"  )
 	@Column( name="CONTACT_ID"  )
 	private  Long  contactId;
