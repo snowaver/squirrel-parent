@@ -42,13 +42,13 @@ public  class    ChatGroup
 	private  Timestamp  createTime;
 	@JsonProperty( value="CREATE_BY"  )
 	@Column( name="CREATE_BY"  )
-	private  String    createBy;
+	private  Long      createBy;
 	@JsonProperty( value="LAST_MODIFY_TIME" )
 	@Column( name="LAST_MODIFY_TIME"  )
 	private  Timestamp  lastModifyTime;
 	@JsonProperty( value="LAST_MODIFY_BY"   )
 	@Column( name="LAST_MODIFY_BY")
-	private  String   lastModifyBy;
+	private  Long  lastModifyBy;
 	@JsonProperty( value="NAME")
 	@Column( name="NAME" )
 	private  String  name;
