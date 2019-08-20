@@ -37,7 +37,7 @@ import  okhttp3.HttpUrl;
 import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 
-@DataSourceBind(name="*",table="chat_group_message",primaryKeys="ID")
+@DataSourceBind(name="*",table="group_chat_message",primaryKeys="ID")
 @NoArgsConstructor( access=AccessLevel.PRIVATE )
 public  class  GroupChatMessageRepository  extends  GenericRepository
 {
