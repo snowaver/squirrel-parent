@@ -184,7 +184,9 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		else
 		if( packet instanceof SubscribeAckPacket     )
 		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ContactRepository.DAO.upsert( JsonUtils.fromJson(ObjectUtils.cast(packet,SubscribeAckPacket.class  ).getSubscribeeProfileOriginal(),Contact.class),true );}} );
+			final  Contact  contact = JsonUtils.fromJson( ObjectUtils.cast(packet,SubscribeAckPacket.class).getSubscribeeProfileOriginal(),Contact.class );
+			
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ContactRepository.DAO.upsert( ContactRepository.DAO.getContactDirect().get(contact.getId()).clone().setLastModifyTime(contact.getLastModifyTime()).setSubscribeStatus(contact.getSubscribeStatus()),true );}} );
 		}
 	}
 }
