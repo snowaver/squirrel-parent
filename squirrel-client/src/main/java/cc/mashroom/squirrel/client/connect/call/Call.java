@@ -213,7 +213,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		}
 	}
 	
-	public  boolean  onBeforeSend(   Packet  packet )
+	public  boolean  onBeforeSend(   Packet  packet )  throws   Throwable
 	{
 		return  true;
 	}

@@ -20,7 +20,7 @@ import  cc.mashroom.squirrel.paip.message.TransportState;
 
 public  interface  PacketListener
 {
-	public  boolean  onBeforeSend( Packet  packet );
+	public  boolean  onBeforeSend( Packet  packet )  throws  Throwable;
 	
 	public  void  onSent( Packet  packet,TransportState  tranportState );
 	

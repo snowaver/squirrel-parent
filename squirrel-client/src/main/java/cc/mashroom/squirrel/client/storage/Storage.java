@@ -58,7 +58,6 @@ import  cc.mashroom.util.StringUtils;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
-import lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 
 public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirrel.client.LifecycleListener
@@ -103,8 +102,7 @@ public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirre
 	@Accessors( chain=true )
 	protected  File      cacheDir;
 
-	@SneakyThrows
-	public  boolean  onBeforeSend(   final    Packet  packet )
+	public  boolean  onBeforeSend(   final    Packet  packet )        throws  Throwable
 	{
 		if( packet instanceof ChatPacket )
 		{
@@ -119,7 +117,6 @@ public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirre
 		return  true;
 	}
 	
-	@SneakyThrows
 	public  void  onSent( final  Packet  packet,final  TransportState  transportState )
 	{
 		if( packet instanceof ChatPacket )
@@ -148,7 +145,6 @@ public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirre
 		}
 	}
 	
-	@SneakyThrows
 	public  void  onReceived(  final  Packet  packet )
 	{
 		if( packet instanceof GroupChatPacket )

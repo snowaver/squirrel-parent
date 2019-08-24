@@ -29,7 +29,7 @@ public  class  PacketEventDispatcher
 {
 	private  final  static  List<PacketListener>  LISTENERS = new  CopyOnWriteArrayList<PacketListener>( Lists.newArrayList( Storage.INSTANCE) );
 	
-	public  static  void  onSent( Packet  packet,TransportState  transportState )  throws  Exception
+	public  static  void  onSent(Packet packet,TransportState transportState )
 	{
 		for(   PacketListener  listener : LISTENERS )
 		{
@@ -66,7 +66,7 @@ public  class  PacketEventDispatcher
 		}
 	}
 	
-	public  static  boolean  onBeforeSend( Packet  packet )
+	public  static  boolean  onBeforeSend( Packet  packet )  throws  Throwable
 	{
 		for( PacketListener  listener : LISTENERS )
 		{
