@@ -205,7 +205,7 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 		}
 		finally
 		{
-			boolean  isChannelAvailable = channel == null || !channel.isActive() || !channel.isWritable();
+			boolean  isChannelAvailable =   channel == null && channel.isActive() && channel.isWritable();
 			
 			PacketEventDispatcher.onSent( packet,isSendPrepared && isChannelAvailable ? TransportState.SEND_FAILED:TransportState.SENDING );
 			
