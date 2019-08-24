@@ -193,7 +193,7 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 	@SneakyThrows
 	public  void  send(  Packet  packet , long  timeout , TimeUnit  timeunit )
 	{
-		boolean isSendPrepared= false;
+		boolean isSendPrepared =false;
 		
 		try
 		{
