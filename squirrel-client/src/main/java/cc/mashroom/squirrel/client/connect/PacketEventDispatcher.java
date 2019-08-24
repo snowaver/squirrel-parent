@@ -15,7 +15,7 @@
  */
 package cc.mashroom.squirrel.client.connect;
 
-import  java.util.HashSet;
+import  java.util.ArrayList;
 import  java.util.List;
 import  java.util.concurrent.CopyOnWriteArrayList;
 
@@ -27,50 +27,50 @@ import  cc.mashroom.squirrel.paip.message.TransportState;
 
 public  class  PacketEventDispatcher
 {
-	private  final  static  List<PacketListener>  listeners = new  CopyOnWriteArrayList<PacketListener>( Lists.newArrayList( Storage.INSTANCE) );
+	private  final  static  List<PacketListener>  LISTENERS = new  CopyOnWriteArrayList<PacketListener>( Lists.newArrayList( Storage.INSTANCE) );
 	
-	public  static  void  sent( Packet  packet,TransportState  transportState )  throws  Exception
+	public  static  void  onSent( Packet  packet,TransportState  transportState )  throws  Exception
 	{
-		for( PacketListener  listener : listeners )
+		for(   PacketListener  listener : LISTENERS )
 		{
-			listener.sent( packet,transportState );
+			listener.onSent( packet,transportState );
 		}
 	}
 	
 	public  static  List<PacketListener>  getAllListeners()
 	{
-		return  Lists.newArrayList( new  HashSet<PacketListener>(listeners) );
+		return  new  ArrayList<PacketListener>(LISTENERS );
 	}
 	
-	public  static  void  addListener(      PacketListener  listener )
+	public  static  void  addListener(    PacketListener  listener )
 	{
 		if( listener != null )
 		{
-			listeners.add(    listener );
+			LISTENERS.add(    listener );
 		}
 	}
 	
-	public  static  void  removeListener(   PacketListener  listener )
+	public  static  void  removeListener( PacketListener  listener )
 	{
 		if( listener != null )
 		{
-			listeners.remove( listener );
+			LISTENERS.remove( listener );
 		}
 	}
 		
-	public  static  void  received( Packet packet )  throws  Exception
+	public  static  void  onReceived(      Packet  packet )
 	{
-		for( PacketListener  listener : listeners )
+		for( PacketListener  listener : LISTENERS )
 		{
-			listener.received(  packet );
+			listener.onReceived(packet );
 		}
 	}
 	
-	public  static  boolean  beforeSend(   Packet  packet )  throws  Exception
+	public  static  boolean  onBeforeSend( Packet  packet )
 	{
-		for( PacketListener  listener : listeners )
+		for( PacketListener  listener : LISTENERS )
 		{
-			if( ! listener.beforeSend(   packet ) )
+			if( ! listener.onBeforeSend( packet ) )
 			{
 				return  false;
 			}
@@ -85,7 +85,7 @@ public  class  PacketEventDispatcher
 		{
 			if( index   >= 1 )
 			{
-				listeners.add(  index , listener );
+				LISTENERS.add(  index , listener );
 			}
 			else
 			{

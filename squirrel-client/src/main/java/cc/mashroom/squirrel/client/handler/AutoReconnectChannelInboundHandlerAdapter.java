@@ -193,11 +193,11 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 	@SneakyThrows
 	public  void  send(  Packet  packet , long  timeout , TimeUnit  timeunit )
 	{
-		boolean  sendPrepared = false;
+		boolean isSendPrepared= false;
 		
 		try
 		{
-			sendPrepared         = PacketEventDispatcher.beforeSend( packet );
+			isSendPrepared    = PacketEventDispatcher.onBeforeSend( packet  );
 		}
 		catch(  Throwable  e )
 		{
@@ -205,14 +205,12 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 		}
 		finally
 		{
-			if( ! sendPrepared || this.channel == null || ! channel.isActive() || ! channel.isWritable() )
+			boolean  isChannelAvailable = channel == null || !channel.isActive() || !channel.isWritable();
+			
+			PacketEventDispatcher.onSent( packet,isSendPrepared && isChannelAvailable ? TransportState.SEND_FAILED:TransportState.SENDING );
+			
+			if( isSendPrepared       && isChannelAvailable )
 			{
-				PacketEventDispatcher.sent(packet,TransportState.SEND_FAILED);
-			}
-			else
-			{
-				PacketEventDispatcher.sent(packet,    TransportState.SENDING);
-				
 				this.channel.writeAndFlush(packet).addListener( new  DefaultGenericFutureListener( qosHandler, packet, timeout,timeunit ) );
 			}
 		}

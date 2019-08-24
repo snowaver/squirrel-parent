@@ -20,9 +20,9 @@ import  cc.mashroom.squirrel.paip.message.TransportState;
 
 public  interface  PacketListener
 {
-	public  boolean  beforeSend( Packet  packet )  throws  Exception;
+	public  boolean  onBeforeSend( Packet  packet );
 	
-	public  void  sent( Packet  packet,TransportState  tranportState )  throws  Exception;
+	public  void  onSent( Packet  packet,TransportState  tranportState );
 	
-	public  void  received( Packet  packet )  throws  Exception;
+	public  void  onReceived( Packet  packet );
 }

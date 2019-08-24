@@ -36,7 +36,7 @@ public  class  DefaultGenericFutureListener<F extends Future<?>>  implements  Ge
 	
 	private  TimeUnit  unit;
 	
-	public  void  operationComplete( Future  future )  throws  Exception
+	public  void  operationComplete(   Future  future )  throws  Exception
 	{
 		if( future.isSuccess()  )
 		{
@@ -46,7 +46,7 @@ public  class  DefaultGenericFutureListener<F extends Future<?>>  implements  Ge
 			}
 			else
 			{
-				PacketEventDispatcher.sent(packet,TransportState.SENT );
+				PacketEventDispatcher.onSent(packet,TransportState.SENT );
 			}
 		}
 	}

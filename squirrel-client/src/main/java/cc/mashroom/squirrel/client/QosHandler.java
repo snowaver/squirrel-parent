@@ -112,7 +112,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 			}
 		}
 		
-		PacketEventDispatcher.received(   packet );
+		PacketEventDispatcher.onReceived( packet );
 	}
 	
 	public  Packet  unpend(    long  pendKey,TransportState  dispatchingState )   throws  Exception
@@ -121,7 +121,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		
 		if( packet != null )
 		{
-			PacketEventDispatcher.sent(  packet, dispatchingState );
+			PacketEventDispatcher.onSent( packet,dispatchingState );
 		}
 		
 		return  packet;

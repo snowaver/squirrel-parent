@@ -22,21 +22,21 @@ import  java.util.concurrent.CopyOnWriteArrayList;
 
 public  class  ClientConnectEventDispatcher
 {
-	protected  static  List<ClientConnectListener>  listeners = new  CopyOnWriteArrayList<ClientConnectListener>();
+	protected  static  List<ClientConnectListener>  LISTENERS = new  CopyOnWriteArrayList<ClientConnectListener>();
 	
 	public  static  void  addListener(    ClientConnectListener  listener )
 	{
 		if( listener != null )
 		{
-			listeners.add(      listener );
+			LISTENERS.add(    listener );
 		}
 	}
 
 	public  static  void  connectStateChanged( ConnectState  connectState )
 	{
-		for( ClientConnectListener  listener : listeners )
+		for(   ClientConnectListener  listener : LISTENERS )
 		{
-			listener.connectStateChanged(  connectState );
+			listener.onConnectStateChanged(  connectState );
 		}
 	}
 	
@@ -44,7 +44,7 @@ public  class  ClientConnectEventDispatcher
 	{
 		if( listener != null )
 		{
-			listeners.remove(   listener );
+			LISTENERS.remove( listener );
 		}
 	}
 }

@@ -58,9 +58,10 @@ import  cc.mashroom.util.StringUtils;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
+import lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 
-public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.client.LifecycleListener
+public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirrel.client.LifecycleListener
 {
 	public  void  initialize( final  SquirrelClient  context,boolean  isConnectDataSourceOnly,final  Collection<LifecycleListener>  lifecycleListeners,      File  cacheDir,final  UserMetadata  metadata,final  String  encryptPassword )  throws  Exception
 	{
@@ -91,7 +92,7 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		ConnectionManager.INSTANCE.stop();
 	}
 	
-	public  final  static  Storage  INSTANCE  = new  Storage();
+	public  final  static  Storage  INSTANCE = new  Storage();
 	
 	@Getter( value=AccessLevel.PROTECTED )
 	@Setter
@@ -102,7 +103,8 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 	@Accessors( chain=true )
 	protected  File      cacheDir;
 
-	public  boolean  beforeSend( final Packet packet )  throws  Exception
+	@SneakyThrows
+	public  boolean  onBeforeSend(   final    Packet  packet )
 	{
 		if( packet instanceof ChatPacket )
 		{
@@ -117,7 +119,8 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		return  true;
 	}
 	
-	public  void  sent( final  Packet  packet,final  TransportState  transportState )  throws  Exception
+	@SneakyThrows
+	public  void  onSent( final  Packet  packet,final  TransportState  transportState )
 	{
 		if( packet instanceof ChatPacket )
 		{
@@ -145,7 +148,8 @@ public  class  Storage  implements  PacketListener  //  ,  cc.mashroom.squirrel.
 		}
 	}
 	
-	public  void  received(    final  Packet  packet )  throws  Exception
+	@SneakyThrows
+	public  void  onReceived(  final  Packet  packet )
 	{
 		if( packet instanceof GroupChatPacket )
 		{

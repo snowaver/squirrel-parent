@@ -17,5 +17,5 @@ package cc.mashroom.squirrel.client.connect;
 
 public  interface  ClientConnectListener
 {
-	public  void  connectStateChanged( ConnectState  connectState );
+	public  void  onConnectStateChanged( ConnectState  connectState );
 }
