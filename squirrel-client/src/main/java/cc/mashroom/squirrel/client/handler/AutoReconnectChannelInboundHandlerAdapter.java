@@ -197,7 +197,7 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 		
 		try
 		{
-			isSendPrepared    = PacketEventDispatcher.onBeforeSend( packet  );
+			isSendPrepared     =PacketEventDispatcher.onBeforeSend( packet  );
 		}
 		catch(  Throwable  e )
 		{
