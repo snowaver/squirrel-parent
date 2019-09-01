@@ -20,7 +20,7 @@ import  java.sql.Timestamp;
 import  com.fasterxml.jackson.annotation.JsonProperty;
 
 import  cc.mashroom.db.annotation.Column;
-import cc.mashroom.squirrel.paip.message.PAIPPacketType;
+import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  lombok.AllArgsConstructor;
 import  lombok.Data;
 import  lombok.NoArgsConstructor;
