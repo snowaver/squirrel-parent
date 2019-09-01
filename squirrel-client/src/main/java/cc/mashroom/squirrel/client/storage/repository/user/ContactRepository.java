@@ -65,7 +65,7 @@ public  class  ContactRepository    extends  RepositorySupport
 			{
 				NewsProfileRepository.DAO.update( "DELETE  FROM  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{contact.getId(),PAIPPacketType.SUBSCRIBE.getValue()} );
 				
-				NewsProfileRepository.DAO.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{contact.getId(),now,PAIPPacketType.CHAT.getValue(),contact.getId(),"$("+StringUtils.leftPad(Integer.toHexString(PAIPPacketType.SUBSCRIBE_ACK.getValue()),2,"0")+StringUtils.leftPad(Integer.toHexString(SubscribeAckPacket.ACK_ACCEPT),2,"0")+")",1} );
+				NewsProfileRepository.DAO.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{contact.getId(),now,PAIPPacketType.CHAT.getValue(),contact.getId(),"${"+StringUtils.leftPad(Integer.toHexString(PAIPPacketType.SUBSCRIBE_ACK.getValue()),2,"0")+StringUtils.leftPad(Integer.toHexString(SubscribeAckPacket.ACK_ACCEPT),2,"0")+"}",1} );
 			}
 			
 			return  super.upsert(       Lists.newArrayList(contact) );
@@ -123,7 +123,7 @@ public  class  ContactRepository    extends  RepositorySupport
 		contactGroups.clear();
 	}
 	
-	public  boolean  remove( long  contactId )
+	public  boolean  remove(   long  contactId )
 	{
 		super.update( "UPDATE  "+super.getDataSourceBind().table()+"  SET  IS_DELETED = 1  WHERE  ID = ?",new  Object[]{contactId} );  return  this.contactGroups.removeMapping( contactId,this.contactDirect.remove(contactId) );
 	}
