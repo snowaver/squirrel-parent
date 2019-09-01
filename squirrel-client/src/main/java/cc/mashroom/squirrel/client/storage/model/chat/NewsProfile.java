@@ -20,6 +20,7 @@ import  java.sql.Timestamp;
 import  com.fasterxml.jackson.annotation.JsonProperty;
 
 import  cc.mashroom.db.annotation.Column;
+import cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  lombok.AllArgsConstructor;
 import  lombok.Data;
 import  lombok.NoArgsConstructor;
@@ -49,4 +50,9 @@ public  class     NewsProfile
 	@JsonProperty( value="BADGE_COUNT" )
 	@Column( name="BADGE_COUNT" )
 	private  Integer  badgeCount;
+	
+	public   PAIPPacketType     getPacketType()
+	{
+		return  PAIPPacketType.valueOf( this.packetType );
+	}
 }
