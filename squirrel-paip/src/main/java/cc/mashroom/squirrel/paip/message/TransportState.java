@@ -36,6 +36,6 @@ public  enum  TransportState
 			}
 		}
 		
-		throw  new  IllegalArgumentException( String.format("SQUIRREL:  ** TRANSPORT  STATE **  transport  state  was  not  found  for  %d",value) );
+		throw  new  IllegalArgumentException( String.format("SQUIRREL-PAIP:  ** TRANSPORT  STATE **  transport  state  was  not  found  for  %d",value) );
 	}
 }

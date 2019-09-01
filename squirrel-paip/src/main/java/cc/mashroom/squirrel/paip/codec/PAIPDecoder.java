@@ -63,7 +63,7 @@ public  class  PAIPDecoder   extends  ByteToMessageDecoder
 		
 		try
 		{
-			if( packetType    != PAIPPacketType.RESERVED )
+			if( packetType.getValue()  > 0       && packetType.getValue() <= 1024 )
 			{
 				return  packetType.getPacketClass().getConstructor(packetType == PAIPPacketType.CONNECT ? new  Class[]{Channel.class,ByteBuf.class} : new  Class[]{ByteBuf.class}).newInstance( packetType == PAIPPacketType.CONNECT ? new  Object[]{channel,byteBuf} : new  Object[]{byteBuf} );
 			}

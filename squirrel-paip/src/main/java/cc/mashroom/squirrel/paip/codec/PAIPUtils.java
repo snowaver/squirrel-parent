@@ -30,34 +30,38 @@ public  class  PAIPUtils
     	
         return  Unpooled.buffer().writeShortLE(bytes.length).writeBytes( bytes );
     }
-	
+	/**
+	 *  write  length  to  a  new  byte  buffer  from  length  lowest  7  bits  to  highest  7  bits  in  turn  by  the  format  (remaining  flag  (1  bit,  1/0  indicates  yes/no)  +  length  content  (7  bits)).
+	 */
     public  static  ByteBuf  encodeRemainingLength(int  len )
     {
-        ByteBuf  byteBuf= Unpooled.buffer(4 );
+        ByteBuf  byteBuf=Unpooled.buffer( 1 );
         
-        for( Byte  remainingLengthByte = null;remainingLengthByte == null || len >= 1; )
+        for( Byte  remainingLengthByte = null;remainingLengthByte == null || len > 0; )
         {
         	remainingLengthByte = (byte)  (len % 128);
         	
         	len=len/128;
         	
-            if( len >= 1 )  remainingLengthByte = (byte)  (remainingLengthByte | 0x80 );
+            if( len> 0 )  remainingLengthByte=  (byte)  ( remainingLengthByte | 0x80 );
             
             byteBuf.writeByte(  remainingLengthByte );
         }
         
         return  byteBuf;
     }
-
+    /**
+     *  read  remaining  length  from  the  byte  buffer   by  the  format  (remaining  flag  (1  bit,  1/0  indicates  yes/no)  +  length  content  (7  bits)).
+     */
     public  static  int  decodeRemainingLength(ByteBuf  buf )
     {
         int  remainingLength = 0;
         
         for( Byte  remainingLengthByte = null;remainingLengthByte == null || (remainingLengthByte & 0x80) != 0; )
         {
-        	if( buf.readableBytes() <= 0 )  return -1;
+        	if( buf.readableBytes() <= 0 )  return  0;
         	
-        	remainingLength = ( remainingLength << 8 )+( (remainingLengthByte = buf.readByte()) & 0x7F );
+        	remainingLength = ( remainingLength >> 8 )+( (remainingLengthByte = buf.readByte()) & 0x7F );
         }
         
         return   remainingLength;

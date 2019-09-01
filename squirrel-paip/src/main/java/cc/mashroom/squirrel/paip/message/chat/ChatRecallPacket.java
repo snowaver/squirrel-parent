@@ -26,11 +26,11 @@ import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  ChatRetractPacket  extends  Packet<ChatRetractPacket>
+public  class  ChatRecallPacket  extends  Packet  <ChatRecallPacket>
 {
-	public  ChatRetractPacket( long  contactId, long  chatPacketId )
+	public  ChatRecallPacket( long  contactId , long  chatPacketId )
 	{
-		super( new  Header( PAIPPacketType.CHAT_RETRACT ) );
+		super( new  Header(  PAIPPacketType.CHAT_RECALL ) );
 		
 		super.setQos(1,contactId).setChatPacketId(   chatPacketId );
 	}
@@ -40,7 +40,7 @@ public  class  ChatRetractPacket  extends  Packet<ChatRetractPacket>
 	@Accessors(chain=true)
 	private  long  chatPacketId;
 	
-	public  ChatRetractPacket(   ByteBuf  byteBuf )
+	public  ChatRecallPacket(   ByteBuf  byteBuf )
 	{
 		super( byteBuf , 0x00 );
 		

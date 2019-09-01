@@ -29,7 +29,7 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
-import  cc.mashroom.squirrel.paip.message.chat.ChatRetractPacket;
+import  cc.mashroom.squirrel.paip.message.chat.ChatRecallPacket;
 import  cc.mashroom.util.FileUtils;
 import  cc.mashroom.util.NoopHostnameVerifier;
 import  cc.mashroom.util.NoopX509TrustManager;
@@ -48,7 +48,7 @@ public  class  ChatMessageRepository  extends  RepositorySupport
 {
 	public  final  static  ChatMessageRepository  DAO =  new  ChatMessageRepository();
 	
-	public  int  remove(   ChatRetractPacket   packet )
+	public  int  remove(   ChatRecallPacket   packet )
 	{
 		return  super.update( "DELETE  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  CONTACT_ID = ?",new  Object[]{packet.getChatPacketId(),packet.getContactId()} );
 	}

@@ -21,10 +21,12 @@ import  lombok.Getter;
 @AllArgsConstructor
 public  enum  CallContentType
 {
-	AUDIO(0x00), VIDEO(0x01);
+	AUDIO   (0x01,"${0d01}"),VIDEO( 0x02,"${0d02}" );
 	
 	@Getter
 	private  int  value;
+	@Getter
+	private  String  placeholder;
 	
 	public  static  CallContentType  valueOf( int  value )
 	{

@@ -38,7 +38,7 @@ public  class  DefaultGenericFutureListener<F extends Future<?>>  implements  Ge
 	
 	public  void  operationComplete(   Future  future )  throws  Exception
 	{
-		if( future.isSuccess()  )
+		if( future.isDone()&& future.isSuccess() )
 		{
 			if( packet.getHeader().getQos() == 1 )
 			{

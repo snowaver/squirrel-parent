@@ -28,6 +28,7 @@ import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.call.CallAckPacket;
 import  cc.mashroom.squirrel.paip.message.call.CallPacket;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
+import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectAckPacket;
 import  cc.mashroom.squirrel.paip.message.connect.DisconnectAckPacket;
 import  cc.mashroom.squirrel.paip.message.connect.QosReceiptPacket;
@@ -82,6 +83,11 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 					adapter.connect(null,null,null, null , null, adapter.getLifecycleListeners() );
 				}
 			}
+		}
+		else
+		if( packet instanceof GroupChatPacket     )
+		{
+			//  do  nothing  while  the  receipt  qos  packet  is  delivered  by  the  server  side
 		}
 		else
 		if( packet instanceof QosReceiptPacket    )

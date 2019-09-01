@@ -52,7 +52,7 @@ public  class  ContactRepository    extends  RepositorySupport
 		
 		Contact  older = this.contactDirect.put( contact.getId() , contact );
 
-		if( contact.getSubscribeStatus() == 6 || contact.getSubscribeStatus()   == 7 )
+		if( contact.getSubscribeStatus() == 7 || contact.getSubscribeStatus()   == 8 )
 		{
 			if( older!= null )
 			{
@@ -71,7 +71,7 @@ public  class  ContactRepository    extends  RepositorySupport
 			return  super.upsert(       Lists.newArrayList(contact) );
 		}
 		else
-		if( contact.getSubscribeStatus() == 0 || contact.getSubscribeStatus()   == 1 )
+		if( contact.getSubscribeStatus() == 1 || contact.getSubscribeStatus()   == 2 )
 		{
 //			if( isUpdateNewsProfile    )
 			{
@@ -100,7 +100,7 @@ public  class  ContactRepository    extends  RepositorySupport
 		
 		for(Contact  contact : ContactRepository.DAO.lookup(Contact.class,"SELECT  ID,USERNAME,CREATE_TIME,LAST_MODIFY_TIME,SUBSCRIBE_STATUS,REMARK,GROUP_NAME,IS_DELETED  FROM  "+ContactRepository.DAO.getDataSourceBind().table()) )
 		{
-			if( (contact.getSubscribeStatus() == 6 || contact.getSubscribeStatus() == 7) && !contact.getIsDeleted() )  this.contactGroups.put( contact.getGroupName(),contact );
+			if( (contact.getSubscribeStatus() == 7 || contact.getSubscribeStatus() == 8) && !contact.getIsDeleted() )  this.contactGroups.put( contact.getGroupName(),contact );
 		
 			this.contactDirect.put( contact.getId(),contact );
 		}

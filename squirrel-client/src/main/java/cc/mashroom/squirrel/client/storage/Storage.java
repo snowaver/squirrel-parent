@@ -44,12 +44,11 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
-import  cc.mashroom.squirrel.paip.message.chat.ChatRetractPacket;
+import  cc.mashroom.squirrel.paip.message.chat.ChatRecallPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatEventPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribePacket;
-import  cc.mashroom.squirrel.paip.message.subscribes.UnsubscribePacket;
 import  cc.mashroom.util.FileUtils;
 import  cc.mashroom.util.IOUtils;
 import  cc.mashroom.util.JsonUtils;
@@ -124,19 +123,14 @@ public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirre
 			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatMessageRepository.DAO.upsert( context,cacheDir,ObjectUtils.cast(packet,ChatPacket.class),transportState );}} );
 		}
 		else
-		if( packet instanceof      ChatRetractPacket )
+		if( packet instanceof      ChatRecallPacket )
 		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatMessageRepository.DAO.remove( ObjectUtils.cast(packet,ChatRetractPacket.class) );}} );
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatMessageRepository.DAO.remove( ObjectUtils.cast(packet,ChatRecallPacket.class) );}} );
 		}
 		else
 		if( packet instanceof CloseCallPacket )
 		{
 			
-		}
-		else
-		if( packet instanceof      UnsubscribePacket )
-		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ContactRepository.DAO.remove( ObjectUtils.cast(packet,UnsubscribePacket.class).getContactId() );}} );
 		}
 		else
 		if( packet instanceof GroupChatPacket )
@@ -167,14 +161,9 @@ public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirre
 			
 		}
 		else
-		if( packet instanceof      UnsubscribePacket )
+		if( packet instanceof ChatRecallPacket       )
 		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ContactRepository.DAO.remove( ObjectUtils.cast(packet,UnsubscribePacket.class).getContactId() );}} );
-		}
-		else
-		if( packet instanceof ChatRetractPacket      )
-		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatMessageRepository.DAO.remove( ObjectUtils.cast(packet,ChatRetractPacket.class) );}} );
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatMessageRepository.DAO.remove( ObjectUtils.cast(packet,ChatRecallPacket.class) );}} );
 		}
 		else
 		if( packet instanceof SubscribePacket )
