@@ -15,6 +15,9 @@
  */
 package cc.mashroom.squirrel.paip.codec;
 
+import java.io.UnsupportedEncodingException;
+
+import  cc.mashroom.util.StringUtils;
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
 import  lombok.SneakyThrows;
@@ -55,11 +58,11 @@ public  class  PAIPUtils
      */
     public  static  int  decodeRemainingLength(ByteBuf  buf )
     {
-        int  remainingLength = 0;
+        int  remainingLength= 0;
         
         int  counter= 0;
         
-        if(  buf.readableBytes( )      <=  0 )     return  0;
+        if(  buf.readableBytes()       <=  0 )     return  0;
         
         for( Byte  remainingLengthByte = null;;counter = counter+1 )
         {
@@ -71,27 +74,35 @@ public  class  PAIPUtils
         	}
         }
         
-        return   remainingLength;
+        return  remainingLength;
+    }
+    @SneakyThrows
+    public  static  ByteBuf  encode( String  string  )
+    {
+    	return  encode(      string,"UTF-8" );
     }
     
-    @SneakyThrows
-    public  static  ByteBuf  encode(  String  string )
+    public  static  ByteBuf  encode( String  string,String  encode )  throws  UnsupportedEncodingException
     {
-    	return  encodeBytes(string.getBytes("UTF-8"));
+    	return  encodeBytes( StringUtils.isBlank(encode) ? string.getBytes() : string.getBytes(encode ) );
     }
     
     public  static  byte[]  decodeBytes(   ByteBuf  byteBuf )
     {
-        if( byteBuf.readableBytes()     <= 1 )  return  null;
+        if(     byteBuf.readableBytes() <= 1 )  return  null;
         
         byte[]  bytes   = new  byte[ byteBuf.readShortLE() ];
         
         byteBuf.readBytes(bytes);return bytes;
     }
-    
     @SneakyThrows
-	public  static  String  decode( ByteBuf  byteBuf )
+    public  static  String  decode(ByteBuf  byteBuf  )
+    {
+    	return  decode(     byteBuf,"UTF-8" );
+    }
+    
+	public  static  String  decode(ByteBuf  byteBuf,String  encode )  throws  UnsupportedEncodingException
 	{
-		return  new  String( decodeBytes(byteBuf), "UTF-8" );
+		return  StringUtils.isBlank(encode) ? new  String(decodeBytes(byteBuf)) : new  String( decodeBytes(byteBuf),encode );
 	}
 }
