@@ -57,11 +57,18 @@ public  class  PAIPUtils
     {
         int  remainingLength = 0;
         
-        for( Byte  remainingLengthByte = null;remainingLengthByte == null || (remainingLengthByte & 0x80) != 0; )
+        int  counter= 0;
+        
+        if(  buf.readableBytes( )      <=  0 )     return  0;
+        
+        for( Byte  remainingLengthByte = null;;counter = counter+1 )
         {
-        	if( buf.readableBytes() <= 0 )  return  0;
+        	remainingLength = remainingLength+( ((remainingLengthByte = buf.readByte()) & 0x7F) << (7 * counter) );
         	
-        	remainingLength = ( remainingLength >> 8 )+( (remainingLengthByte = buf.readByte()) & 0x7F );
+        	if( (remainingLengthByte   & 0x80)  == 0 )
+        	{
+        		break  ;
+        	}
         }
         
         return   remainingLength;
@@ -79,9 +86,7 @@ public  class  PAIPUtils
         
         byte[]  bytes   = new  byte[ byteBuf.readShortLE() ];
         
-        byteBuf.readBytes(bytes);
-
-        return  bytes;
+        byteBuf.readBytes(bytes);return bytes;
     }
     
     @SneakyThrows

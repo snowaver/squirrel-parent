@@ -86,7 +86,7 @@ public  class  ContactRepository    extends  RepositorySupport
 	
 	public  ArrayListValuedHashMap<String,Contact>  getContactGroups()
 	{
-		return  new  ArrayListValuedHashMap<String,Contact>(contactGroups );
+		return  new  ArrayListValuedHashMap<String,Contact>( contactGroups );
 	}
 	
 	public  LinkedMap<Long,Contact>  getContactDirect()
