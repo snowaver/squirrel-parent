@@ -26,12 +26,7 @@ public  class  PAIPUtils
 {
     public  static  ByteBuf  encodeBytes(     byte[]  bytes )
     {
-    	if( bytes.length   > Short.MAX_VALUE )
-    	{
-    		throw  new  IllegalArgumentException( "SQUIRREL-PAIP:  ** PAIP  UTILS **  encode  bytes  length  should  not  greater  than  or  equals  32767." );
-    	}
-    	
-        return  Unpooled.buffer().writeShortLE(bytes.length).writeBytes( bytes );
+    	return  Unpooled.buffer().writeBytes(encodeRemainingLength(bytes.length)).writeBytes(     bytes );
     }
 	/**
 	 *  write  length  to  a  new  byte  buffer  from  length  lowest  7  bits  to  highest  7  bits  in  turn  by  the  format  (remaining  flag  (1  bit,  1/0  indicates  yes/no)  +  length  content  (7  bits)).
@@ -91,7 +86,7 @@ public  class  PAIPUtils
     {
         if(     byteBuf.readableBytes() <= 1 )  return  null;
         
-        byte[]  bytes   = new  byte[ byteBuf.readShortLE() ];
+        byte[]  bytes = new  byte[ decodeRemainingLength(byteBuf) ];
         
         byteBuf.readBytes(bytes);return bytes;
     }
