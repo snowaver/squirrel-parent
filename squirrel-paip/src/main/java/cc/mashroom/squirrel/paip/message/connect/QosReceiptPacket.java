@@ -22,7 +22,7 @@ import  cc.mashroom.util.collection.map.Map;
 
 import  com.fasterxml.jackson.core.type.TypeReference;
 
-import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
@@ -39,7 +39,7 @@ public  class  QosReceiptPacket<T extends QosReceiptPacket<?>>  extends  Packet<
 	{
 		super(buf, 0x00 );
 		
-		this.setContactId(buf.readLongLE()).setPacketId(buf.readLongLE()).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPUtils.decode(buf),new  TypeReference<Map<String,Object>>(){})) );
+		this.setContactId(buf.readLongLE()).setPacketId(buf.readLongLE()).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPCodecUtils.decode(buf),new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	public  QosReceiptPacket( long  contactId,long  packetId )
@@ -60,7 +60,7 @@ public  class  QosReceiptPacket<T extends QosReceiptPacket<?>>  extends  Packet<
 
 	public  ByteBuf  writeToVariableByteBuf(ByteBuf  byteBuf )
 	{
-		return  byteBuf.writeLongLE(contactId).writeLongLE(packetId).writeBytes( PAIPUtils.encode( JsonUtils.toJson(attatchments) ) );
+		return  byteBuf.writeLongLE(contactId).writeLongLE(packetId).writeBytes( PAIPCodecUtils.encode( JsonUtils.toJson(attatchments) ) );
 	}
 	
 	public  int      getInitialVariableByteBufferSize()

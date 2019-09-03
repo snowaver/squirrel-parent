@@ -28,7 +28,7 @@ import  java.util.concurrent.atomic.AtomicLong;
 import  org.joda.time.DateTime;
 import  org.joda.time.DateTimeZone;
 
-import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 
 @ToString
 public  abstract  class  Packet  <T extends Packet>
@@ -90,7 +90,7 @@ public  abstract  class  Packet  <T extends Packet>
 		
 	public  void  write( ByteBuf  writableByteBuf )
 	{
-		ByteBuf  variableByteBuf= writeToVariableByteBuf( Unpooled.buffer(getInitialVariableByteBufferSize()) );  ByteBuf  decodeRemainingLengthByteBuf = PAIPUtils.encodeRemainingLength( variableByteBuf.readableBytes() );
+		ByteBuf  variableByteBuf= writeToVariableByteBuf( Unpooled.buffer(getInitialVariableByteBufferSize()) );  ByteBuf  decodeRemainingLengthByteBuf = PAIPCodecUtils.encodeRemainingLength( variableByteBuf.readableBytes() );
 		
 		try
 		{

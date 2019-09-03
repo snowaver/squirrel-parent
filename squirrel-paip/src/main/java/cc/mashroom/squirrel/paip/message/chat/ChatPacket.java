@@ -22,7 +22,7 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
-import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
@@ -34,7 +34,7 @@ public  class  ChatPacket  extends  Packet<ChatPacket>  //  implements  Receipta
 	{
 		super( byteBuf,0x00 );
 		
-		super.setContactId(byteBuf.readLongLE()).setContentType(ChatContentType.valueOf(byteBuf.readByte())).setMd5(PAIPUtils.decode(byteBuf)).setContent( PAIPUtils.decodeBytes(byteBuf) );
+		super.setContactId(byteBuf.readLongLE()).setContentType(ChatContentType.valueOf(byteBuf.readByte())).setMd5(PAIPCodecUtils.decode(byteBuf)).setContent( PAIPCodecUtils.decodeBytes(byteBuf) );
 	}
 	
 	public  ChatPacket( long  contactId,String  md5,ChatContentType  contentType,byte[]  content )
@@ -59,7 +59,7 @@ public  class  ChatPacket  extends  Packet<ChatPacket>  //  implements  Receipta
 	
 	public  ByteBuf writeToVariableByteBuf( ByteBuf  variableByteBuf )
 	{
-		ByteBuf  contentByteBuf = PAIPUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPUtils.encode( md5 == null ? "" : md5 );  variableByteBuf.writeLongLE(contactId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableByteBuf;
+		ByteBuf  contentByteBuf = PAIPCodecUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPCodecUtils.encode( md5 == null ? "" : md5 );  variableByteBuf.writeLongLE(contactId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableByteBuf;
 	}
 	
 	public  int     getInitialVariableByteBufferSize()

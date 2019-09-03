@@ -21,7 +21,7 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
-import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
@@ -39,7 +39,7 @@ public  class  CandidatePacket      extends  AbstractCallPacket<CandidatePacket>
 	{
 		super(  buf, 0x00 );
 		
-		this.setContactId(buf.readLongLE()).setCandidate( new  Candidate(PAIPUtils.decode(buf),buf.readIntLE(),PAIPUtils.decode(buf)) );
+		this.setContactId(buf.readLongLE()).setCandidate( new  Candidate(PAIPCodecUtils.decode(buf),buf.readIntLE(),PAIPCodecUtils.decode(buf)) );
 	}
 	
 	@Setter(  value=AccessLevel.PROTECTED )
@@ -54,7 +54,7 @@ public  class  CandidatePacket      extends  AbstractCallPacket<CandidatePacket>
 	
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
 	{
-		ByteBuf  candidateByteBuf = PAIPUtils.encode(candidate.getCandidate() );  ByteBuf  idBuf= PAIPUtils.encode( candidate.getId() );  super.writeToVariableByteBuf(byteBuf).writeLongLE(contactId).writeBytes(idBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf);  idBuf.release();  candidateByteBuf.release();  return  byteBuf;
+		ByteBuf  candidateByteBuf = PAIPCodecUtils.encode(candidate.getCandidate() );  ByteBuf  idBuf= PAIPCodecUtils.encode( candidate.getId() );  super.writeToVariableByteBuf(byteBuf).writeLongLE(contactId).writeBytes(idBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf);  idBuf.release();  candidateByteBuf.release();  return  byteBuf;
 	}
 	/*
 	public  void  writeTo(      ByteBuf  buf )

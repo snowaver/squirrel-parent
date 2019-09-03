@@ -15,7 +15,7 @@
  */
 package cc.mashroom.squirrel.paip.message;
 
-import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
 import  io.netty.handler.codec.CorruptedFrameException;
@@ -69,6 +69,6 @@ public  class  Header
         
         byte  headerByte   = byteBuf.readByte();
         
-        this.setQos((headerByte & 0x03)).setPacketType(PAIPPacketType.valueOf(byteBuf.skipBytes(1).readShortLE())).setId(byteBuf.readLongLE()).setRemainingLength( PAIPUtils.decodeRemainingLength(byteBuf) );
+        this.setQos((headerByte & 0x03)).setPacketType(PAIPPacketType.valueOf(byteBuf.skipBytes(1).readShortLE())).setId(byteBuf.readLongLE()).setRemainingLength( PAIPCodecUtils.decodeRemainingLength(byteBuf) );
 	}
 }

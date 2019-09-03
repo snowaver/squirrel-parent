@@ -22,7 +22,7 @@ import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
 import  lombok.SneakyThrows;
 
-public  class  PAIPUtils
+public  class  PAIPCodecUtils
 {
     public  static  ByteBuf  encodeBytes(     byte[]  bytes )
     {

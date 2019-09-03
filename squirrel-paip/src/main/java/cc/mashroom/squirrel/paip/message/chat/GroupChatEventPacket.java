@@ -28,7 +28,7 @@ import  cc.mashroom.util.collection.map.Map;
 
 import  com.fasterxml.jackson.core.type.TypeReference;
 
-import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
@@ -51,7 +51,7 @@ public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
 	{
 		super( byteBuf,0x00 );
 		
-		this.setGroupId(byteBuf.readLongLE()).setEvent(byteBuf.readByte()).setAttatchmentsOriginal(PAIPUtils.decode(byteBuf)).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(this.attatchmentsOriginal,new  TypeReference<Map<String,Object>>(){})) );
+		this.setGroupId(byteBuf.readLongLE()).setEvent(byteBuf.readByte()).setAttatchmentsOriginal(PAIPCodecUtils.decode(byteBuf)).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(this.attatchmentsOriginal,new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	public  GroupChatEventPacket( long  groupId,int  event,Map<String,?>  attatchments )
@@ -90,6 +90,6 @@ public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
 	*/
 	public  ByteBuf  writeToVariableByteBuf(    ByteBuf  variableByteBuf )
 	{
-		return  variableByteBuf.writeLongLE(groupId).writeByte(event).writeBytes( PAIPUtils.encode(JsonUtils.toJson(attatchments)) );
+		return  variableByteBuf.writeLongLE(groupId).writeByte(event).writeBytes( PAIPCodecUtils.encode(JsonUtils.toJson(attatchments)) );
 	}
 }

@@ -24,7 +24,7 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
-import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
@@ -46,7 +46,7 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 	{
 		super( byteBuf, 0x00 );
 		
-		this.protocolName= PAIPUtils.decode( byteBuf );
+		this.protocolName= PAIPCodecUtils.decode( byteBuf );
 		
 		if( !"PAIP".equals( protocolName ) )
 		{
@@ -57,7 +57,7 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 		
         this.keepalive   = byteBuf.readUnsignedShort();
 
-        this.setAccessKey( PAIPUtils.decode(byteBuf) ).setSecretKey( PAIPUtils.decodeBytes(byteBuf) );
+        this.setAccessKey( PAIPCodecUtils.decode(byteBuf) ).setSecretKey( PAIPCodecUtils.decodeBytes(byteBuf) );
 	}
 	
 	public  ConnectPacket( String  accessKey,byte[]  secretKey,int  keepalive )
@@ -90,7 +90,7 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 
 	public  ByteBuf  writeToVariableByteBuf(ByteBuf  byteBuf )
 	{
-		ByteBuf  protocolByteBuf = PAIPUtils.encode( "PAIP" );  ByteBuf  accessKeyByteBuf = PAIPUtils.encode( accessKey );  ByteBuf  secretKeyByteBuf = PAIPUtils.encodeBytes( secretKey );  byteBuf.writeBytes(protocolByteBuf).writeByte(CURRENT_PROTOCOL_VERSION).writeShortLE(keepalive).writeBytes(accessKeyByteBuf).writeBytes(secretKeyByteBuf);  protocolByteBuf.release();  accessKeyByteBuf.release();  secretKeyByteBuf.release();  return  byteBuf;
+		ByteBuf  protocolByteBuf = PAIPCodecUtils.encode( "PAIP" );  ByteBuf  accessKeyByteBuf = PAIPCodecUtils.encode( accessKey );  ByteBuf  secretKeyByteBuf = PAIPCodecUtils.encodeBytes( secretKey );  byteBuf.writeBytes(protocolByteBuf).writeByte(CURRENT_PROTOCOL_VERSION).writeShortLE(keepalive).writeBytes(accessKeyByteBuf).writeBytes(secretKeyByteBuf);  protocolByteBuf.release();  accessKeyByteBuf.release();  secretKeyByteBuf.release();  return  byteBuf;
 	}
 	
 	public  int      getInitialVariableByteBufferSize()

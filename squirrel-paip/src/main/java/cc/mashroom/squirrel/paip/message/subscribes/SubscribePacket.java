@@ -24,7 +24,7 @@ import  lombok.experimental.Accessors;
 
 import  com.fasterxml.jackson.core.type.TypeReference;
 
-import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.collection.map.HashMap;
@@ -46,7 +46,7 @@ public  class  SubscribePacket  extends  Packet<SubscribePacket>
 	{
 		super( buf ,  0x00 );
 		
-		super.setContactId(buf.readLongLE()).setSubscriberProfileOriginal(PAIPUtils.decode(buf)).setSubscriberProfile( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(this.subscriberProfileOriginal,new  TypeReference<Map<String,Object>>(){})) );
+		super.setContactId(buf.readLongLE()).setSubscriberProfileOriginal(PAIPCodecUtils.decode(buf)).setSubscriberProfile( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(this.subscriberProfileOriginal,new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -60,7 +60,7 @@ public  class  SubscribePacket  extends  Packet<SubscribePacket>
 	
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
 	{
-		ByteBuf  subscriberProfileByteBuf = PAIPUtils.encode( JsonUtils.toJson(subscriberProfile == null ? new  HashMap<String,Object>() : subscriberProfile) );  byteBuf.writeLongLE(contactId).writeBytes(subscriberProfileByteBuf);  subscriberProfileByteBuf.release();  return  byteBuf;
+		ByteBuf  subscriberProfileByteBuf = PAIPCodecUtils.encode( JsonUtils.toJson(subscriberProfile == null ? new  HashMap<String,Object>() : subscriberProfile) );  byteBuf.writeLongLE(contactId).writeBytes(subscriberProfileByteBuf);  subscriberProfileByteBuf.release();  return  byteBuf;
 	}
 	
 	public  int      getInitialVariableByteBufferSize()

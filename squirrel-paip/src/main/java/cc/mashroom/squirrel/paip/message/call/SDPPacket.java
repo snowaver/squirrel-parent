@@ -22,7 +22,7 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
-import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
@@ -40,7 +40,7 @@ public  class  SDPPacket  extends  AbstractCallPacket<SDPPacket>
 	{
 		super( byteBuf,0x00 );
 		
-		setContactId(byteBuf.readLongLE()).setSdp( new  SDP(PAIPUtils.decode(byteBuf),PAIPUtils.decode(byteBuf)) );
+		setContactId(byteBuf.readLongLE()).setSdp( new  SDP(PAIPCodecUtils.decode(byteBuf),PAIPCodecUtils.decode(byteBuf)) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )

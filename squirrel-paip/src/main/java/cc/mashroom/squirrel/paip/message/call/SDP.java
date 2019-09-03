@@ -1,6 +1,6 @@
 package cc.mashroom.squirrel.paip.message.call;
 
-import  cc.mashroom.squirrel.paip.codec.PAIPUtils;
+import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
@@ -25,6 +25,6 @@ public   class  SDP
 
 	public   ByteBuf  toByteBuf()
 	{
-		return  Unpooled.buffer().writeBytes(PAIPUtils.encode(type)).writeBytes( PAIPUtils.encode(description) );
+		return  Unpooled.buffer().writeBytes(PAIPCodecUtils.encode(type)).writeBytes( PAIPCodecUtils.encode(description) );
 	}
 }
