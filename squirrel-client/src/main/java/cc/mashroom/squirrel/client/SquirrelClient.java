@@ -92,7 +92,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	@Getter
 	@Setter
 	@Accessors(chain=true)
-	private  Call  call;
+	private  Call    call;
 	@Getter( value=AccessLevel.PROTECTED )
 	@Setter
 	@Accessors(chain=true)
@@ -127,7 +127,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	{
 		this.lifecycleListeners.remove( listener );
 		
-		return  this;
+		return   this;
 	}
 	
 	protected  SquirrelClient  setConnectState(   ConnectState  connectState )
@@ -262,7 +262,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			
 			if( connectivityGuarantorThreadPool.getTaskCount() == 0 && (connectParameters.containsKey("isConnectingById") && this.connectParameters.getBoolean("isConnectingById") || super.isAuthenticated()) )
 			{
-				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( connectivityGuarantor, 8, 8,TimeUnit.SECONDS );
+				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( connectivityGuarantor,10,10,TimeUnit.SECONDS );
 			}
 		}
 		
