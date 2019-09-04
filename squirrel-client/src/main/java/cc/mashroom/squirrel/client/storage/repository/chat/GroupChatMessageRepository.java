@@ -18,7 +18,6 @@ package cc.mashroom.squirrel.client.storage.repository.chat;
 import  java.io.File;
 import  java.io.IOException;
 import  java.sql.Timestamp;
-import  java.util.concurrent.TimeUnit;
 
 import  cc.mashroom.db.GenericRepository;
 import  cc.mashroom.db.annotation.DataSourceBind;
@@ -28,13 +27,10 @@ import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.util.FileUtils;
-import  cc.mashroom.util.NoopHostnameVerifier;
-import  cc.mashroom.util.NoopX509TrustManager;
 import  cc.mashroom.util.Reference;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 import  okhttp3.HttpUrl;
-import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 
 @DataSourceBind(name="*",table="group_chat_message",primaryKeys="ID")
@@ -49,7 +45,7 @@ public  class  GroupChatMessageRepository  extends  GenericRepository
 		{
 			if( packet.getContentType()    == ChatContentType.AUDIO )
 			{
-				FileUtils.createFileIfAbsent(new  File(cacheDir,"file/"+packet.getMd5()),new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SquirrelClient.SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(8,TimeUnit.SECONDS).build().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).get().url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("file/"+packet.getMd5()).build()).build()).execute().body().bytes() );
+				FileUtils.createFileIfAbsent(new  File(cacheDir,"file/"+packet.getMd5()),context.getOkhttpResolver().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).get().url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("file/"+packet.getMd5()).build()).build()).execute().body().bytes() );
 			}
 
 			NewsProfileRepository.DAO.insert(new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,IFNULL((SELECT  BADGE_COUNT  FROM  news_profile  WHERE  ID = ?  AND  PACKET_TYPE = ?),0)+1)",new  Object[]{packet.getGroupId(),new  Timestamp(packet.getId()),PAIPPacketType.GROUP_CHAT.getValue(),packet.getContactId(),packet.getContentType().getPlaceholder() == null ? new  String(packet.getContent()) : packet.getContentType().getPlaceholder(),packet.getGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );

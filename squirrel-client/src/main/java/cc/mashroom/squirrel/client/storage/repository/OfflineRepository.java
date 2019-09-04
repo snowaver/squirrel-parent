@@ -17,7 +17,6 @@ package cc.mashroom.squirrel.client.storage.repository;
 
 import  java.io.IOException;
 import  java.sql.Timestamp;
-import  java.util.concurrent.TimeUnit;
 
 import  cc.mashroom.db.GenericRepository;
 import  cc.mashroom.db.annotation.DataSourceBind;
@@ -29,13 +28,10 @@ import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupUserR
 import  cc.mashroom.squirrel.client.storage.repository.user.ContactRepository;
 import  cc.mashroom.util.DateUtils;
 import  cc.mashroom.util.JsonUtils;
-import  cc.mashroom.util.NoopHostnameVerifier;
-import  cc.mashroom.util.NoopX509TrustManager;
 import  cc.mashroom.util.collection.map.HashMap;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 import  okhttp3.HttpUrl;
-import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 import  okhttp3.Response;
 
@@ -53,7 +49,7 @@ public  class  OfflineRepository  extends  GenericRepository
 		
 		Timestamp  contactLatestModifyTime = ContactRepository.DAO.lookupOne( Timestamp.class,"SELECT  MAX(LAST_MODIFY_TIME)  AS  LAST_MODIFY_TIME  FROM  "+ContactRepository.DAO.getDataSourceBind().table(),new  Object[]{} );
 		
-		try( Response  response = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SquirrelClient.SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(8,TimeUnit.SECONDS).build().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("offline/lookup").addQueryParameter("action",String.valueOf(0)).addQueryParameter("keyword",String.valueOf(context.getUserMetadata().getId())).addQueryParameter("extras",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CONTACTS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(contactLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))).addEntry("CHAT_GROUPS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(chatGroupLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))).addEntry("CHAT_GROUP_USERS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(chatGroupUserLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))))).build()).build()).execute() )
+		try( Response  response = context.getOkhttpResolver().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("offline/lookup").addQueryParameter("action",String.valueOf(0)).addQueryParameter("keyword",String.valueOf(context.getUserMetadata().getId())).addQueryParameter("extras",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CONTACTS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(contactLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))).addEntry("CHAT_GROUPS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(chatGroupLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))).addEntry("CHAT_GROUP_USERS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(chatGroupUserLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))))).build()).build()).execute() )
 		{
 			if( response.code() == 200 )
 			{

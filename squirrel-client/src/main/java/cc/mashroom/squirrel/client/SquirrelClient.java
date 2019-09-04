@@ -16,6 +16,7 @@
 package cc.mashroom.squirrel.client;
 
 import  java.io.File;
+import  java.io.IOException;
 import  java.net.SocketTimeoutException;
 import  java.util.Collection;
 import  java.util.LinkedHashSet;
@@ -36,6 +37,7 @@ import  lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 import  okhttp3.FormBody;
 import  okhttp3.HttpUrl;
+import  okhttp3.Interceptor;
 import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 import  okhttp3.Response;
@@ -64,7 +66,7 @@ import  cc.mashroom.util.StringUtils;
 
 @Sharable
 
-public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapter  implements  AutoCloseable
+public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapter    implements  Interceptor
 {
 	public  SquirrelClient( Object  context,File  cacheDir )
 	{
@@ -81,7 +83,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	@Accessors(chain=true)
 	private  File   cacheDir;
 	/*
-	private  List<BalancingProxy>  balancingProxies = new  LinkedList<BalancingProxy>();
+	private  List<BalancingProxy>  balancingProxies= new  LinkedList<BalancingProxy>();
 	*/
 	private  ThreadPoolExecutor  synchronousRunner = new  ThreadPoolExecutor( 1,1,2,TimeUnit.MINUTES,new  LinkedBlockingQueue<Runnable>(),new  DefaultThreadFactory("SYNCHRONOUS-HANDLER-THREAD",false,1) );
 	@Setter( value=AccessLevel.PROTECTED )
@@ -99,9 +101,11 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	//  0. normal,  do  nothing.  1. connecting  by  id,  but  network  error. 2. (deprecated:  deliver  to  qos  handler,  it  makes  connecting  immediately )  secret  key  expired,  a  new  secret  key  should  be  requested.
 	private  int  connectivityError= 0x00;
 	
-	Runnable  connectivityGuarantor = new  Runnable(){ public  void run(){ check(); } };
+	private  Runnable       connectivityGuarantor   = new  Runnable()  { public  void run()  { check(); } };
+	@Getter
+	private  OkHttpClient   okhttpResolver = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).addInterceptor(this).connectTimeout(5,TimeUnit.SECONDS).writeTimeout(5,TimeUnit.SECONDS).readTimeout(10,TimeUnit.SECONDS).build();
 	
-	private  void  check()
+	private  synchronized   void   check()
 	{
 		if( this.connectivityError == 0x01 || this.connectivityError == 0x02 )
 		{
@@ -119,7 +123,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		lifecycleListeners.add(listener );     return  this;
 	}
 	
-	public  SquirrelClient  removeLifecycleListener(       LifecycleListener  listener )
+	public  SquirrelClient  removeLifecycleListener(      LifecycleListener  listener )
 	{
 		this.lifecycleListeners.remove( listener );
 		
@@ -147,11 +151,11 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			(
 				new  Runnable(){public  void  run()
 				{
-					try( Response  response = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(8,TimeUnit.SECONDS).build().newCall(new  Request.Builder().addHeader("SECRET_KEY",userMetadata.getSecretKey()).url(new  HttpUrl.Builder().scheme("https").host(getHost()).port(getHttpPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
+					try( Response  response = okhttpResolver.newCall(new  Request.Builder().addHeader("SECRET_KEY",userMetadata.getSecretKey()).url(new  HttpUrl.Builder().scheme("https").host(getHost()).port(getHttpPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
 					{
 						if( response.code()!= 200 )
 						{
-							CallEventDispatcher.onError(null/* CALL  ABSENT */,CallError.CREATE_ROOM,null );
+							CallEventDispatcher.onError(null/* CALL  ERROR */, CallError.CREATE_ROOM,null );
 						}
 						else
 						{
@@ -161,7 +165,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 					catch(  Exception  e )
 					{
 						{
-							CallEventDispatcher.onError(null/* CALL  ABSENT */,CallError.CREATE_ROOM,   e );
+							CallEventDispatcher.onError(null/* CALL  ERROR */, CallError.CREATE_ROOM,   e );
 						}
 					}
 				}}
@@ -228,9 +232,9 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		//  reset  the  connnectivity  error  to  normal  state, which  should  be  changed  by  the  special  situation.
 		this.setConnectivityError( 0x00 );
 		
-		try( Response  response = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(2,TimeUnit.SECONDS).build().newCall(new  Request.Builder().url("https://"+host+":"+httpPort+"/user/signin").post(HttpUtils.form(connectParameters = connectParameters != null ? connectParameters.addEntry("isAutoReconnect",true) : new  HashMap<String,Object>().addEntry("username",username).addEntry("password",new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
+		try(   Response  response = okhttpResolver.newCall(new  Request.Builder().url("https://"+host+":"+httpPort+"/user/signin").post(HttpUtils.form(connectParameters = connectParameters != null ? connectParameters.addEntry("isAutoReconnect",true) : new  HashMap<String,Object>().addEntry("username",username).addEntry("password",new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
 		{
-			if( response.code()   == 200 )
+			if(   response.code() == 200 )
 			{
 				this.userMetadata =JsonUtils.mapper.readValue(response.body().string(),UserMetadata.class );
 				//  connecting  to  the  user' s  database  and  merge  offline  datas  from  remote  server  to  native  storage.
@@ -239,7 +243,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 				this.connect( String.valueOf(this.userMetadata.getId()), this.userMetadata.getSecretKey() );
 			}
 			
-			LifecycleEventDispatcher.onAuthenticateComplete(    this.lifecycleListeners , response.code() );
+			LifecycleEventDispatcher.onAuthenticateComplete(    this.lifecycleListeners,  response.code() );
 		}
 		catch( Throwable  e )
 		{
@@ -299,5 +303,10 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	public  void  asynchronousConnect( final  String  username,final  String  password,final  Double  longitude,final  Double  latitude,final  String  mac,final  @NonNull  Collection<LifecycleListener>  lifecycleListeners )
 	{
 		this.synchronousRunner.execute(new  Runnable(){public  void  run(){ connect(username,password,longitude,latitude,mac,lifecycleListeners); }} );
+	}
+
+	public  Response  intercept(     Chain  chain )        throws  IOException
+	{
+		return  chain.proceed( chain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata== null || this.userMetadata.getSecretKey() == null      ? "" : this.userMetadata.getSecretKey()).build() );
 	}
 }

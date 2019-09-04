@@ -61,7 +61,7 @@ public  class  ChatMessageRepository  extends  RepositorySupport
 			{
 				if( ChatContentType.valueOf(message.getContentType())  == ChatContentType.AUDIO )
 				{
-					FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+message.getMd5()),new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SquirrelClient.SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(8,TimeUnit.SECONDS).build().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).get().url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("file/"+message.getMd5()).build()).build()).execute().body().bytes() );
+					FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+message.getMd5()),context.getOkhttpResolver().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).get().url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("file/"+message.getMd5()).build()).build()).execute().body().bytes() );
 				}
 				
 				message.setTransportState(TransportState.RECEIVED.getValue()).setIsLocal(false );
