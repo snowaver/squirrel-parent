@@ -23,9 +23,11 @@ import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.repository.chat.ChatMessageRepository;
+import  cc.mashroom.squirrel.client.storage.repository.chat.GroupChatMessageRepository;
 import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupRepository;
 import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupUserRepository;
 import  cc.mashroom.squirrel.client.storage.repository.user.ContactRepository;
+import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.util.DateUtils;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.collection.map.HashMap;
@@ -35,8 +37,8 @@ import  okhttp3.HttpUrl;
 import  okhttp3.Request;
 import  okhttp3.Response;
 
-@DataSourceBind(     name="squirrel",table="*" )
-@NoArgsConstructor( access=AccessLevel.PRIVATE )
+@DataSourceBind(   name="squirrel", table="*" )
+@NoArgsConstructor(access=AccessLevel.PRIVATE )
 public  class  OfflineRepository  extends  GenericRepository
 {
 	public  final  static  OfflineRepository  DAO  = new  OfflineRepository();
@@ -49,15 +51,21 @@ public  class  OfflineRepository  extends  GenericRepository
 		
 		Timestamp  contactLatestModifyTime = ContactRepository.DAO.lookupOne( Timestamp.class,"SELECT  MAX(LAST_MODIFY_TIME)  AS  LAST_MODIFY_TIME  FROM  "+ContactRepository.DAO.getDataSourceBind().table(),new  Object[]{} );
 		
-		try( Response  response = context.getOkhttpResolver().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("offline/lookup").addQueryParameter("action",String.valueOf(0)).addQueryParameter("keyword",String.valueOf(context.getUserMetadata().getId())).addQueryParameter("extras",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CONTACTS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(contactLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))).addEntry("CHAT_GROUPS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(chatGroupLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))).addEntry("CHAT_GROUP_USERS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(chatGroupUserLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))))).build()).build()).execute() )
+		Long  latestReceivedChatMessageId = ChatMessageRepository.DAO.lookupOne( Long.class,"SELECT  MAX(ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table()+"  WHERE  TRANSPORT_STATE = ?",new  Object[]{TransportState.RECEIVED.getValue()} );
+		
+		Long  latestReceivedGroupChatMessageId = GroupChatMessageRepository.DAO.lookupOne( Long.class,"SELECT  MAX(ID)  FROM  "+GroupChatMessageRepository.DAO.getDataSourceBind().table()+"  WHERE  TRANSPORT_STATE = ?",new  Object[]{TransportState.RECEIVED.getValue()} );
+		
+		try( Response  response = context.getOkhttpResolver().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("offline/lookup").addQueryParameter("action",String.valueOf(0)).addQueryParameter("keyword",String.valueOf(context.getUserMetadata().getId())).addQueryParameter("extras",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("OFFLINE_CHAT_MESSAGES",latestReceivedChatMessageId).addEntry("OFFLINE_GROUP_CHAT_MESSAGES",latestReceivedGroupChatMessageId).addEntry("CONTACTS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(contactLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))).addEntry("CHAT_GROUPS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(chatGroupLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))).addEntry("CHAT_GROUP_USERS",new  HashMap<String,Object>().addEntry("LAST_MODIFY_TIME",DateUtils.toString(chatGroupUserLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))))).build()).build()).execute() )
 		{
-			if( response.code() == 200 )
+			if(        response.code() == 200 )
 			{
 				OoIData  ooiData = JsonUtils.mapper.readValue( response.body().string(),OoIData.class );
 				
 				ContactRepository.DAO.recache().attach(ooiData.getContacts());  ChatGroupRepository.DAO.attach( context,ooiData );
 				
-				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineChatMessages() );  return  ooiData;
+				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineChatMessages() );
+				
+				return  ooiData;
 			}
 			else
 			{
