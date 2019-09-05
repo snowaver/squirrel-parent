@@ -18,10 +18,12 @@ package cc.mashroom.squirrel.client.storage.repository.chat;
 import  java.io.File;
 import  java.io.IOException;
 import  java.sql.Timestamp;
+import  java.util.List;
 
-import  cc.mashroom.db.GenericRepository;
 import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.squirrel.client.SquirrelClient;
+import  cc.mashroom.squirrel.client.storage.RepositorySupport;
+import  cc.mashroom.squirrel.client.storage.model.chat.GroupChatMessage;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
@@ -35,13 +37,37 @@ import  okhttp3.Request;
 
 @DataSourceBind(name="*",table="group_chat_message",primaryKeys="ID")
 @NoArgsConstructor( access=AccessLevel.PRIVATE )
-public  class  GroupChatMessageRepository  extends  GenericRepository
+public  class  GroupChatMessageRepository  extends  RepositorySupport
 {
 	public  final  static  GroupChatMessageRepository  DAO = new  GroupChatMessageRepository();
 	
+	public  boolean  attach( SquirrelClient  context,File  cacheDir,List<GroupChatMessage>  messages )  throws  IOException,IllegalArgumentException,IllegalAccessException
+	{
+		if( !messages.isEmpty() )
+		{
+			for( GroupChatMessage  message : messages )
+			{
+				if( ChatContentType.valueOf(message.getContentType()) ==ChatContentType.AUDIO )
+				{
+					FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+message.getMd5()),context.getOkhttpResolver().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).get().url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("file/"+message.getMd5()).build()).build()).execute().body().bytes() );
+				}
+				
+				message.setTransportState( TransportState.RECEIVED.getValue()   ).setIsLocal( false );
+			}
+			
+			upsert(   messages );
+			
+			GroupChatMessage  gm = messages.get( messages.size()-1 );
+			
+			NewsProfileRepository.DAO.insert(new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,IFNULL((SELECT  BADGE_COUNT  FROM  news_profile  WHERE  ID = ?  AND  PACKET_TYPE = ?),0)+1)",new  Object[]{gm.getGroupId(),new  Timestamp(gm.getId()),PAIPPacketType.GROUP_CHAT.getValue(),gm.getContactId(),ChatContentType.valueOf(gm.getContentType()).getPlaceholder() == null ? new  String(gm.getContent()) : ChatContentType.valueOf(gm.getContentType()).getPlaceholder(),gm.getGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );
+		}
+		
+		return  true;
+	}
+	
 	public  int  upsert( SquirrelClient  context,File  cacheDir,GroupChatPacket  packet,TransportState  transportState )  throws  IOException
 	{
-		if( transportState  == TransportState.RECEIVED )
+		if( transportState == TransportState.RECEIVED )
 		{
 			if( packet.getContentType()    == ChatContentType.AUDIO )
 			{

@@ -65,7 +65,7 @@ public  class  OfflineRepository  extends  GenericRepository
 				
 				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineChatMessages() );
 				
-				return  ooiData;
+				GroupChatMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineGroupChatMessages() );    return  ooiData;
 			}
 			else
 			{
