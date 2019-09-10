@@ -46,6 +46,7 @@ import  cc.mashroom.squirrel.client.connect.UserMetadata;
 import  cc.mashroom.squirrel.client.connect.call.Call;
 import  cc.mashroom.squirrel.client.connect.call.CallError;
 import  cc.mashroom.squirrel.client.connect.call.CallEventDispatcher;
+import  cc.mashroom.squirrel.client.connect.call.CallState;
 import  cc.mashroom.squirrel.client.connect.util.HttpUtils;
 import  cc.mashroom.squirrel.client.handler.AutoReconnectChannelInboundHandlerAdapter;
 import  cc.mashroom.squirrel.client.storage.Storage;
@@ -90,11 +91,9 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	@Accessors(chain=true)
 	private  Map<String,Object>  connectParameters;
 	@Getter
-	@Setter
 	@Accessors(chain=true)
 	private  Call    call;
 	@Getter( value=AccessLevel.PROTECTED )
-	@Setter
 	@Accessors(chain=true)
 	private  LinkedHashSet<LifecycleListener>  lifecycleListeners = new  LinkedHashSet<LifecycleListener>();
 	@Setter( value=AccessLevel.PROTECTED )
@@ -140,20 +139,30 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	{
 		return  this.userMetadata  == null ? null : this.userMetadata.clone();
 	}
+	
+	public  void removeCall()
+	{
+		if( call.getState() !=   CallState.CLOSED )
+		{
+			throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  can't  close  call  in  %s  state", call.getState().name()) );
+		}
+		
+		this.call     = null;
+	}
 	/**
 	 *  return  null  if  a  call  exists  or  a  new  call.
 	 */
-	public  synchronized  void  newCall(final  long  roomId,final  long  contactId,@NonNull  final  CallContentType  contentType )
+	public  synchronized  void  addCall(final  long  roomId,final  long  contactId,@NonNull  final  CallContentType  contentType )
 	{
-		if( roomId <= 0 )
+		if( roomId     <= 0 )
 		{
 			this.synchronousRunner.execute
 			(
 				new  Runnable(){public  void  run()
 				{
-					try( Response  response = okhttpResolver.newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme("https").host(getHost()).port(getHttpPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
+					try(Response  response = okhttpResolver.newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme("https").host(getHost()).port(getHttpPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
 					{
-						if( response.code()!= 200 )
+						if(response.code() != 200 )
 						{
 							CallEventDispatcher.onError(null/* CALL  ERROR */, CallError.CREATE_ROOM,null );
 						}
@@ -268,10 +277,15 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		
 		return   this;
 	}
+	@Override
+	public  void  onConnectStateChanged(   ConnectState  changedConnectState )
+	{
+		LifecycleEventDispatcher.onConnectStateChanged(    this.lifecycleListeners  , changedConnectState );
+	}
 	/**
 	 *  clear  all  states,  include  user  metadata,  connect  parameters,  call,  lifecycle  listener  and  super  class  states  ( id,  authenticate  state  and  connect  state ).
 	 */
-	public  void  clear()
+	protected   void  clear()
 	{
 		super.clear();
 		

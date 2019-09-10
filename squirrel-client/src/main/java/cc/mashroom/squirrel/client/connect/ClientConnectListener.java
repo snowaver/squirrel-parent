@@ -15,6 +15,7 @@
  */
 package cc.mashroom.squirrel.client.connect;
 
+@Deprecated
 public  interface  ClientConnectListener
 {
 	public  void  onConnectStateChanged( ConnectState  connectState );

@@ -60,7 +60,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		this.setContext(context).setId(id).setContactId(contactId).setContentType(  callContentType );
 	}
 	
-	public  Call  initialize(    Object  platform,PeerConnectionParameters  parameters )
+	private  Call  initialize(   Object  platform,PeerConnectionParameters  parameters )
 	{
 		PeerConnectionFactory.initializeAndroidGlobals( platform,true,( contentType == CallContentType.VIDEO) );
 		
@@ -97,7 +97,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
         
         this.localMs.addTrack(peerConnectionFactory.createAudioTrack("ARDAMSa0",peerConnectionFactory.createAudioSource(new  MediaConstraints())) );
         
-        this.setConnection(peerConnectionFactory.createPeerConnection(parameters.ices,connectionMediaConstraints,this)).getConnection().addStream( localMs,new  MediaConstraints() );
+        (this.connection = this.peerConnectionFactory.createPeerConnection(parameters.ices,this.connectionMediaConstraints,this)).addStream( this.localMs, new  MediaConstraints() );
 	
         return  this;
 	}
@@ -106,7 +106,6 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	@Getter
 	@Accessors(chain=true)
 	private  SquirrelClient   context;
-	@Setter( value=AccessLevel.PUBLIC    )
 	@Getter
 	@Accessors(chain=true)
 	private  long    callPacketId;
@@ -141,7 +140,6 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	@Accessors(chain=true)
     private  PeerConnectionParameters  peerConnectionParameters;
 	@Setter( value=AccessLevel.PROTECTED )
-	@Getter
 	@Accessors(chain=true)
     private  PeerConnection    connection;
 	@Setter( value=AccessLevel.PROTECTED )
@@ -161,7 +159,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		}
 		else
 		{
-			throw  new  IllegalStateException( String.format("SIMP:  ** CALL **  can  not  accept  the  call  when  the  state  is  %s",state.get().name()) );
+			throw  new  IllegalStateException( String.format("SIMP:  ** CALL **  can  not  accept  the  call  in  %s  state", state.get().name()) );
 		}
 	}
 	
@@ -175,7 +173,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		}
 		else
 		{
-			throw  new  IllegalStateException( String.format("SIMP:  ** CALL **  can  not  reject  the  call  when  the  state  is  %s",state.get().name()) );
+			throw  new  IllegalStateException( String.format("SIMP:  ** CALL **  can  not  reject  the  call  in  %s  state", state.get().name()) );
 		}
 	}
 	
@@ -195,7 +193,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		}
 		else
 		{
-			throw  new  IllegalStateException( String.format("SIMP:  ** CALL **  can  not  create  the  call  when  the  state  is  %s",state.get().name()) );
+			throw  new  IllegalStateException( String.format("SIMP:  ** CALL **  can  not  create  the  call  in  %s  state", state.get().name()) );
 		}
 	}
 	/**
@@ -222,8 +220,6 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	{
 		PacketEventDispatcher.removeListener( this );
 		
-		context.setCall(   null );
-		
 		if( this.connection  != null )  connection.dispose();
 		//  video  source,   connection  or  peer  connection  factory  may  be  null  if  some  permission  was  rejected  by  user.
 		if( videoSource  != null )this.videoSource.dispose();
@@ -231,6 +227,10 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		if( this.peerConnectionFactory!= null )    this.peerConnectionFactory.dispose();
 		
 		CallEventDispatcher.onClose(this,proactively,reason);
+		
+		this.state.set(     CallState.CLOSED );
+		
+		this.context.removeCall();
 	}
 	
 	public  void  onReceived(  Packet  packet )
@@ -242,7 +242,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		else
 		if( packet instanceof CallAckPacket   )
 		{
-			if( ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.ACK_ACCEPT && this.state.compareAndSet(CallState.REQUESTING, CallState.ACCEPTED) )
+			if( ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.ACK_ACCEPT && this.state.compareAndSet(CallState.REQUESTING   , CallState.ACCEPTED) )
 			{
 				connection.createOffer( this , constraints );
 			}
@@ -327,6 +327,6 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	    	}
 	    }
 	    
-	    throw  new  RuntimeException( "SIMP:  ** CALL **  failed  to  create  video  capturer  since  all  facings,  indices  and  orientations  have  been  tried" );
+	    throw  new  RuntimeException("SQUIRREL-CLIENT:  ** CALL **  failed  to  create  the  video  capturer  while  all  facings,  indices  and  orientations  have  been  tried" );
 	}
 }

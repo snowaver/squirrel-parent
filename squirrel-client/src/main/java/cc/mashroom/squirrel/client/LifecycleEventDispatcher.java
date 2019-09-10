@@ -2,16 +2,17 @@ package cc.mashroom.squirrel.client;
 
 import  java.util.Collection;
 
+import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 
 public  class  LifecycleEventDispatcher
-{	
-	public  static  void  onDisconnected(  Collection<LifecycleListener>  listeners, int  reason )
+{
+	public  static  void  onConnectStateChanged(  Collection<LifecycleListener>  listeners,   ConnectState  connectState )
 	{
-		for( LifecycleListener  listener : listeners )  listener.onDisconnected();
+		for( LifecycleListener  listener : listeners )  listener.onConnectStateChanged( connectState );
 	}
 	
-	public  static  void  onReceiveOfflineData( Collection<LifecycleListener>  listeners,OoIData  ooiData )
+	public  static  void  onReceivedOfflineData( Collection<LifecycleListener>  listeners,OoIData  ooiData )
 	{
 		for( LifecycleListener  listener : listeners )  listener.onReceivedOfflineData( ooiData );
 	}

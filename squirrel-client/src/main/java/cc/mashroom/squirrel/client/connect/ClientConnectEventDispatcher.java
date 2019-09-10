@@ -20,6 +20,7 @@ import  cc.mashroom.squirrel.client.connect.ClientConnectListener;
 import  java.util.List;
 import  java.util.concurrent.CopyOnWriteArrayList;
 
+@Deprecated
 public  class  ClientConnectEventDispatcher
 {
 	protected  static  List<ClientConnectListener>  LISTENERS = new  CopyOnWriteArrayList<ClientConnectListener>();
@@ -32,19 +33,19 @@ public  class  ClientConnectEventDispatcher
 		}
 	}
 
-	public  static  void  connectStateChanged( ConnectState  connectState )
-	{
-		for(   ClientConnectListener  listener : LISTENERS )
-		{
-			listener.onConnectStateChanged(  connectState );
-		}
-	}
-	
-	public  static  void  removeListener( ClientConnectListener  listener )
-	{
-		if( listener != null )
-		{
-			LISTENERS.remove( listener );
-		}
-	}
+//	public  static  void  connectStateChanged( ConnectState  connectState )
+//	{
+//		for(   ClientConnectListener  listener : LISTENERS )
+//		{
+//			listener.onConnectStateChanged(  connectState );
+//		}
+//	}
+//	
+//	public  static  void  removeListener( ClientConnectListener  listener )
+//	{
+//		if( listener != null )
+//		{
+//			LISTENERS.remove( listener );
+//		}
+//	}
 }

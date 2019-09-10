@@ -25,7 +25,6 @@ import  org.joda.time.DateTime;
 
 import  cc.mashroom.squirrel.client.ClientChannelInitailizer;
 import  cc.mashroom.squirrel.client.QosHandler;
-import  cc.mashroom.squirrel.client.connect.ClientConnectEventDispatcher;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.DefaultGenericFutureListener;
 import  cc.mashroom.squirrel.client.connect.PacketEventDispatcher;
@@ -97,17 +96,22 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 		
 		context.close();
 		
-		eventLooperGroup.execute( new  Runnable(){public  void  run() {connect();}} );
+		this.eventLooperGroup.execute(     new  Runnable(){public  void  run() { connect(); }} );
 		
-		ClientConnectEventDispatcher.connectStateChanged( this.connectState = ConnectState.DISCONNECTED );
+		this.onConnectStateChanged( this.connectState   = ConnectState.DISCONNECTED );
 	}
+	
+	public  void  onConnectStateChanged(   ConnectState  changedConnectState )
+	{
 		
+	}
+	
 	public  void  channelRead( ChannelHandlerContext  context,Object  object )  throws  Exception
 	{
 		this.qosHandler.channelRead(context,object );
 	}
 	
-	public  void  exceptionCaught( ChannelHandlerContext  context,Throwable  throwable ) throws  Exception
+	public  void  exceptionCaught(ChannelHandlerContext  context,Throwable throwable )  throws   Exception
 	{
 		super.exceptionCaught( context , throwable );
 		
@@ -122,7 +126,7 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
         {
         	if( connectState != ConnectState.CONNECTING && connectState != ConnectState.CONNECTED && authenticated && (channel == null || !channel.isActive()) )
         	{
-        		ClientConnectEventDispatcher.connectStateChanged( connectState= ConnectState.CONNECTING );
+        		this.onConnectStateChanged( connectState =  ConnectState.CONNECTING );
         		{
         			bootstrap = bootstrap != null ? bootstrap : new  Bootstrap().group(eventLooperGroup).channel(NioSocketChannel.class)/*.option(ChannelOption.SO_KEEPALIVE,true)*/.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,5*1000).handler( new  ClientChannelInitailizer(this) );
         			
@@ -139,7 +143,7 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
         {
         	Tracer.trace( e );
         	
-			ClientConnectEventDispatcher.connectStateChanged(  connectState = ConnectState.DISCONNECTED );
+        	this.onConnectStateChanged(this.connectState =ConnectState.DISCONNECTED );
 		}
 	}
 	
@@ -185,7 +189,7 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 		*/
 	}
 	
-	public  void  clear()
+	protected  void    clear()
 	{
 		setId(null).setAuthenticated(false).setAuthenticated(false).setConnectState(  ConnectState.NONE );
 	}

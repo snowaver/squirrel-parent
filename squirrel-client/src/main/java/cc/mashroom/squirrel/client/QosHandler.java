@@ -20,7 +20,6 @@ import  java.util.concurrent.TimeUnit;
 
 import  org.joda.time.DateTime;
 
-import  cc.mashroom.squirrel.client.connect.ClientConnectEventDispatcher;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.PacketEventDispatcher;
 import  cc.mashroom.squirrel.paip.message.Packet;
@@ -70,7 +69,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		{
 			if( ObjectUtils.cast(packet, ConnectAckPacket.class).getResponse() == ConnectAckPacket.CONNECTION_ACCEPTED )
 			{
-				ClientConnectEventDispatcher.connectStateChanged( adapter.setConnectState(ConnectState.CONNECTED).getConnectState() );
+				adapter.onConnectStateChanged(    adapter.setConnectState( ConnectState.CONNECTED ).getConnectState() );
 			}
 			else
 			{
@@ -102,7 +101,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		else
 		if( packet instanceof CallPacket    )
 		{
-			adapter.newCall( ObjectUtils.cast(packet , CallPacket.class).getRoomId(),ObjectUtils.cast(packet , CallPacket.class).getContactId(),ObjectUtils.cast( packet,CallPacket.class ).getContentType() );
+			adapter.addCall( ObjectUtils.cast(packet , CallPacket.class).getRoomId(),ObjectUtils.cast(packet , CallPacket.class).getContactId(),ObjectUtils.cast( packet,CallPacket.class ).getContentType() );
 		}
 		else
 		if( packet.getHeader().getQos()== 1 )
