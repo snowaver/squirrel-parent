@@ -8,12 +8,17 @@ public  class  LifecycleEventDispatcher
 {	
 	public  static  void  onDisconnected(  Collection<LifecycleListener>  listeners, int  reason )
 	{
-		for( LifecycleListener  listener : listeners )  listener.onDisconnected( reason );
+		for( LifecycleListener  listener : listeners )  listener.onDisconnected();
 	}
 	
 	public  static  void  onReceiveOfflineData( Collection<LifecycleListener>  listeners,OoIData  ooiData )
 	{
 		for( LifecycleListener  listener : listeners )  listener.onReceivedOfflineData( ooiData );
+	}
+	
+	public  static  void  onLogout( Collection<LifecycleListener>  listeners,int  reason )
+	{
+		for( LifecycleListener  listener : listeners )  listener.onLogout(reason);
 	}
 	
 	public  static  void  onAuthenticateComplete( Collection<LifecycleListener>  listeners,int  authenticateResponseCode )

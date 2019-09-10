@@ -16,27 +16,10 @@
 package cc.mashroom.squirrel.client.connect.call;
 
 import  lombok.AllArgsConstructor;
-import  lombok.Getter;
 
 @AllArgsConstructor
 
-public   enum  CallState
+public  enum  CallState
 {
-	NONE(0),REQUESTING(1),REQUESTED(2),ACCEPT(3),ACCEPTED(4),REJECT(5),REJECTED(6),CALLING(7),CLOSED(8);
-	
-	@Getter
-	private  int  value;
-
-	public  static  CallState  valueOf( int  value )
-	{
-		for( CallState  callState : CallState.values() )
-		{
-			if( value == callState.getValue() )
-			{
-				return  callState;
-			}
-		}
-		
-		throw  new  IllegalArgumentException( String.format("SQUIRREL:  ** CALL  STATE **  call  state  was  not  found  for  %d",value) );
-	}
+	NONE,REQUESTING,REQUESTED,ACCEPT,ACCEPTED,REJECT,REJECTED,CALLING,CLOSED;
 }

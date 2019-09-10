@@ -109,12 +109,12 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	{
 		if( this.connectivityError == 0x01 || this.connectivityError == 0x02 )
 		{
-			connect( null, null , null, null, null, this.lifecycleListeners );
+			this.connect( null,null,null,null,null, this.lifecycleListeners );
 		}
 		else
 		if( getConnectState() == ConnectState.DISCONNECTED )
 		{
-			super.connect( String.valueOf(this.userMetadata.getId())   , this.userMetadata.getSecretKey() );
+			super.connect( String.valueOf(this.userMetadata.getId())    ,this.userMetadata.getSecretKey() );
 		}
 	}
 		
@@ -151,7 +151,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			(
 				new  Runnable(){public  void  run()
 				{
-					try( Response  response = okhttpResolver.newCall(new  Request.Builder().addHeader("SECRET_KEY",userMetadata.getSecretKey()).url(new  HttpUrl.Builder().scheme("https").host(getHost()).port(getHttpPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
+					try( Response  response = okhttpResolver.newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme("https").host(getHost()).port(getHttpPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
 					{
 						if( response.code()!= 200 )
 						{
@@ -182,7 +182,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	/**
 	 *  connect  by  the  user  id.  the  username  and  encrypted  password,  which  are  stored  in  local  h2  database,  can  be  fetched  by  the  unique  user  id.  a  new  connect  parameters  will  be  created  for  the  https  authenticate  request.
 	 */
-	public  SquirrelClient  connect( @NonNull  Long  id,Double  longitude,Double  latitude,String  mac,  @NonNull  Collection<LifecycleListener>  lifecycleListeners )
+	protected  SquirrelClient  connect( @NonNull  Long  id, Double  longitude,Double  latitude,String  mac )
 	{
 		try
 		{
@@ -192,9 +192,9 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			
 			this.userMetadata      = new  UserMetadata( id,user.getUsername(),user.getName(),user.getNickname(),0,null );
 			
-			setConnectParameters( new  HashMap<String,Object>().addEntry("username",user.getUsername()).addEntry("password",user.getPassword()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("isConnectingById",true).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac) );
+			this.connectParameters = new  HashMap<String,Object>().addEntry("username",user.getUsername()).addEntry("password",user.getPassword()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("isConnectingById",true).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry( "mac",mac );
 		
-			this.connect(      null,null,null,null,null, lifecycleListeners );
+			this.connect( null,null,null,null,(String)  null/*,listeners */ );
 		}
 		catch( Throwable  e )
 		{
@@ -204,14 +204,16 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		return   this;
 	}
 	
-	public  void  asynchronousConnect( final  @NonNull  Long  id, final  Double  longitude, final  Double  latitude, final  String  mac,    @NonNull  final  Collection<LifecycleListener>  lifecycleListeners )
+	public  void  connect( final  @NonNull  Long  id,final  Double  longitude,final  Double  latitude,final  String  mac,@NonNull  Collection<LifecycleListener>  lifecycleListeners )
 	{
-		synchronousRunner.execute( new  Runnable(){public  void  run(){connect(id,longitude,latitude,mac,lifecycleListeners);}} );
+		this.lifecycleListeners.addAll(lifecycleListeners );
+		
+		this.synchronousRunner.execute(new  Runnable(){ public  void  run()  { connect(id,longitude,latitude,mac); } } );
 	}
 	/**
 	 *  connect  the  server.  throws  illegal  state  exception  if  not  routed.  use  latest  connect  parameters  if  the  username  is  not  blank.  http  request  ( include  username,  password  encrypted,  longitude,  latitude  and  mac.  connect  and  read  timeout  are  5  seconds )  will  be  used  to  retrieve  the  secret  key.  initialize  user  metadata  and  offline  datas,  connect  to  paip  protocol  server  after  successful  authentication.  authenticate  complete  method  on  lifecycle  listener  will  be  called  no  matter  authentication  error  or  not.  connectivity  guarantor  will  be  scheduled  at  fixed  rate  (5  seconds)  after  connecting  by  id  or  authenticated  successfully.
 	 */
-	public  SquirrelClient  connect( String  username,String  password,Double  longitude,Double  latitude,String  mac,@NonNull  Collection<LifecycleListener>  lifecycleListeners )
+	protected  SquirrelClient  connect( String  username,String  password,Double  longitude,Double latitude,String  mac )
 	{
 		if( StringUtils.isBlank(host) || this.port<= 0 || this.httpPort <= 0 )
 		{
@@ -222,15 +224,13 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		{
 			throw  new  IllegalArgumentException("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  lifecycle  listeners  is  empty."   );
 		}
-		
-		this.lifecycleListeners.addAll(lifecycleListeners );
 		//  clear  the  connect  parameters  if  the  username  isn' t  blank.
 		if( StringUtils.isNotBlank(    username ) )
 		{
-			setConnectParameters(  null );
+			this.connectParameters = null;
 		}
 		//  reset  the  connnectivity  error  to  normal  state, which  should  be  changed  by  the  special  situation.
-		this.setConnectivityError( 0x00 );
+		this.connectivityError     = 0x00;
 		
 		try(   Response  response = okhttpResolver.newCall(new  Request.Builder().url("https://"+host+":"+httpPort+"/user/signin").post(HttpUtils.form(connectParameters = connectParameters != null ? connectParameters.addEntry("isAutoReconnect",true) : new  HashMap<String,Object>().addEntry("username",username).addEntry("password",new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
 		{
@@ -300,8 +300,10 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 //		send(   new  DisconnectPacket() );
 	}
 	
-	public  void  asynchronousConnect( final  String  username,final  String  password,final  Double  longitude,final  Double  latitude,final  String  mac,final  @NonNull  Collection<LifecycleListener>  lifecycleListeners )
+	public  void  connect( final  String  username,final  String  password,final  Double  longitude,final  Double  latitude,final  String  mac,final  @NonNull  Collection<LifecycleListener>  lifecycleListeners )
 	{
+		this.lifecycleListeners.addAll(lifecycleListeners );
+		
 		this.synchronousRunner.execute(new  Runnable(){public  void  run(){ connect(username,password,longitude,latitude,mac,lifecycleListeners); }} );
 	}
 

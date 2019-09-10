@@ -46,7 +46,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 	
 	private  Map<Long,Packet>  pendings= new  ConcurrentHashMap<Long,Packet>();
 	
-	public  void  channelRead(   ChannelHandlerContext  context,Object  object )  throws  Exception
+	public  void  channelRead( ChannelHandlerContext  context,Object  object )    throws  Exception
 	{
 		Packet  packet= ObjectUtils.cast( object );
 		
@@ -56,9 +56,9 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		
 		if( packet instanceof DisconnectAckPacket )
 		{
-			if( ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_PROACTIVELY || ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_REMOTE_LOGIN )
+			if( /*      ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_PROACTIVELY || */  ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_REMOTE_SIGNIN )
 			{
-				LifecycleEventDispatcher.onDisconnected( adapter.getLifecycleListeners(),ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() );
+				LifecycleEventDispatcher.onLogout( adapter.getLifecycleListeners(),1 /* remote  signin  confiction */ );
 				
 				adapter.clear();
 				
@@ -121,7 +121,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		PacketEventDispatcher.onReceived( packet );
 	}
 	
-	public  Packet  unpend(    long  pendKey,TransportState  dispatchingState )   throws  Exception
+	public  Packet  unpend(    long  pendKey, TransportState  dispatchingState )  throws  Exception
 	{
 		Packet  packet= pendings.remove( pendKey );
 		

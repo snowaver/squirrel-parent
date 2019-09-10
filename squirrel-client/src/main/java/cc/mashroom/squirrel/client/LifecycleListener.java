@@ -17,11 +17,15 @@ package cc.mashroom.squirrel.client;
 
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 
-public  interface  LifecycleListener
+public  interface LifecycleListener
 {
 	public  void  onReceivedOfflineData( OoIData  ooiData );
 	
-	public  void  onDisconnected( int  reason );
+	public  void  onDisconnected();
+	/**
+	 *  triggered  after  logout  by  specified  reason  (1.active,  2.remote  signin).
+	 */
+	public  void  onLogout( int  reason );
 	
 	public  void  onAuthenticateComplete( int  authenticatedResponseCode );
 }
