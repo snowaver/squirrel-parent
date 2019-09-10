@@ -24,7 +24,6 @@ import  lombok.AllArgsConstructor;
 
 import  javax.net.ssl.SSLEngine;
 
-import  cc.mashroom.squirrel.client.handler.AutoReconnectChannelInboundHandlerAdapter;
 import  cc.mashroom.squirrel.client.handler.ChannelDuplexIdleTimeoutHandler;
 import  cc.mashroom.squirrel.paip.codec.PAIPDecoder;
 import  cc.mashroom.squirrel.paip.codec.PAIPEncoder;

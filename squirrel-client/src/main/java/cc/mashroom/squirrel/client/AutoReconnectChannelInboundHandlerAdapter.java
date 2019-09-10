@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cc.mashroom.squirrel.client.handler;
+package cc.mashroom.squirrel.client;
 
 import  java.util.concurrent.LinkedBlockingQueue;
 import  java.util.concurrent.ThreadPoolExecutor;
@@ -23,11 +23,10 @@ import  javax.net.ssl.SSLContext;
 
 import  org.joda.time.DateTime;
 
-import  cc.mashroom.squirrel.client.ClientChannelInitailizer;
-import  cc.mashroom.squirrel.client.QosHandler;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.DefaultGenericFutureListener;
 import  cc.mashroom.squirrel.client.connect.PacketEventDispatcher;
+import cc.mashroom.squirrel.client.handler.RoutableChannelInboundHandlerAdapter;
 import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.codec.PAIPDecoder;
 import  cc.mashroom.squirrel.paip.codec.PAIPExternalDecoder;

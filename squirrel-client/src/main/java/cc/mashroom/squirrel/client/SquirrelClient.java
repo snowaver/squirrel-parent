@@ -48,7 +48,6 @@ import  cc.mashroom.squirrel.client.connect.call.CallError;
 import  cc.mashroom.squirrel.client.connect.call.CallEventDispatcher;
 import  cc.mashroom.squirrel.client.connect.call.CallState;
 import  cc.mashroom.squirrel.client.connect.util.HttpUtils;
-import  cc.mashroom.squirrel.client.handler.AutoReconnectChannelInboundHandlerAdapter;
 import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.client.storage.model.user.User;
 import  cc.mashroom.squirrel.client.storage.repository.user.UserRepository;
@@ -146,15 +145,19 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		{
 			throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  can't  close  call  in  %s  state", call.getState().name()) );
 		}
-		
 		this.call     = null;
+	}
+	
+	synchronized  void  addCall(final  long  roomId,final  long  contactId,@NonNull final  CallContentType  contentType )
+	{
+		this.call     = new  Call(  this , roomId , contactId , contentType );
 	}
 	/**
 	 *  return  null  if  a  call  exists  or  a  new  call.
 	 */
-	public  synchronized  void  addCall(final  long  roomId,final  long  contactId,@NonNull  final  CallContentType  contentType )
+	public  synchronized  void  newCall(final  long contactId,@NonNull  final  CallContentType contentType )
 	{
-		if( roomId     <= 0 )
+//		if( roomId     <= 0 )
 		{
 			this.synchronousRunner.execute
 			(
@@ -179,10 +182,6 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 					}
 				}}
 			);
-		}
-		else
-		{
-			this.call  = new  Call( this , roomId , contactId , contentType );
 		}
 		/*
 		return  this.call != null ? null : ( call = new  Call(this,id >= 1 ? id : Packet.forId( DateTime.now(DateTimeZone.UTC).getMillis() ),contactId,contentType) );
@@ -298,7 +297,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	/**
 	 *  close  the  client.  send  a  disconnect  packet  to  the  server,  then  close  the  netty  nio  event  loop  group  and  connectiviy  guarantor  thread  pool.  the  client  instance  can  not  be  used  anymore  after  closed.
 	 */
-	public  void  close()
+	public  void    release()
 	{
 		super.close();
 		
