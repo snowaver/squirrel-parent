@@ -31,6 +31,8 @@ public  class  DisconnectAckPacket  extends  Packet<DisconnectAckPacket>
 	public  final  static int  REASON_UNKNOWN_ERROR  = 0x01;
 	
 	public  final  static int  REASON_REMOTE_SIGNIN  = 0x02;
+	
+	public  final  static int  REASON_CLIENT_LOGOUT  = 0x03;
 		
 	public  DisconnectAckPacket(int reason )
 	{
