@@ -24,11 +24,11 @@ public  interface  CallListener
 	 */
 	public  void  onRoomCreated( Call  call );
 	/**
-	 *  call  is  connected  and  udp/tcp  multimedia  packet  is  transfering  now  by  stun/turn/ice  server.
+	 *  call  is  connected  and  udp/tcp  multimedia  packets  is  exchanging  now  by  stun/turn/ice  server.
 	 */
 	public  void  onStart( Call  call );
 	
 	public  void  onError( Call  call,CallError  error,Throwable  stacktrace );
 	
-	public  void  onClose( Call  call,boolean  proactively,CloseCallReason  reason );
+	public  void  onClose( Call  call,boolean  isClosedByUser,CloseCallReason  reason );
 }

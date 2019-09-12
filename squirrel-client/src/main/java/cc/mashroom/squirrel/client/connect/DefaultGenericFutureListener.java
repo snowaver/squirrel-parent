@@ -17,7 +17,7 @@ package cc.mashroom.squirrel.client.connect;
 
 import  java.util.concurrent.TimeUnit;
 
-import  cc.mashroom.squirrel.client.QosHandler;
+import  cc.mashroom.squirrel.client.InboundHandler;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  io.netty.util.concurrent.Future;
@@ -28,7 +28,7 @@ import  lombok.AllArgsConstructor;
 
 public  class  DefaultGenericFutureListener<F extends Future<?>>  implements  GenericFutureListener<F>
 {
-	private  QosHandler  handler;
+	private  InboundHandler  handler;
 	
 	private  Packet  packet;
 	

@@ -71,14 +71,14 @@ public  abstract  class  Packet  <T extends Packet>
 		this.contactId        = contactId;  return  (T)  this;
 	}
 	
-	public  T  setQos(  int  qos, long  contactId )
+	public  T  setAckLevel( int  ackLevel,  long   contactId )
 	{
 		if(    contactId <= 0 )
 		{
 			throw  new  IllegalArgumentException("SQUIRREL-PAIP:  ** PACKET **  contact  id  is  invalidate." );
 		}
 		
-		this.setContactId(contactId).getHeader().setQos(qos );  return  (T)  this;
+		setContactId(contactId).getHeader().setQos(ackLevel );  return  (T)  this;
 	}
 		
 	public  int  getInitialVariableByteBufferSize()

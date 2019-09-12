@@ -37,11 +37,11 @@ public  class  ChatPacket  extends  Packet<ChatPacket>  //  implements  Receipta
 		super.setContactId(byteBuf.readLongLE()).setContentType(ChatContentType.valueOf(byteBuf.readByte())).setMd5(PAIPCodecUtils.decode(byteBuf)).setContent( PAIPCodecUtils.decodeBytes(byteBuf) );
 	}
 	
-	public  ChatPacket( long  contactId,String  md5,ChatContentType  contentType,byte[]  content )
+	public  ChatPacket( long  contactId,String  md5, ChatContentType  contentType , byte[]  content )
 	{
 		super( new  Header(   PAIPPacketType.CHAT ) );
 		
-		super.setQos(1,contactId).setMd5(md5).setContentType( contentType ).setContent( content );
+		super.setAckLevel(1,contactId).setMd5(md5).setContentType(contentType).setContent( content );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )

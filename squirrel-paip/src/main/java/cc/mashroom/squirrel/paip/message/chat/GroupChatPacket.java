@@ -33,7 +33,7 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 	{
 		super( buf,0x00 );
 		
-		super.setQos(1,  buf.readLongLE()).setGroupId(buf.readLongLE()).setContentType(ChatContentType.valueOf(buf.readByte())).setMd5(PAIPCodecUtils.decode(buf)).setContent( PAIPCodecUtils.decodeBytes(buf) );
+		super.setAckLevel(1,buf.readLongLE()).setGroupId(buf.readLongLE()).setContentType(ChatContentType.valueOf(buf.readByte())).setMd5(PAIPCodecUtils.decode(buf)).setContent( PAIPCodecUtils.decodeBytes(buf) );
 	}
 	
 	public  GroupChatPacket( long  contactId,long  groupId,String  md5,ChatContentType  contentType,byte[]  content )

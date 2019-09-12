@@ -33,20 +33,20 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
 @ToString(callSuper=true )
-public  class  QosReceiptPacket<T extends QosReceiptPacket<?>>  extends  Packet<T>
+public  class  ContactAckPacket<T extends ContactAckPacket<?>>  extends  Packet<T>
 {
-	public  QosReceiptPacket(ByteBuf  buf )
+	public  ContactAckPacket( long  contactId,long  packetId )
+	{
+		super(new  Header(PAIPPacketType.CONNECT_ACK));
+		
+		super.setContactId(contactId).setPacketId( packetId );
+	}
+	
+	public  ContactAckPacket(ByteBuf  buf )
 	{
 		super(buf, 0x00 );
 		
 		this.setContactId(buf.readLongLE()).setPacketId(buf.readLongLE()).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPCodecUtils.decode(buf),new  TypeReference<Map<String,Object>>(){})) );
-	}
-	
-	public  QosReceiptPacket( long  contactId,long  packetId )
-	{
-		super(new  Header(PAIPPacketType.QOS_RECEIPT));
-		
-		super.setContactId(contactId).setPacketId( packetId );
 	}
 	
 	@Setter( value= AccessLevel.PROTECTED )
@@ -60,7 +60,7 @@ public  class  QosReceiptPacket<T extends QosReceiptPacket<?>>  extends  Packet<
 
 	public  ByteBuf  writeToVariableByteBuf(ByteBuf  byteBuf )
 	{
-		return  byteBuf.writeLongLE(contactId).writeLongLE(packetId).writeBytes( PAIPCodecUtils.encode( JsonUtils.toJson(attatchments) ) );
+		return  byteBuf.writeLongLE(this.contactId).writeLongLE(this.packetId).writeBytes( PAIPCodecUtils.encode(JsonUtils.toJson(this.attatchments)) );
 	}
 	
 	public  int      getInitialVariableByteBufferSize()

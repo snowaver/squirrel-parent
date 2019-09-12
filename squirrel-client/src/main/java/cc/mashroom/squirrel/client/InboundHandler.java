@@ -30,7 +30,7 @@ import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectAckPacket;
 import  cc.mashroom.squirrel.paip.message.connect.DisconnectAckPacket;
-import  cc.mashroom.squirrel.paip.message.connect.QosReceiptPacket;
+import  cc.mashroom.squirrel.paip.message.connect.ContactAckPacket;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.collection.map.ConcurrentHashMap;
 import  cc.mashroom.util.collection.map.Map;
@@ -39,7 +39,7 @@ import  io.netty.util.concurrent.DefaultThreadFactory;
 /*
 @NoArgsConstructor(  access = AccessLevel.PRIVATE )
 */
-public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
+public  class  InboundHandler
 {
 	private  ScheduledThreadPoolExecutor  pendingScheduledChecker = new  ScheduledThreadPoolExecutor(1,new  DefaultThreadFactory("QOS-CHECKER",false,1) );
 	
@@ -89,9 +89,9 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 			//  do  nothing  while  the  receipt  qos  packet  is  delivered  by  the  server  side
 		}
 		else
-		if( packet instanceof QosReceiptPacket    )
+		if( packet instanceof ContactAckPacket    )
 		{
-			this.unpend(          ObjectUtils.cast(packet, QosReceiptPacket.class).getPacketId(), TransportState.SENT );
+			this.unpend(          ObjectUtils.cast(packet, ContactAckPacket.class).getPacketId(), TransportState.SENT );
 			
 			if( !(packet instanceof CallAckPacket))
 			{
@@ -106,7 +106,7 @@ public  class  QosHandler  //  extends  ChannelInboundHandlerAdapter
 		else
 		if( packet.getHeader().getQos()== 1 )
 		{
-			adapter.asynchronousSend(new  QosReceiptPacket(packet.getContactId(),packet.getId()) );
+			adapter.asynchronousSend(new  ContactAckPacket(packet.getContactId(),packet.getId()) );
 		}
 		else
 		if( packet instanceof CloseCallPacket     )

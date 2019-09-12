@@ -148,12 +148,12 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 
 	public  CallState   getState()
 	{
-		return   state.get();
+		return   this.state.get();
 	}
 
-	public  void  accept()
+	public  void   agree()
 	{
-		if( state.compareAndSet(CallState.REQUESTED , CallState.ACCEPT) )
+		if( state.compareAndSet(CallState.REQUESTED , CallState.AGREED) )
 		{
 			context.send( new  CallAckPacket(contactId, id, CallAckPacket.ACK_ACCEPT) );
 		}
@@ -163,9 +163,9 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		}
 	}
 	
-	public  void  reject()
+	public  void decline()
 	{
-		if( state.compareAndSet(CallState.REQUESTED , CallState.REJECT) )
+		if( state.compareAndSet(CallState.REQUESTED ,CallState.DECLINE) )
 		{
 			context.send( new  CallAckPacket(contactId, id, CallAckPacket.ACK_REJECT) );
 			
@@ -185,7 +185,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		}
 	}
 
-	public  void  demand()
+	public  void request()
 	{
 		if( state.compareAndSet(CallState.NONE,   CallState.REQUESTING) )
 		{
@@ -242,7 +242,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		else
 		if( packet instanceof CallAckPacket   )
 		{
-			if( ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.ACK_ACCEPT && this.state.compareAndSet(CallState.REQUESTING   , CallState.ACCEPTED) )
+			if( ObjectUtils.cast(packet,CallAckPacket.class).getResponseCode() == CallAckPacket.ACK_ACCEPT && this.state.compareAndSet(CallState.REQUESTING   ,   CallState.AGREED) )
 			{
 				connection.createOffer( this , constraints );
 			}

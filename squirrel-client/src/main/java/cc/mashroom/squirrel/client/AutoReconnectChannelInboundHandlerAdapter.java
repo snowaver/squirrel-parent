@@ -79,7 +79,7 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
 	@Getter
 	private  boolean  authenticated=false;
 	private  EventLoopGroup  eventLooperGroup    = new  NioEventLoopGroup( Integer.parseInt( System.getProperty("eventlopper.size","2") ) );
-	private  QosHandler  qosHandler     = new  QosHandler();
+	private  InboundHandler  qosHandler     = new  InboundHandler();
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)

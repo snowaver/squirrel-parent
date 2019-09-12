@@ -26,13 +26,13 @@ import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  ChatRecallPacket  extends  Packet  <ChatRecallPacket>
+public  class  ChatRecallPacket  extends  Packet   <ChatRecallPacket>
 {
-	public  ChatRecallPacket( long  contactId , long  chatPacketId )
+	public  ChatRecallPacket( long  contactId ,  long  chatPacketId )
 	{
 		super( new  Header(  PAIPPacketType.CHAT_RECALL ) );
 		
-		super.setQos(1,contactId).setChatPacketId(   chatPacketId );
+		super.setAckLevel(1,contactId).setChatPacketId(chatPacketId);
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -47,7 +47,7 @@ public  class  ChatRecallPacket  extends  Packet  <ChatRecallPacket>
 		super.setContactId(byteBuf.readLongLE()).setChatPacketId( byteBuf.readLongLE() );
 	}
 	
-	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableBuf )
+	public  ByteBuf  writeToVariableByteBuf(   ByteBuf  variableBuf )
 	{
 		return  variableBuf.writeLongLE(contactId).writeLongLE( chatPacketId );
 	}
