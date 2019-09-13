@@ -19,9 +19,11 @@ import  java.io.File;
 import  java.io.IOException;
 import  java.sql.Timestamp;
 import  java.util.List;
-import  java.util.concurrent.TimeUnit;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
+import  cc.mashroom.router.Schema;
+import  cc.mashroom.router.Service;
+import  cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
@@ -31,15 +33,12 @@ import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
 import  cc.mashroom.squirrel.paip.message.chat.ChatRecallPacket;
 import  cc.mashroom.util.FileUtils;
-import  cc.mashroom.util.NoopHostnameVerifier;
-import  cc.mashroom.util.NoopX509TrustManager;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.Reference;
 import  cc.mashroom.util.StringUtils;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 import  okhttp3.HttpUrl;
-import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 
 @DataSourceBind(name="*",table="chat_message",primaryKeys="ID" )
@@ -57,11 +56,13 @@ public  class  ChatMessageRepository  extends  RepositorySupport
 	{
 		if( !messages.isEmpty() )
 		{
+			Service  service    =ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+			
 			for(      ChatMessage  message : messages )
 			{
 				if( ChatContentType.valueOf(message.getContentType())  == ChatContentType.AUDIO )
 				{
-					FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+message.getMd5()),context.getOkhttpResolver().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).get().url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("file/"+message.getMd5()).build()).build()).execute().body().bytes() );
+					FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+message.getMd5()),context.okhttpClient(5,5,1200).newCall(new  Request.Builder().get().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("file/"+message.getMd5()).build()).build()).execute().body().bytes() );
 				}
 				
 				message.setTransportState(TransportState.RECEIVED.getValue()).setIsLocal(false );
@@ -79,9 +80,11 @@ public  class  ChatMessageRepository  extends  RepositorySupport
 	{
 		if( transportState == TransportState.RECEIVED )
 		{
+			Service  service    =ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+			
 			if( packet.getContentType()==ChatContentType.AUDIO )
 			{
-				FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+ObjectUtils.cast(packet,ChatPacket.class).getMd5()),new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SquirrelClient.SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).connectTimeout(2,TimeUnit.SECONDS).writeTimeout(2,TimeUnit.SECONDS).readTimeout(8,TimeUnit.SECONDS).build().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).get().url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("file/"+ObjectUtils.cast(packet,ChatPacket.class).getMd5()).build()).build()).execute().body().bytes() );
+				FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+ObjectUtils.cast(packet,ChatPacket.class).getMd5()),context.okhttpClient(5,5,1200).newCall(new  Request.Builder().get().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("file/"+ObjectUtils.cast(packet,ChatPacket.class).getMd5()).build()).build()).execute().body().bytes() );
 			}
 
 			NewsProfileRepository.DAO.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,IFNULL((SELECT  BADGE_COUNT  FROM  news_profile  WHERE  ID = ?  AND  PACKET_TYPE = ?),0)+1)",new  Object[]{packet.getContactId(),new  Timestamp(packet.getId()),PAIPPacketType.CHAT.getValue(),packet.getContactId(),packet.getContentType().getPlaceholder() == null ? new  String(packet.getContent()) : packet.getContentType().getPlaceholder(),packet.getContactId(),PAIPPacketType.CHAT.getValue()} );

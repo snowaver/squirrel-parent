@@ -32,7 +32,7 @@ import  cc.mashroom.squirrel.paip.codec.PAIPEncoder;
 
 public  class  ClientChannelInitailizer  extends  ChannelInitializer  <SocketChannel>
 {
-	private  AutoReconnectChannelInboundHandlerAdapter  adapter;
+	private  TcpAutoReconnectChannelInboundHandlerAdapter  adapter;
 	
 	protected  void  initChannel( SocketChannel  channel )  throws  Exception
 	{

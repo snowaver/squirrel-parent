@@ -41,6 +41,9 @@ import  okhttp3.Interceptor;
 import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 import  okhttp3.Response;
+import cc.mashroom.router.Schema;
+import cc.mashroom.router.Service;
+import cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.UserMetadata;
 import  cc.mashroom.squirrel.client.connect.call.Call;
@@ -66,7 +69,7 @@ import  cc.mashroom.util.StringUtils;
 
 @Sharable
 
-public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapter    implements  Interceptor
+public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAdapter    implements  Interceptor
 {
 	public  SquirrelClient( Object  context,File  cacheDir )
 	{
@@ -99,10 +102,8 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	//  0. normal,  do  nothing.  1. connecting  by  id,  but  network  error. 2. (deprecated:  deliver  to  qos  handler,  it  makes  connecting  immediately )  secret  key  expired,  a  new  secret  key  should  be  requested.
 	private  int  connectivityError= 0x00;
 	
-	private  Runnable       connectivityGuarantor   = new  Runnable()  { public  void run()  { check(); } };
-	@Getter
-	private  OkHttpClient   okhttpResolver = new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).addInterceptor(this).connectTimeout(5,TimeUnit.SECONDS).writeTimeout(5,TimeUnit.SECONDS).readTimeout(10,TimeUnit.SECONDS).build();
-	
+	private  Runnable       connectivityGuarantor  = new  Runnable()   { public  void run()  { check(); } };
+
 	private  synchronized   void   check()
 	{
 		if( this.connectivityError == 0x01 || this.connectivityError == 0x02 )
@@ -163,7 +164,9 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 			(
 				new  Runnable(){public  void  run()
 				{
-					try(Response  response = okhttpResolver.newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme("https").host(getHost()).port(getHttpPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
+					final  Service  currentService=    ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+					
+					try(Response  response = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(currentService.getSchema()).host(currentService.getHost()).port(currentService.getPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
 					{
 						if(response.code() != 200 )
 						{
@@ -186,6 +189,11 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		/*
 		return  this.call != null ? null : ( call = new  Call(this,id >= 1 ? id : Packet.forId( DateTime.now(DateTimeZone.UTC).getMillis() ),contactId,contentType) );
 		*/
+	}
+	
+	public  OkHttpClient  okhttpClient( long  connecttimeoutSeconds ,long  readtimeoutSeconds,long  writetimeoutSeconds )
+	{
+		return  new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).addInterceptor(this).connectTimeout(connecttimeoutSeconds,TimeUnit.SECONDS).writeTimeout(writetimeoutSeconds,TimeUnit.SECONDS).readTimeout(readtimeoutSeconds,TimeUnit.SECONDS).build();
 	}
 	/**
 	 *  connect  by  the  user  id.  the  username  and  encrypted  password,  which  are  stored  in  local  h2  database,  can  be  fetched  by  the  unique  user  id.  a  new  connect  parameters  will  be  created  for  the  https  authenticate  request.
@@ -223,7 +231,7 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 	 */
 	protected  SquirrelClient  connect( String  username,String  password,Double  longitude,Double latitude,String  mac )
 	{
-		if( StringUtils.isBlank(host) || this.port<= 0 || this.httpPort <= 0 )
+		if( !    isRouted() )
 		{
 			throw  new  IllegalStateException(   "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  no  route  is  available." );
 		}
@@ -240,7 +248,9 @@ public  class  SquirrelClient  extends  AutoReconnectChannelInboundHandlerAdapte
 		//  reset  the  connnectivity  error  to  normal  state, which  should  be  changed  by  the  special  situation.
 		this.connectivityError     = 0x00;
 		
-		try(   Response  response = okhttpResolver.newCall(new  Request.Builder().url("https://"+host+":"+httpPort+"/user/signin").post(HttpUtils.form(connectParameters = connectParameters != null ? connectParameters.addEntry("isAutoReconnect",true) : new  HashMap<String,Object>().addEntry("username",username).addEntry("password",new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
+		Service  service=ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+		
+		try(Response  response = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("/user/signin").build()).post(HttpUtils.form(connectParameters = connectParameters != null ? connectParameters.addEntry("isAutoReconnect",true) : new  HashMap<String,Object>().addEntry("username",username).addEntry("password",new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
 		{
 			if(   response.code() == 200 )
 			{

@@ -23,10 +23,12 @@ import  javax.net.ssl.SSLContext;
 
 import  org.joda.time.DateTime;
 
+import cc.mashroom.router.Schema;
+import cc.mashroom.router.Service;
+import cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.DefaultGenericFutureListener;
 import  cc.mashroom.squirrel.client.connect.PacketEventDispatcher;
-import cc.mashroom.squirrel.client.handler.RoutableChannelInboundHandlerAdapter;
 import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.codec.PAIPDecoder;
 import  cc.mashroom.squirrel.paip.codec.PAIPExternalDecoder;
@@ -53,7 +55,7 @@ import  lombok.Setter;
 import  lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 
-public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableChannelInboundHandlerAdapter
+public  class  TcpAutoReconnectChannelInboundHandlerAdapter     extends  RoutableChannelInboundHandlerAdapter
 {
 	public  final  static  SSLContext  SSL_CONTEXT= SecureUtils.getSSLContext( "/squirrel.cer" );
 	
@@ -129,7 +131,9 @@ public  class  AutoReconnectChannelInboundHandlerAdapter     extends  RoutableCh
         		{
         			bootstrap = bootstrap != null ? bootstrap : new  Bootstrap().group(eventLooperGroup).channel(NioSocketChannel.class)/*.option(ChannelOption.SO_KEEPALIVE,true)*/.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,5*1000).handler( new  ClientChannelInitailizer(this) );
         			
-        			setChannel(bootstrap.connect(host,port).sync().channel()).send( new  ConnectPacket(id,accessKey.getBytes(),keepalive),10,TimeUnit.SECONDS );
+        			Service  currentService = ServiceRouteManager.INSTANCE.current( Schema.TCP );
+        			
+        			setChannel(bootstrap.connect(currentService.getHost(),currentService.getPort()).sync().channel()).send( new  ConnectPacket(id,accessKey.getBytes(),keepalive),10,TimeUnit.SECONDS );
         			
         			for(  PAIPExternalDecoder  externalDecoder : this.externalDecoders.values() )
         			{

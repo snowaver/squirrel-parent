@@ -21,6 +21,9 @@ import  java.sql.Timestamp;
 import  java.util.List;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
+import cc.mashroom.router.Schema;
+import cc.mashroom.router.Service;
+import cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.client.storage.model.chat.GroupChatMessage;
@@ -45,11 +48,13 @@ public  class  GroupChatMessageRepository  extends  RepositorySupport
 	{
 		if( !messages.isEmpty() )
 		{
+			Service  service = ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+			
 			for( GroupChatMessage  message : messages )
 			{
 				if( ChatContentType.valueOf(message.getContentType()) ==ChatContentType.AUDIO )
 				{
-					FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+message.getMd5()),context.getOkhttpResolver().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).get().url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("file/"+message.getMd5()).build()).build()).execute().body().bytes() );
+					FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+message.getMd5()),context.okhttpClient(5,5,1200).newCall(new  Request.Builder().get().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("file/"+message.getMd5()).build()).build()).execute().body().bytes() );
 				}
 				
 				message.setTransportState( TransportState.RECEIVED.getValue()   ).setIsLocal( false );
@@ -69,9 +74,11 @@ public  class  GroupChatMessageRepository  extends  RepositorySupport
 	{
 		if( transportState == TransportState.RECEIVED )
 		{
+			Service  service = ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+			
 			if( packet.getContentType()    == ChatContentType.AUDIO )
 			{
-				FileUtils.createFileIfAbsent(new  File(cacheDir,"file/"+packet.getMd5()),context.getOkhttpResolver().newCall(new  Request.Builder().addHeader("SECRET_KEY",context.getUserMetadata().getSecretKey()).get().url(new  HttpUrl.Builder().scheme("https").host(context.getHost()).port(context.getHttpPort()).addPathSegments("file/"+packet.getMd5()).build()).build()).execute().body().bytes() );
+				FileUtils.createFileIfAbsent(new  File(cacheDir,"file/"+packet.getMd5()),context.okhttpClient(5,5,1200).newCall(new  Request.Builder().get().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("file/"+packet.getMd5()).build()).build()).execute().body().bytes() );
 			}
 
 			NewsProfileRepository.DAO.insert(new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,IFNULL((SELECT  BADGE_COUNT  FROM  news_profile  WHERE  ID = ?  AND  PACKET_TYPE = ?),0)+1)",new  Object[]{packet.getGroupId(),new  Timestamp(packet.getId()),PAIPPacketType.GROUP_CHAT.getValue(),packet.getContactId(),packet.getContentType().getPlaceholder() == null ? new  String(packet.getContent()) : packet.getContentType().getPlaceholder(),packet.getGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );
