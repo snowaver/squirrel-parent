@@ -39,10 +39,10 @@ public  class  AuthenticatedDelegate   implements  Callback
 	
 	public  void  onFailure(  Call  call,IOException  ioe )
 	{
-		lifecycleListener.onAuthenticateComplete( 500 );
+		lifecycleListener.onAuthenticateComplete(    500 );
 	}
 	
-	public  void  onResponse( Call  call,Response  response )  throws  IOException
+	public  void  onResponse( Call  call,Response response)  throws  IOException
 	{
 		try
 		{
