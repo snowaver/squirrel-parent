@@ -33,16 +33,16 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
 @ToString(callSuper=true )
-public  class  ContactAckPacket<T extends ContactAckPacket<?>>  extends  Packet<T>
+public  class  PendingAckPacket<T extends PendingAckPacket<?>>  extends  Packet<T>
 {
-	public  ContactAckPacket( long  contactId,long  packetId )
+	public  PendingAckPacket( long  contactId,long  packetId )
 	{
 		super(new  Header(PAIPPacketType.CONNECT_ACK));
 		
 		super.setContactId(contactId).setPacketId( packetId );
 	}
 	
-	public  ContactAckPacket(ByteBuf  buf )
+	public  PendingAckPacket(ByteBuf  buf )
 	{
 		super(buf, 0x00 );
 		

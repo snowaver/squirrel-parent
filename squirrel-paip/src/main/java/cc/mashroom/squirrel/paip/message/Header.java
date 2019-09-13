@@ -45,11 +45,11 @@ public  class  Header
 	@Getter
 	@Accessors(chain=true)
 	private  long  id;
-	//  0,  no  receipt  packet,  1,  with  receipt  packet  (may  be  lost  on  the  network,  but  cc.mashroom.squirrel.client.connect.PacketListener.sent(packet,TransportState.FAILED)  triggered  after  connection  error  or  timeout  with  no  receipt  packet,  you  can  resend  the  packet  again).
+	//  0,  no  pending  ack  packet,  1,  require  pending  ack  packet,  which  may  be  lost  on  the  network,  but  assume  transport  failure  if  connection  error  or  timeout  without  pending  ack  packet,  you  can  resend  the  packet  again.
 	@Setter( value= AccessLevel.PUBLIC )
 	@Getter
 	@Accessors(chain=true)
-	private  int  qos;
+	private  int ackLevel;
 	@Setter( value= AccessLevel.PUBLIC )
 	@Getter
 	@Accessors(chain=true)
@@ -57,7 +57,7 @@ public  class  Header
 	
 	public  byte  toByte()
 	{
-		return  Unpooled.buffer(1).writeByte(qos).getByte( 0 );
+		return  Unpooled.buffer(1).writeByte(ackLevel).getByte( 0 );
 	}
 	
 	public  Header( ByteBuf  byteBuf , Integer  expectedFlags )
@@ -69,6 +69,6 @@ public  class  Header
         
         byte  headerByte   = byteBuf.readByte();
         
-        this.setQos((headerByte & 0x03)).setPacketType(PAIPPacketType.valueOf(byteBuf.skipBytes(1).readShortLE())).setId(byteBuf.readLongLE()).setRemainingLength( PAIPCodecUtils.decodeRemainingLength(byteBuf) );
+        this.setAckLevel((headerByte & 0x03)).setPacketType(PAIPPacketType.valueOf(byteBuf.skipBytes(1).readShortLE())).setId(byteBuf.readLongLE()).setRemainingLength( PAIPCodecUtils.decodeRemainingLength(byteBuf) );
 	}
 }

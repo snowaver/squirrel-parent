@@ -66,11 +66,6 @@ public  abstract  class  Packet  <T extends Packet>
 	
 	protected  final  static  AtomicLong  ID_GENERATOR  = new  AtomicLong( 0x00 );
 	
-	public  T  setContactId(      long  contactId )
-	{
-		this.contactId        = contactId;  return  (T)  this;
-	}
-	
 	public  T  setAckLevel( int  ackLevel,  long   contactId )
 	{
 		if(    contactId <= 0 )
@@ -78,7 +73,14 @@ public  abstract  class  Packet  <T extends Packet>
 			throw  new  IllegalArgumentException("SQUIRREL-PAIP:  ** PACKET **  contact  id  is  invalidate." );
 		}
 		
-		setContactId(contactId).getHeader().setQos(ackLevel );  return  (T)  this;
+		this.setContactId(contactId).getHeader().setAckLevel( ackLevel );
+		
+		return       (T)  this;
+	}
+	
+	public  T  setContactId(      long  contactId )
+	{
+		this.contactId        = contactId;  return  (T)  this;
 	}
 		
 	public  int  getInitialVariableByteBufferSize()

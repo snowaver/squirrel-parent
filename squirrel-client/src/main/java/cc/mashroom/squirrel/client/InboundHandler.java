@@ -30,7 +30,7 @@ import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectAckPacket;
 import  cc.mashroom.squirrel.paip.message.connect.DisconnectAckPacket;
-import  cc.mashroom.squirrel.paip.message.connect.ContactAckPacket;
+import  cc.mashroom.squirrel.paip.message.connect.PendingAckPacket;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.collection.map.ConcurrentHashMap;
 import  cc.mashroom.util.collection.map.Map;
@@ -41,7 +41,7 @@ import  io.netty.util.concurrent.DefaultThreadFactory;
 */
 public  class  InboundHandler
 {
-	private  ScheduledThreadPoolExecutor  pendingScheduledChecker = new  ScheduledThreadPoolExecutor(1,new  DefaultThreadFactory("QOS-CHECKER",false,1) );
+	private  ScheduledThreadPoolExecutor  pendingScheduledChecker = new  ScheduledThreadPoolExecutor(1,new  DefaultThreadFactory("ACK-CHECKER",false,1) );
 	
 	private  Map<Long,Packet>  pendings= new  ConcurrentHashMap<Long,Packet>();
 	
@@ -84,14 +84,14 @@ public  class  InboundHandler
 			}
 		}
 		else
-		if( packet instanceof GroupChatPacket     )
+		if( packet instanceof     GroupChatPacket )
 		{
 			//  do  nothing  while  the  receipt  qos  packet  is  delivered  by  the  server  side
 		}
 		else
-		if( packet instanceof ContactAckPacket    )
+		if( packet instanceof     PendingAckPacket)
 		{
-			this.unpend(          ObjectUtils.cast(packet, ContactAckPacket.class).getPacketId(), TransportState.SENT );
+			this.unpend(          ObjectUtils.cast(packet, PendingAckPacket.class).getPacketId(), TransportState.SENT );
 			
 			if( !(packet instanceof CallAckPacket))
 			{
@@ -99,17 +99,17 @@ public  class  InboundHandler
 			}
 		}
 		else
-		if( packet instanceof CallPacket    )
+		if( packet instanceof   CallPacket )
 		{
 			adapter.addCall( ObjectUtils.cast(packet , CallPacket.class).getRoomId(),ObjectUtils.cast(packet , CallPacket.class).getContactId(),ObjectUtils.cast( packet,CallPacket.class ).getContentType() );
 		}
 		else
-		if( packet.getHeader().getQos()== 1 )
+		if( packet.getHeader().getAckLevel() == 1 )
 		{
-			adapter.asynchronousSend(new  ContactAckPacket(packet.getContactId(),packet.getId()) );
+			adapter.asynchronousSend(new  PendingAckPacket(packet.getContactId(),packet.getId()) );
 		}
 		else
-		if( packet instanceof CloseCallPacket     )
+		if( packet instanceof     CloseCallPacket )
 		{
 			if( adapter.getCall() == null || adapter.getCall().getId() != ObjectUtils.cast(packet, CloseCallPacket.class).getRoomId() || adapter.getCall().getContactId() != ObjectUtils.cast(packet,CloseCallPacket.class).getContactId() )
 			{

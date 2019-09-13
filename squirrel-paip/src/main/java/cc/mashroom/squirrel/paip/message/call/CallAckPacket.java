@@ -27,9 +27,9 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 @ToString(callSuper=true )
 public  class  CallAckPacket  extends  AbstractCallPacket<CallAckPacket>
 {
-	public  final  static  int  ACK_ACCEPT  = 0x00;
+	public  final  static  int  ACK_AGREE   = 0x00;
 	
-	public  final  static  int  ACK_REJECT  = 0x01;
+	public  final  static  int  ACK_DECLINE = 0x01;
 	
 	public  CallAckPacket( long  contactId,long  roomId, int  response )
 	{

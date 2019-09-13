@@ -40,7 +40,7 @@ public  class  DefaultGenericFutureListener<F extends Future<?>>  implements  Ge
 	{
 		if( future.isDone()&& future.isSuccess() )
 		{
-			if( packet.getHeader().getQos() == 1 )
+			if( packet.getHeader().getAckLevel() == 1 )
 			{
 				handler.pend( packet,time, unit );
 			}
