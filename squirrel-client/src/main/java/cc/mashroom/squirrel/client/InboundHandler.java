@@ -37,7 +37,7 @@ import  cc.mashroom.util.collection.map.Map;
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.util.concurrent.DefaultThreadFactory;
 /*
-@NoArgsConstructor(  access = AccessLevel.PRIVATE )
+@NoArgsConstructor(  access =  AccessLevel.PRIVATE )
 */
 public  class  InboundHandler
 {
@@ -47,13 +47,13 @@ public  class  InboundHandler
 	
 	public  void  channelRead( ChannelHandlerContext  context,Object  object )    throws  Exception
 	{
-		Packet  packet= ObjectUtils.cast( object );
+		Packet  packet = ObjectUtils.cast( object );
 		
 		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+ packet.toString() );
 		
 		SquirrelClient  adapter  = ObjectUtils.cast( context.pipeline().get( "squirrel.client" ) );
 		
-		if( packet instanceof DisconnectAckPacket )
+		if( packet instanceof DisconnectAckPacket  )
 		{
 			if( /*      ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_PROACTIVELY || */  ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_REMOTE_SIGNIN )
 			{
@@ -65,7 +65,7 @@ public  class  InboundHandler
 			}
 		}
 		else
-		if( packet instanceof ConnectAckPacket    )
+		if( packet instanceof     ConnectAckPacket )
 		{
 			if( ObjectUtils.cast(packet, ConnectAckPacket.class).getResponse() == ConnectAckPacket.CONNECTION_ACCEPTED )
 			{
@@ -75,7 +75,7 @@ public  class  InboundHandler
 			{
 				context.close();
 				
-				if(     adapter.isAuthenticated() )
+				if(      adapter.isAuthenticated() )
 				{
 					System.err.println( "still  authenticated,  disconnection  of  network  may  result  in  an  authentication  error  (secret  key  unavailable  now),  so  retrive  a  new  secret  key." );
 					
@@ -84,32 +84,32 @@ public  class  InboundHandler
 			}
 		}
 		else
-		if( packet instanceof     GroupChatPacket )
+		if( packet instanceof GroupChatPacket )
 		{
 			//  do  nothing  while  the  receipt  qos  packet  is  delivered  by  the  server  side
 		}
 		else
-		if( packet instanceof     PendingAckPacket)
+		if( packet instanceof PendingAckPacket)
 		{
 			this.unpend(          ObjectUtils.cast(packet, PendingAckPacket.class).getPacketId(), TransportState.SENT );
 			
-			if( !(packet instanceof CallAckPacket))
+			if( !(packet instanceof CallAckPacket) )
 			{
 				return;
 			}
 		}
 		else
-		if( packet instanceof   CallPacket )
+		if( packet instanceof      CallPacket )
 		{
 			adapter.addCall( ObjectUtils.cast(packet , CallPacket.class).getRoomId(),ObjectUtils.cast(packet , CallPacket.class).getContactId(),ObjectUtils.cast( packet,CallPacket.class ).getContentType() );
 		}
 		else
-		if( packet.getHeader().getAckLevel() == 1 )
+		if( packet.getHeader().getAckLevel() ==  1 )
 		{
 			adapter.asynchronousSend(new  PendingAckPacket(packet.getContactId(),packet.getId()) );
 		}
 		else
-		if( packet instanceof     CloseCallPacket )
+		if( packet instanceof      CloseCallPacket )
 		{
 			if( adapter.getCall() == null || adapter.getCall().getId() != ObjectUtils.cast(packet, CloseCallPacket.class).getRoomId() || adapter.getCall().getContactId() != ObjectUtils.cast(packet,CloseCallPacket.class).getContactId() )
 			{
@@ -117,12 +117,12 @@ public  class  InboundHandler
 			}
 		}
 		
-		PacketEventDispatcher.onReceived( packet );
+		PacketEventDispatcher.onReceived(  packet );
 	}
 	
 	public  Packet  unpend(    long  pendKey, TransportState  dispatchingState )  throws  Exception
 	{
-		Packet  packet= pendings.remove( pendKey );
+		Packet  packet = pendings.remove( pendKey );
 		
 		if( packet != null )
 		{
