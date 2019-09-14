@@ -20,13 +20,14 @@ import  cc.mashroom.squirrel.client.storage.model.OoIData;
 
 public  interface  LifecycleListener
 {
-	public  void  onAuthenticateComplete( int  authenticateResponseCode );
+	public  void  onError( Throwable  error );
+	
+	public  void  onLogout( int  reason );
 	
 	public  void  onReceivedOfflineData( OoIData  ooiData );
 	
 	public  void  onConnectStateChanged( ConnectState  connectState );
-	/**
-	 *  triggered  after  logout  by  specified  reason  (1.active,  2.remote  signin).
-	 */
-	public  void  onLogout( int  reason );
+	
+	public  void  onAuthenticateComplete( int  authenticateResponseCode );
+	
 }

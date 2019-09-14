@@ -19,7 +19,12 @@ public  class  LifecycleEventDispatcher
 	
 	public  static  void  onLogout( Collection<LifecycleListener>  listeners,int  reason )
 	{
-		for( LifecycleListener  listener : listeners )  listener.onLogout(reason);
+		for( LifecycleListener  listener : listeners )  listener.onLogout(   reason );
+	}
+	
+	public  static  void  onError( Collection<LifecycleListener>  listeners,Throwable  throwable )
+	{
+		for( LifecycleListener  listener : listeners )  listener.onError( throwable );
 	}
 	
 	public  static  void  onAuthenticateComplete( Collection<LifecycleListener>  listeners,int  authenticateResponseCode )

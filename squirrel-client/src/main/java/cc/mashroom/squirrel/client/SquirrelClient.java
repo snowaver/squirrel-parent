@@ -41,9 +41,10 @@ import  okhttp3.Interceptor;
 import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 import  okhttp3.Response;
-import cc.mashroom.router.Schema;
-import cc.mashroom.router.Service;
-import cc.mashroom.router.ServiceRouteManager;
+import  cc.mashroom.router.Schema;
+import  cc.mashroom.router.Service;
+import  cc.mashroom.router.ServiceListRequestStrategy;
+import  cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.UserMetadata;
 import  cc.mashroom.squirrel.client.connect.call.Call;
@@ -102,7 +103,7 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	//  0. normal,  do  nothing.  1. connecting  by  id,  but  network  error. 2. (deprecated:  deliver  to  qos  handler,  it  makes  connecting  immediately )  secret  key  expired,  a  new  secret  key  should  be  requested.
 	private  int  connectivityError= 0x00;
 	
-	private  Runnable       connectivityGuarantor  = new  Runnable()   { public  void run()  { check(); } };
+	private  Runnable        connectivityGuarantor = new  Runnable()   { public  void run()  { check(); } };
 
 	private  synchronized   void   check()
 	{
@@ -116,10 +117,10 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 			super.connect( String.valueOf(this.userMetadata.getId())    ,this.userMetadata.getSecretKey() );
 		}
 	}
-		
+	
 	public  SquirrelClient  addLifecycleListener(LifecycleListener  listener )
 	{
-		lifecycleListeners.add(listener );     return  this;
+		lifecycleListeners.add(listener );   return    this;
 	}
 	
 	public  SquirrelClient  removeLifecycleListener(      LifecycleListener  listener )
@@ -222,16 +223,30 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	
 	public  void  connect( final  @NonNull  Long  id,final  Double  longitude,final  Double  latitude,final  String  mac,@NonNull  Collection<LifecycleListener>  lifecycleListeners )
 	{
-		this.lifecycleListeners.addAll(lifecycleListeners );
+		this.lifecycleListeners.addAll( lifecycleListeners);
 		
-		this.synchronousRunner.execute(new  Runnable(){ public  void  run()  { connect(id,longitude,latitude,mac); } } );
+		this.synchronousRunner.execute( new  Runnable(){ public  void  run() { try{ connect(id,longitude,latitude,mac); } catch( Throwable  e ) { LifecycleEventDispatcher.onError( SquirrelClient.this.lifecycleListeners,e); } } } );
+	}
+	
+	public  SquirrelClient  route(final ServiceListRequestStrategy  strategy )
+	{
+		this.synchronousRunner.execute( new  Runnable(){ public  void  run() { route(     strategy ); } } );
+	
+		return   this;
 	}
 	/**
 	 *  connect  the  server.  throws  illegal  state  exception  if  not  routed.  use  latest  connect  parameters  if  the  username  is  not  blank.  http  request  ( include  username,  password  encrypted,  longitude,  latitude  and  mac.  connect  and  read  timeout  are  5  seconds )  will  be  used  to  retrieve  the  secret  key.  initialize  user  metadata  and  offline  datas,  connect  to  paip  protocol  server  after  successful  authentication.  authenticate  complete  method  on  lifecycle  listener  will  be  called  no  matter  authentication  error  or  not.  connectivity  guarantor  will  be  scheduled  at  fixed  rate  (5  seconds)  after  connecting  by  id  or  authenticated  successfully.
 	 */
 	protected  SquirrelClient  connect( String  username,String  password,Double  longitude,Double latitude,String  mac )
 	{
-		if( !    isRouted() )
+		if(    ! isRouted() )
+		{
+//			ServiceRouteManager.INSTANCE.request();
+			
+			super.route(null);
+		}
+		
+		if(    ! isRouted() )
 		{
 			throw  new  IllegalStateException(   "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  no  route  is  available." );
 		}
@@ -325,13 +340,13 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	
 	public  void  connect( final  String  username,final  String  password,final  Double  longitude,final  Double  latitude,final  String  mac,final  @NonNull  Collection<LifecycleListener>  lifecycleListeners )
 	{
-		this.lifecycleListeners.addAll(lifecycleListeners );
+		this.lifecycleListeners.addAll( lifecycleListeners);
 		
-		this.synchronousRunner.execute(new  Runnable(){public  void  run(){ connect(username,password,longitude,latitude,mac,lifecycleListeners); }} );
+		this.synchronousRunner.execute( new  Runnable(){ public  void  run() { try{ connect(username,password,longitude,latitude,mac,lifecycleListeners); }  catch( Throwable  e ) { LifecycleEventDispatcher.onError(lifecycleListeners,e); } } } );
 	}
 
 	public  Response  intercept(     Chain  chain )        throws  IOException
 	{
-		return  chain.proceed( chain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata== null || this.userMetadata.getSecretKey() == null      ? "" : this.userMetadata.getSecretKey()).build() );
+		return  chain.proceed( chain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata == null || this.userMetadata.getSecretKey() == null     ? "" :    this.userMetadata.getSecretKey()).build() );
 	}
 }

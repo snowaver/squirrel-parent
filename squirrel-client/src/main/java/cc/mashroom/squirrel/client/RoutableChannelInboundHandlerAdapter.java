@@ -24,7 +24,7 @@ public  class  RoutableChannelInboundHandlerAdapter  extends  AbstractChannelInb
 {	
 	public  RoutableChannelInboundHandlerAdapter  route(    ServiceListRequestStrategy  strategy )
 	{
-		ServiceRouteManager.INSTANCE.request();
+		ServiceRouteManager.INSTANCE.setStrategy(strategy).request();
 		
 		if(     ServiceRouteManager.INSTANCE.tryNext(Schema.TCP) != null && ServiceRouteManager.INSTANCE.tryNext(Schema.HTTPS) != null )
 		{
