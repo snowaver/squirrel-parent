@@ -241,9 +241,9 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	{
 		if(    ! isRouted() )
 		{
-//			ServiceRouteManager.INSTANCE.request();
+			super.route( super.serviceListRequestStrategy,super.serviceRouteListener );
 			
-			super.route(null);
+//			ServiceRouteManager.INSTANCE.request();
 		}
 		
 		if(    ! isRouted() )

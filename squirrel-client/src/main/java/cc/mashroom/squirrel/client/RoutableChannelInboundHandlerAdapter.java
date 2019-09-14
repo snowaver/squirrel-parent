@@ -16,15 +16,31 @@
 package cc.mashroom.squirrel.client;
 
 import  cc.mashroom.router.ServiceRouteManager;
-import cc.mashroom.squirrel.client.handler.AbstractChannelInboundHandlerAdapter;
+import  cc.mashroom.squirrel.client.handler.AbstractChannelInboundHandlerAdapter;
+import lombok.AccessLevel;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import  javax.annotation.Nonnull;
+
 import  cc.mashroom.router.Schema;
 import  cc.mashroom.router.ServiceListRequestStrategy;
+import  cc.mashroom.router.ServiceRouteListener;
 
 public  class  RoutableChannelInboundHandlerAdapter  extends  AbstractChannelInboundHandlerAdapter
-{	
-	public  RoutableChannelInboundHandlerAdapter  route(    ServiceListRequestStrategy  strategy )
+{
+	@Accessors(chain=true )
+	@Setter( value=AccessLevel.PROTECTED )
+	protected  ServiceListRequestStrategy  serviceListRequestStrategy;
+	@Accessors(chain=true )
+	@Setter( value=AccessLevel.PROTECTED )
+	protected  ServiceRouteListener  serviceRouteListener;
+	
+	public  RoutableChannelInboundHandlerAdapter  route(   @Nonnull  ServiceListRequestStrategy  strategy,@Nonnull  ServiceRouteListener  listener )
 	{
-		ServiceRouteManager.INSTANCE.setStrategy(strategy).request();
+		this.setServiceListRequestStrategy(strategy).setServiceRouteListener(listener );
+		
+		ServiceRouteManager.INSTANCE.setStrategy(strategy).setRouteListener( listener ).request();
 		
 		if(     ServiceRouteManager.INSTANCE.tryNext(Schema.TCP) != null && ServiceRouteManager.INSTANCE.tryNext(Schema.HTTPS) != null )
 		{
