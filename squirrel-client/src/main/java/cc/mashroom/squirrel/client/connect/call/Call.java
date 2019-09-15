@@ -60,7 +60,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 		this.setContext(context).setId(id).setContactId(contactId).setContentType(  callContentType );
 	}
 	
-	private  Call  initialize(   Object  platform,PeerConnectionParameters  parameters )
+	public  Call  initialize(    Object  platform,PeerConnectionParameters  parameters )
 	{
 		PeerConnectionFactory.initializeAndroidGlobals( platform,true,( contentType == CallContentType.VIDEO) );
 		
