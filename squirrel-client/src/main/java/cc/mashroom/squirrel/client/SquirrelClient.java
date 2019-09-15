@@ -192,7 +192,7 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 		*/
 	}
 	
-	public  OkHttpClient  okhttpClient( long  connecttimeoutSeconds ,long  readtimeoutSeconds,long  writetimeoutSeconds )
+	public  OkHttpClient  okhttpClient( long  connecttimeoutSeconds,long  writetimeoutSeconds ,long  readtimeoutSeconds )
 	{
 		return  new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).addInterceptor(this).connectTimeout(connecttimeoutSeconds,TimeUnit.SECONDS).writeTimeout(writetimeoutSeconds,TimeUnit.SECONDS).readTimeout(readtimeoutSeconds,TimeUnit.SECONDS).build();
 	}
