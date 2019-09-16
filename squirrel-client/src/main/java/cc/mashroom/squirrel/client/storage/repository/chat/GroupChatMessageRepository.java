@@ -21,9 +21,8 @@ import  java.sql.Timestamp;
 import  java.util.List;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
-import cc.mashroom.router.Schema;
-import cc.mashroom.router.Service;
-import cc.mashroom.router.ServiceRouteManager;
+import  cc.mashroom.router.Schema;
+import  cc.mashroom.router.Service;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.client.storage.model.chat.GroupChatMessage;
@@ -48,7 +47,7 @@ public  class  GroupChatMessageRepository  extends  RepositorySupport
 	{
 		if( !messages.isEmpty() )
 		{
-			Service  service = ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+			Service  service= context.getServiceRouteManager().current( Schema.HTTPS );
 			
 			for( GroupChatMessage  message : messages )
 			{
@@ -74,7 +73,7 @@ public  class  GroupChatMessageRepository  extends  RepositorySupport
 	{
 		if( transportState == TransportState.RECEIVED )
 		{
-			Service  service = ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+			Service  service= context.getServiceRouteManager().current( Schema.HTTPS );
 			
 			if( packet.getContentType()    == ChatContentType.AUDIO )
 			{

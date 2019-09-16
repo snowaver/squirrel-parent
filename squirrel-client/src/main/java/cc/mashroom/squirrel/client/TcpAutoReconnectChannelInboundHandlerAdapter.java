@@ -15,17 +15,16 @@
  */
 package cc.mashroom.squirrel.client;
 
-import  java.util.concurrent.LinkedBlockingQueue;
-import  java.util.concurrent.ThreadPoolExecutor;
+import  java.util.concurrent.ExecutorService;
+import  java.util.concurrent.Executors;
 import  java.util.concurrent.TimeUnit;
 
 import  javax.net.ssl.SSLContext;
 
 import  org.joda.time.DateTime;
 
-import cc.mashroom.router.Schema;
-import cc.mashroom.router.Service;
-import cc.mashroom.router.ServiceRouteManager;
+import  cc.mashroom.router.Schema;
+import  cc.mashroom.router.Service;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.DefaultGenericFutureListener;
 import  cc.mashroom.squirrel.client.connect.PacketEventDispatcher;
@@ -55,14 +54,12 @@ import  lombok.Setter;
 import  lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 
-public  class  TcpAutoReconnectChannelInboundHandlerAdapter     extends  RoutableChannelInboundHandlerAdapter
+public  class   TcpAutoReconnectChannelInboundHandlerAdapter extends  RoutableChannelInboundHandlerAdapter
 {
 	public  final  static  SSLContext  SSL_CONTEXT= SecureUtils.getSSLContext( "/squirrel.cer" );
 	
-	private  ThreadPoolExecutor  multipartsSendPool = new  ThreadPoolExecutor( 4,4,2,TimeUnit.MINUTES,new  LinkedBlockingQueue<Runnable>(),new  DefaultThreadFactory("MULTIPART-PACKET-SEND-THREAD",false,1) );
-	/*
-	public  final  static  SSLSocketFactory  SSL_SOCKET_FACTORY = SecureUtils.getSSLSocketFactory( "/squirrel.cer" );
-	*/
+	private  ExecutorService  multipartsSendPool  = Executors.newFixedThreadPool( 2,new  DefaultThreadFactory("MULTIPART-SENDER",false,1) );
+	
 	@Getter( value=   AccessLevel.PUBLIC )
 	private  int  keepalive = 600;
 	@Setter( value=AccessLevel.PROTECTED )
@@ -80,43 +77,41 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter     extends  Routabl
 	@Accessors(chain=true)
 	@Getter
 	private  boolean  authenticated=false;
-	private  EventLoopGroup  eventLooperGroup    = new  NioEventLoopGroup( Integer.parseInt( System.getProperty("eventlopper.size","2") ) );
-	private  InboundHandler  qosHandler     = new  InboundHandler();
+	private  EventLoopGroup  eventLooperGroup     = new  NioEventLoopGroup( Integer.parseInt( System.getProperty("eventlopper.size","2")) );
+	private  InboundHandler  qosHandler  =new     InboundHandler();
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  ConnectState  connectState = ConnectState.NONE;
+	private  ConnectState  connectState  =ConnectState.NONE;
 
 	private  LinkedMap<String , PAIPExternalDecoder>  externalDecoders   = new  LinkedMap<String , PAIPExternalDecoder>();
 	
 	public  void  channelInactive( ChannelHandlerContext  context )  throws  Exception
 	{
-		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS") +"  CHANNEL.LEFT:\tNONE" );
-		
 		super.channelInactive(  context );
+		
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS") +"  CHANNEL.LEFT:\tNONE" );
 		
 		context.close();
 		
-		this.eventLooperGroup.execute(     new  Runnable(){public  void  run() { connect(); }} );
+		this.onConnectStateChanged( this.connectState  =  ConnectState.DISCONNECTED );
 		
-		this.onConnectStateChanged( this.connectState   = ConnectState.DISCONNECTED );
+		this.eventLooperGroup.execute(   new  Runnable(){  public  void  run()  {connect(); }} );
 	}
 	
-	public  void  onConnectStateChanged(   ConnectState  changedConnectState )
+	public  void  onConnectStateChanged(ConnectState connectState )
 	{
 		
 	}
 	
-	public  void  channelRead( ChannelHandlerContext  context,Object  object )  throws  Exception
+	public  void  channelRead(ChannelHandlerContext  context,Object   object )  throws  Exception
 	{
 		this.qosHandler.channelRead(context,object );
 	}
 	
-	public  void  exceptionCaught(ChannelHandlerContext  context,Throwable throwable )  throws   Exception
+	protected  void  connect( String  id,String  accessKey )
 	{
-		super.exceptionCaught( context , throwable );
-		
-		this.connect( );
+		setId( id).setAccessKey( accessKey).setAuthenticated(true ).connect();
 	}
 	
 	private  synchronized  void  connect()
@@ -129,13 +124,13 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter     extends  Routabl
         	{
         		this.onConnectStateChanged( connectState =  ConnectState.CONNECTING );
         		{
-        			bootstrap = bootstrap != null ? bootstrap : new  Bootstrap().group(eventLooperGroup).channel(NioSocketChannel.class)/*.option(ChannelOption.SO_KEEPALIVE,true)*/.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,5*1000).handler( new  ClientChannelInitailizer(this) );
+        			bootstrap = bootstrap != null ?   bootstrap : new  Bootstrap().group(eventLooperGroup).channel( NioSocketChannel.class).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,5*1000).handler( new  ClientChannelInitailizer(this) );
         			
-        			Service  currentService = ServiceRouteManager.INSTANCE.current( Schema.TCP );
+        			Service  service = this.serviceRouteManager.current( Schema.TCP );
         			
-        			setChannel(bootstrap.connect(currentService.getHost(),currentService.getPort()).sync().channel()).send( new  ConnectPacket(id,accessKey.getBytes(),keepalive),10,TimeUnit.SECONDS );
+        			setChannel(bootstrap.connect(service.getHost(),service.getPort()).sync().channel()).send( new  ConnectPacket(id,accessKey.getBytes(),keepalive),10,TimeUnit.SECONDS );
         			
-        			for(  PAIPExternalDecoder  externalDecoder : this.externalDecoders.values() )
+        			for( PAIPExternalDecoder  externalDecoder : this.externalDecoders.values()  )
         			{
         				ObjectUtils.cast(   this.channel.pipeline().get("decoder"),PAIPDecoder.class).addExternalDecoder( externalDecoder );
         			}
@@ -146,65 +141,37 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter     extends  Routabl
         {
         	Tracer.trace( e );
         	
-        	this.onConnectStateChanged(this.connectState =ConnectState.DISCONNECTED );
+        	this.onConnectStateChanged( this.connectState=ConnectState.DISCONNECTED );
 		}
 	}
-	
-	public  void  addExternalDecorder(  PAIPExternalDecoder  externalDecoder )
-	{
-		this.externalDecoders.put(      externalDecoder.getClass().getName() , externalDecoder );
 		
-		if( channel  != null )
-		{
-			ObjectUtils.cast(channel.pipeline().get("decoder") , PAIPDecoder.class).addExternalDecoder( externalDecoder );
-		}
-	}
-	
 	@SneakyThrows
-	public  void  close()
+	public  void     release()
 	{
-		disconnect();
-		
 		eventLooperGroup.shutdownGracefully().sync();
 		
 		multipartsSendPool.shutdown();
 	}
 	
-	protected  void  connect( String  id,String  accessKey )
-	{
-		setId( id).setAccessKey( accessKey).setAuthenticated(true ).connect();
-	}
-	
-	public  void  asynchronousSend(  Packet  packet )
-	{
-		this.asynchronousSend( packet,10,TimeUnit.SECONDS );
-	}
-	
-	public  void  send(Packet packet )
+	public  void  send(Packet  packet)
 	{
 		this.send(  packet , 10 , TimeUnit.SECONDS );
-	}
-	
-	public  void  disconnect()
-	{
-		/*
-		send( new  DisconnectPacket(),10,TimeUnit.SECONDS );
-		*/
 	}
 	
 	protected  void    clear()
 	{
 		setId(null).setAuthenticated(false).setAuthenticated(false).setConnectState(  ConnectState.NONE );
 	}
-
-	@SneakyThrows
-	public  void  send(  Packet  packet , long  timeout , TimeUnit  timeunit )
+	/**
+	 *  write  the  packet  to  the  active  and  writable  channel  if  prepared  (false  if  return  false  or  exception  when  files  uploading  in  onbeforesend  method)  before  send.  waiting  for  pending  ack  packet  about  the  packet  sent  after  writen  if  ack  level  is  one.
+	 */
+	private    void  syncsend( Packet  packet,long  writeTimeout, TimeUnit  timeunit )
 	{
-		boolean isSendPrepared =false;
+		boolean   isPreparedBeforeSend       = false;
 		
 		try
 		{
-			isSendPrepared     =PacketEventDispatcher.onBeforeSend( packet  );
+			isPreparedBeforeSend=PacketEventDispatcher.onBeforeSend( packet );
 		}
 		catch(  Throwable  e )
 		{
@@ -212,28 +179,32 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter     extends  Routabl
 		}
 		finally
 		{
-			boolean  isChannelAvailable =   channel != null && channel.isActive() && channel.isWritable();
-			
-			PacketEventDispatcher.onSent( packet,isSendPrepared && isChannelAvailable ? TransportState.SENDING:TransportState.SEND_FAILED );
-			
-			if( isSendPrepared       && isChannelAvailable )
+			if( isPreparedBeforeSend && channel != null  && channel.isActive()   && channel.isWritable() )
 			{
-				this.channel.writeAndFlush(packet).addListener( new  DefaultGenericFutureListener( qosHandler, packet, timeout,timeunit ) );
+				PacketEventDispatcher.onSent( packet,TransportState.SENDING );
+				
+				this.channel.writeAndFlush(packet).addListener(new  DefaultGenericFutureListener(qosHandler,packet,writeTimeout,timeunit) );
+			}
+			else
+			{
+				PacketEventDispatcher.onSent( packet,    TransportState.SEND_FAILED );
 			}
 		}
 	}
 	/**
+	 *  an  extension  for  decoding  customized  packet  (packet  type  value  MUST  be  greater  than  1024  and  less  than  65536).  the  external  decoder  finally  is  added  to  paip  decoder.
+	 */
+	public  void  addExternalDecorder(  PAIPExternalDecoder  externalDecoder )
+	{
+		this.externalDecoders.put(      externalDecoder.getClass().getName() , externalDecoder );
+		
+		if( channel  != null )    ObjectUtils.cast(channel.pipeline().get("decoder"),PAIPDecoder.class).addExternalDecoder(externalDecoder);
+	}
+	/**
 	 *  multipart  uploading  is  a  heavily  time-consuming  io  operation,  so  seperate  it  from  other  data  packet  by  a  new  pool  named  MULTIPART-PACKET-SEND-THREAD  to  avoid  blocking  data  interaction  by  multipart  uploading  operations.
 	 */
-	public  void  asynchronousSend( final  Packet  packet,final  long  timeout,final  TimeUnit  timeunit )
+	public  void  send(    final  Packet  packet,final  long  timeout,final  TimeUnit  timeunit )
 	{
-		if( (packet instanceof ChatPacket && ObjectUtils.cast(packet,ChatPacket.class).getContentType() != ChatContentType.WORDS) || (packet instanceof GroupChatPacket && ObjectUtils.cast(packet,GroupChatPacket.class).getContentType() != ChatContentType.WORDS) )
-		{
-			multipartsSendPool.execute( new  Runnable(){ public  void  run(){ send(packet, timeout, timeunit); } } );
-		}
-		else
-		{
-			this.eventLooperGroup.execute( new  Runnable(){ public  void  run(){ send( packet, timeout, timeunit ); } } );
-		}
+		((packet instanceof ChatPacket && ObjectUtils.cast(packet,ChatPacket.class).getContentType() != ChatContentType.WORDS) || (packet instanceof GroupChatPacket && ObjectUtils.cast(packet,GroupChatPacket.class).getContentType() != ChatContentType.WORDS) ? multipartsSendPool : eventLooperGroup).execute( new  Runnable(){ public  void  run(){ send( packet, timeout, timeunit ); } } );
 	}
 }

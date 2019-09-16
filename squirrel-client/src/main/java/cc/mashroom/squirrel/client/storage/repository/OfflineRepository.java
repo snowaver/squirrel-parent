@@ -20,9 +20,8 @@ import  java.sql.Timestamp;
 
 import  cc.mashroom.db.GenericRepository;
 import  cc.mashroom.db.annotation.DataSourceBind;
-import cc.mashroom.router.Schema;
-import cc.mashroom.router.Service;
-import cc.mashroom.router.ServiceRouteManager;
+import  cc.mashroom.router.Schema;
+import  cc.mashroom.router.Service;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.repository.chat.ChatMessageRepository;
@@ -44,7 +43,7 @@ import  okhttp3.Response;
 @NoArgsConstructor(access=AccessLevel.PRIVATE )
 public  class  OfflineRepository  extends  GenericRepository
 {
-	public  final  static  OfflineRepository  DAO  = new  OfflineRepository();
+	public  final  static  OfflineRepository  DAO    = new  OfflineRepository();
 	
 	public  OoIData  attach( SquirrelClient  context )  throws  IOException,NumberFormatException,IllegalArgumentException,IllegalAccessException
 	{
@@ -58,7 +57,7 @@ public  class  OfflineRepository  extends  GenericRepository
 		
 		Long  latestReceivedGroupChatMessageId = GroupChatMessageRepository.DAO.lookupOne( Long.class,"SELECT  MAX(ID)  FROM  "+GroupChatMessageRepository.DAO.getDataSourceBind().table()+"  WHERE  TRANSPORT_STATE = ?",new  Object[]{TransportState.RECEIVED.getValue()} );
 		
-		Service  service=ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+		Service  service=context.getServiceRouteManager().current(Schema.HTTPS);
 		
 		try(Response  response = context.okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("offline/lookup").addQueryParameter("action",String.valueOf(0)).addQueryParameter("keyword",String.valueOf(context.getUserMetadata().getId())).addQueryParameter("extras",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("OFFLINE_CHAT_MESSAGES",new  HashMap<String,Object>().addEntry("LATEST_RECEIVED_ID",latestReceivedChatMessageId == null ? 0 : latestReceivedChatMessageId)).addEntry("OFFLINE_GROUP_CHAT_MESSAGES",new  HashMap<String,Object>().addEntry("LATEST_RECEIVED_ID",latestReceivedGroupChatMessageId == null ? 0 : latestReceivedGroupChatMessageId)).addEntry("CONTACTS",new  HashMap<String,Object>().addEntry("LATEST_MODIFY_TIME",DateUtils.toString(contactLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))).addEntry("CHAT_GROUPS",new  HashMap<String,Object>().addEntry("LATEST_MODIFY_TIME",DateUtils.toString(chatGroupLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))).addEntry("CHAT_GROUP_USERS",new  HashMap<String,Object>().addEntry("LATEST_MODIFY_TIME",DateUtils.toString(chatGroupUserLatestModifyTime,"yyyy-MM-dd'T'HH:mm:ss'Z'","2000-01-01T00:00:00.000Z"))))).build()).build()).execute() )
 		{
@@ -66,7 +65,7 @@ public  class  OfflineRepository  extends  GenericRepository
 			{
 				OoIData  ooiData = JsonUtils.mapper.readValue( response.body().string(),OoIData.class );
 				
-				ContactRepository.DAO.recache().attach(ooiData.getContacts());  ChatGroupRepository.DAO.attach( context,ooiData );
+				ContactRepository.DAO.recache().attach( ooiData.getContacts() );  ChatGroupRepository.DAO.attach( context,ooiData );
 				
 				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineChatMessages() );
 				

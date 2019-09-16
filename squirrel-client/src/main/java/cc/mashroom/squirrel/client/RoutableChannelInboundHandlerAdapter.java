@@ -17,41 +17,37 @@ package cc.mashroom.squirrel.client;
 
 import  cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.handler.AbstractChannelInboundHandlerAdapter;
-import lombok.AccessLevel;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import  lombok.AccessLevel;
+import lombok.Getter;
+import  lombok.Setter;
+import  lombok.experimental.Accessors;
 
 import  javax.annotation.Nonnull;
 
 import  cc.mashroom.router.Schema;
 import  cc.mashroom.router.ServiceListRequestStrategy;
-import  cc.mashroom.router.ServiceRouteListener;
 
 public  class  RoutableChannelInboundHandlerAdapter  extends  AbstractChannelInboundHandlerAdapter
 {
-	@Accessors(chain=true )
-	@Setter( value=AccessLevel.PROTECTED )
-	protected  ServiceListRequestStrategy  serviceListRequestStrategy;
-	@Accessors(chain=true )
-	@Setter( value=AccessLevel.PROTECTED )
-	protected  ServiceRouteListener  serviceRouteListener;
+	@Accessors( chain=true )
+	@Setter( value= AccessLevel.PROTECTED )
+	@Getter
+	protected  ServiceRouteManager   serviceRouteManager;
 	
-	public  RoutableChannelInboundHandlerAdapter  route(   @Nonnull  ServiceListRequestStrategy  strategy,@Nonnull  ServiceRouteListener  listener )
+	public  RoutableChannelInboundHandlerAdapter  route( @Nonnull    ServiceListRequestStrategy  requestStrategy )
 	{
-		this.setServiceListRequestStrategy(strategy).setServiceRouteListener(listener );
+		return  this.setServiceRouteManager(new  ServiceRouteManager(   requestStrategy)).route();
+	}
+	
+	public  RoutableChannelInboundHandlerAdapter  route()
+	{
+		this.serviceRouteManager.request();
 		
-		ServiceRouteManager.INSTANCE.setStrategy(strategy).setRouteListener( listener ).request();
-		
-		if(     ServiceRouteManager.INSTANCE.tryNext(Schema.TCP) != null && ServiceRouteManager.INSTANCE.tryNext(Schema.HTTPS) != null )
+		if( serviceRouteManager.tryNext(Schema.TCP) != null && serviceRouteManager.tryNext(Schema.HTTPS) != null )
 		{
-			System.err.println( "SQUIRREL-CLIENT:  ** ROUTABLE  CHANNEL  INBOUND  HANDLER  ADAPTER **  route  successfully." );
+			System.err.println( "SQUIRREL-CLIENT:  ** ROUTABLE  CHANNEL  INBOUND  HANDLER  ADAPTER **  service  route  successfully." );
 		}
 		
 		return  this;
-	}
-	
-	public  boolean  isRouted()
-	{
-		return  ServiceRouteManager.INSTANCE.current(Schema.TCP) != null && ServiceRouteManager.INSTANCE.current(Schema.HTTPS) != null ;
 	}
 }

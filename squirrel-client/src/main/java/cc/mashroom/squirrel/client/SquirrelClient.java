@@ -89,6 +89,8 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	/*
 	private  List<BalancingProxy>  balancingProxies= new  LinkedList<BalancingProxy>();
 	*/
+	private  ServiceRouteManager        serviceRouteManager;
+	
 	private  ThreadPoolExecutor  synchronousRunner = new  ThreadPoolExecutor( 1,1,2,TimeUnit.MINUTES,new  LinkedBlockingQueue<Runnable>(),new  DefaultThreadFactory("SYNCHRONOUS-HANDLER-THREAD",false,1) );
 	@Setter( value=AccessLevel.PROTECTED )
 	@Accessors(chain=true)
@@ -165,9 +167,9 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 			(
 				new  Runnable(){public  void  run()
 				{
-					final  Service  currentService=    ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+					Service  service =     serviceRouteManager.current( Schema.HTTPS );
 					
-					try(Response  response = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(currentService.getSchema()).host(currentService.getHost()).port(currentService.getPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
+					try(Response  response = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
 					{
 						if(response.code() != 200 )
 						{
@@ -230,8 +232,8 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	
 	public  SquirrelClient  route(final ServiceListRequestStrategy  strategy )
 	{
-		this.synchronousRunner.execute( new  Runnable(){ public  void  run() { route(     strategy ); } } );
-	
+		this.synchronousRunner.execute( new  Runnable(){ public  void  run() { SquirrelClient.this.route(strategy);} } );
+		
 		return   this;
 	}
 	/**
@@ -239,14 +241,9 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	 */
 	protected  SquirrelClient  connect( String  username,String  password,Double  longitude,Double latitude,String  mac )
 	{
-		if(    ! isRouted() )
-		{
-			super.route( super.serviceListRequestStrategy,super.serviceRouteListener );
-			
-//			ServiceRouteManager.INSTANCE.request();
-		}
+		if(    serviceRouteManager.getServices().isEmpty() )    super.route();
 		
-		if(    ! isRouted() )
+		if( serviceRouteManager.current(Schema.TCP)  == null ||  this.serviceRouteManager.current(Schema.HTTPS) == null )
 		{
 			throw  new  IllegalStateException(   "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  no  route  is  available." );
 		}
@@ -263,7 +260,7 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 		//  reset  the  connnectivity  error  to  normal  state, which  should  be  changed  by  the  special  situation.
 		this.connectivityError     = 0x00;
 		
-		Service  service=ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+		Service  service =   this.serviceRouteManager.current( Schema.HTTPS );
 		
 		try(Response  response = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("/user/signin").build()).post(HttpUtils.form(connectParameters = connectParameters != null ? connectParameters.addEntry("isAutoReconnect",true) : new  HashMap<String,Object>().addEntry("username",username).addEntry("password",new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
 		{
@@ -324,7 +321,7 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	 */
 	public  void    release()
 	{
-		super.close();
+		super.release(/***/);
 		
 		connectivityGuarantorThreadPool.shutdown();
 	}

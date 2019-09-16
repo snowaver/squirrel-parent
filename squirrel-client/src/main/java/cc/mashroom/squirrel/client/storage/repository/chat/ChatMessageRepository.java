@@ -23,7 +23,6 @@ import  java.util.List;
 import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.router.Schema;
 import  cc.mashroom.router.Service;
-import  cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
@@ -45,9 +44,9 @@ import  okhttp3.Request;
 @NoArgsConstructor( access=AccessLevel.PRIVATE )
 public  class  ChatMessageRepository  extends  RepositorySupport
 {
-	public  final  static  ChatMessageRepository  DAO =  new  ChatMessageRepository();
+	public  final  static  ChatMessageRepository  DAO = new  ChatMessageRepository();
 	
-	public  int  remove(   ChatRecallPacket   packet )
+	public  int  remove(    ChatRecallPacket   packet )
 	{
 		return  super.update( "DELETE  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  CONTACT_ID = ?",new  Object[]{packet.getChatPacketId(),packet.getContactId()} );
 	}
@@ -56,7 +55,7 @@ public  class  ChatMessageRepository  extends  RepositorySupport
 	{
 		if( !messages.isEmpty() )
 		{
-			Service  service    =ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+			Service   service=context.getServiceRouteManager().current(Schema.HTTPS);
 			
 			for(      ChatMessage  message : messages )
 			{
@@ -80,7 +79,7 @@ public  class  ChatMessageRepository  extends  RepositorySupport
 	{
 		if( transportState == TransportState.RECEIVED )
 		{
-			Service  service    =ServiceRouteManager.INSTANCE.current( Schema.HTTPS );
+			Service   service=context.getServiceRouteManager().current(Schema.HTTPS);
 			
 			if( packet.getContentType()==ChatContentType.AUDIO )
 			{

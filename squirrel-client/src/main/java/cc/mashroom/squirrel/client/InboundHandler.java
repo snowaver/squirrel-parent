@@ -91,7 +91,7 @@ public  class  InboundHandler
 		else
 		if( packet instanceof PendingAckPacket)
 		{
-			this.unpend(          ObjectUtils.cast(packet, PendingAckPacket.class).getPacketId(), TransportState.SENT );
+			this.unpend(           ObjectUtils.cast(packet, PendingAckPacket.class).getPacketId(),TransportState.SENT );
 			
 			if( !(packet instanceof CallAckPacket) )
 			{
@@ -106,7 +106,7 @@ public  class  InboundHandler
 		else
 		if( packet.getHeader().getAckLevel() ==  1 )
 		{
-			adapter.asynchronousSend(new  PendingAckPacket(packet.getContactId(),packet.getId()) );
+			adapter.send(          new  PendingAckPacket( packet.getContactId(),packet.getId() ) );
 		}
 		else
 		if( packet instanceof      CloseCallPacket )
