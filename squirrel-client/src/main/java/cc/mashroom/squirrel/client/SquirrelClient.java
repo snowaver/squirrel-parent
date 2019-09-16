@@ -232,7 +232,7 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	
 	public  SquirrelClient  route(final ServiceListRequestStrategy  strategy )
 	{
-		this.synchronousRunner.execute( new  Runnable(){ public  void  run() { SquirrelClient.this.route(strategy);} } );
+		this.synchronousRunner.execute( new  Runnable(){ public  void  run() { SquirrelClient.super.route(strategy);}} );
 		
 		return   this;
 	}
