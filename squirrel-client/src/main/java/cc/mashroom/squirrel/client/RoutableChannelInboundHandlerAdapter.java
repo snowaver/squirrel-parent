@@ -17,33 +17,39 @@ package cc.mashroom.squirrel.client;
 
 import  cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.handler.AbstractChannelInboundHandlerAdapter;
+import  cc.mashroom.squirrel.client.storage.repository.ServiceRepository;
 import  lombok.AccessLevel;
-import lombok.Getter;
+import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.experimental.Accessors;
 
-import  javax.annotation.Nonnull;
+import  java.sql.Connection;
 
+import  com.google.common.collect.Lists;
+
+import  cc.mashroom.db.common.Db;
+import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.router.Schema;
-import  cc.mashroom.router.ServiceListRequestStrategy;
 
 public  class  RoutableChannelInboundHandlerAdapter  extends  AbstractChannelInboundHandlerAdapter
 {
-	@Accessors( chain=true )
+	@Accessors( chain= true )
 	@Setter( value= AccessLevel.PROTECTED )
 	@Getter
-	protected  ServiceRouteManager   serviceRouteManager;
-	
-	public  RoutableChannelInboundHandlerAdapter  route( @Nonnull    ServiceListRequestStrategy  requestStrategy )
-	{
-		return  this.setServiceRouteManager(new  ServiceRouteManager(   requestStrategy)).route();
-	}
-	
-	public  RoutableChannelInboundHandlerAdapter  route()
+	protected  ServiceRouteManager      serviceRouteManager;
+	/**
+	 *  use  previous  cached  services  by  default.  merge  all  requested  services  to  cached  services  if  request  successfully,  then  cache  all  merged  services  and  point  to  a  HTTPS  and  a  TCP  service.
+	 */
+	protected  RoutableChannelInboundHandlerAdapter  route()
 	{
 		this.serviceRouteManager.request();
 		
-		if( serviceRouteManager.tryNext(Schema.TCP) != null && serviceRouteManager.tryNext(Schema.HTTPS) != null )
+		if( !  serviceRouteManager.getServices().isEmpty() )
+		{
+			Db.tx( "config",Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable { ServiceRepository.DAO.insert(Lists.newArrayList(serviceRouteManager.getServices()));  return  true; }} );
+		}
+		
+		if( serviceRouteManager.tryNext(Schema.TCP)  != null && serviceRouteManager.tryNext(Schema.HTTPS) != null )
 		{
 			System.err.println( "SQUIRREL-CLIENT:  ** ROUTABLE  CHANNEL  INBOUND  HANDLER  ADAPTER **  service  route  successfully." );
 		}

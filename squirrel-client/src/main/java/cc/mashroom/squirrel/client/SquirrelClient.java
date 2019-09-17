@@ -17,6 +17,7 @@ package cc.mashroom.squirrel.client;
 
 import  java.io.File;
 import  java.io.IOException;
+import  java.io.InputStream;
 import  java.net.SocketTimeoutException;
 import  java.util.Collection;
 import  java.util.LinkedHashSet;
@@ -41,6 +42,9 @@ import  okhttp3.Interceptor;
 import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 import  okhttp3.Response;
+import  cc.mashroom.db.ConnectionManager;
+import  cc.mashroom.db.common.Db;
+import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.router.Schema;
 import  cc.mashroom.router.Service;
 import  cc.mashroom.router.ServiceListRequestStrategy;
@@ -54,6 +58,7 @@ import  cc.mashroom.squirrel.client.connect.call.CallState;
 import  cc.mashroom.squirrel.client.connect.util.HttpUtils;
 import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.client.storage.model.user.User;
+import cc.mashroom.squirrel.client.storage.repository.ServiceRepository;
 import  cc.mashroom.squirrel.client.storage.repository.user.UserRepository;
 import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.message.call.CallContentType;
@@ -63,6 +68,7 @@ import  cc.mashroom.util.collection.map.Map;
 import  cc.mashroom.util.DigestUtils;
 import  cc.mashroom.util.NoopX509TrustManager;
 import  cc.mashroom.util.FileUtils;
+import  cc.mashroom.util.IOUtils;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.NoopHostnameVerifier;
 import  cc.mashroom.util.ObjectUtils;
@@ -89,8 +95,6 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	/*
 	private  List<BalancingProxy>  balancingProxies= new  LinkedList<BalancingProxy>();
 	*/
-	private  ServiceRouteManager        serviceRouteManager;
-	
 	private  ThreadPoolExecutor  synchronousRunner = new  ThreadPoolExecutor( 1,1,2,TimeUnit.MINUTES,new  LinkedBlockingQueue<Runnable>(),new  DefaultThreadFactory("SYNCHRONOUS-HANDLER-THREAD",false,1) );
 	@Setter( value=AccessLevel.PROTECTED )
 	@Accessors(chain=true)
@@ -199,7 +203,7 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 		return  new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).addInterceptor(this).connectTimeout(connecttimeoutSeconds,TimeUnit.SECONDS).writeTimeout(writetimeoutSeconds,TimeUnit.SECONDS).readTimeout(readtimeoutSeconds,TimeUnit.SECONDS).build();
 	}
 	/**
-	 *  connect  by  the  user  id.  the  username  and  encrypted  password,  which  are  stored  in  local  h2  database,  can  be  fetched  by  the  unique  user  id.  a  new  connect  parameters  will  be  created  for  the  https  authenticate  request.
+	 *  connect  by  the  user  id.  the  username  and  encrypted  password,  which  are  stored  in  local  h2  database,  can  be  fetched  by  the  unique  user  id.  a  new  connect  parameters  will  be  created  for  the     https  authenticate  request.
 	 */
 	protected  SquirrelClient  connect( @NonNull  Long  id, Double  longitude,Double  latitude,String  mac )
 	{
@@ -227,12 +231,37 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	{
 		this.lifecycleListeners.addAll( lifecycleListeners);
 		
-		this.synchronousRunner.execute( new  Runnable(){ public  void  run() { try{ connect(id,longitude,latitude,mac); } catch( Throwable  e ) { LifecycleEventDispatcher.onError( SquirrelClient.this.lifecycleListeners,e); } } } );
+		this.synchronousRunner.execute( new  Runnable(){   public  void  run()     { try{ connect( id,longitude,latitude,mac ); }  catch( Throwable  e ) { LifecycleEventDispatcher.onError( SquirrelClient.this.lifecycleListeners,e); } } } );
+	}
+	
+	public  void    reroute()
+	{
+		this.synchronousRunner.execute( new  Runnable(){   public  void  run()     { SquirrelClient.super.route(); } } );
 	}
 	
 	public  SquirrelClient  route(final ServiceListRequestStrategy  strategy )
 	{
-		this.synchronousRunner.execute( new  Runnable(){ public  void  run() { SquirrelClient.super.route(strategy);}} );
+		try
+		{
+			ConnectionManager.INSTANCE.addDataSource("org.h2.Driver","config","jdbc:h2:"+FileUtils.createFileIfAbsent(new  File(cacheDir,"db/config.db"),null).getPath()+";FILE_LOCK=FS;DB_CLOSE_DELAY=-1;AUTO_RECONNECT=TRUE",null,null,2,4,null,"SELECT  2",true );
+		}
+		catch( Throwable  e )
+		{
+			throw  new  IllegalStateException( "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  adding  datasource  error",e );
+		}
+		
+		try( InputStream  is = getClass().getResourceAsStream("/config.ddl") )
+		{
+			super.setServiceRouteManager( new ServiceRouteManager(strategy) );
+			
+			Db.tx( "config",java.sql.Connection.TRANSACTION_SERIALIZABLE,new  Callback(){public  Object  execute( cc.mashroom.db.connection.Connection  connection )  throws  Throwable{ connection.runScripts( IOUtils.toString(is,"UTF-8") );  serviceRouteManager.add(ServiceRepository.DAO.lookup());  return  true; }} );
+		}
+		catch( Throwable  e )
+		{
+			throw  new  IllegalStateException( "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  cache  error",e );
+		}
+		
+		this.synchronousRunner.execute( new  Runnable(){   public  void  run()     { SquirrelClient.super.route(); } } );
 		
 		return   this;
 	}
@@ -250,14 +279,14 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 		
 		if( lifecycleListeners.isEmpty() )
 		{
-			throw  new  IllegalArgumentException("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  lifecycle  listeners  is  empty."   );
+			throw  new  IllegalArgumentException("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  lifecycle  listeners  is  empty."  );
 		}
 		//  clear  the  connect  parameters  if  the  username  isn' t  blank.
 		if( StringUtils.isNotBlank(    username ) )
 		{
 			this.connectParameters = null;
 		}
-		//  reset  the  connnectivity  error  to  normal  state, which  should  be  changed  by  the  special  situation.
+		//  reset  the  connnectivity  error  to  normal  state,which  should  be  changed  by  the  special   situation.
 		this.connectivityError     = 0x00;
 		
 		Service  service =   this.serviceRouteManager.current( Schema.HTTPS );
@@ -267,7 +296,7 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 			if(   response.code() == 200 )
 			{
 				this.userMetadata =JsonUtils.mapper.readValue(response.body().string(),UserMetadata.class );
-				//  connecting  to  the  user' s  database  and  merge  offline  datas  from  remote  server  to  native  storage.
+				//  connecting  to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
 				Storage.INSTANCE.initialize(this,false,lifecycleListeners,this.cacheDir,this.userMetadata  , connectParameters.getString("password") );
 			
 				this.connect( String.valueOf(this.userMetadata.getId()), this.userMetadata.getSecretKey() );
