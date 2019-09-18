@@ -19,16 +19,14 @@ import  java.io.File;
 import  java.io.IOException;
 import  java.io.InputStream;
 import  java.net.SocketTimeoutException;
-import java.util.ArrayList;
+import  java.util.ArrayList;
 import  java.util.Collection;
-import  java.util.LinkedHashSet;
-import java.util.List;
+import  java.util.List;
+import  java.util.concurrent.CopyOnWriteArrayList;
 import  java.util.concurrent.LinkedBlockingQueue;
 import  java.util.concurrent.ScheduledThreadPoolExecutor;
 import  java.util.concurrent.ThreadPoolExecutor;
 import  java.util.concurrent.TimeUnit;
-
-import  javax.annotation.Nonnull;
 
 import  org.apache.commons.codec.binary.Hex;
 
@@ -68,6 +66,7 @@ import  cc.mashroom.squirrel.paip.message.call.CallContentType;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
+import  cc.mashroom.util.CollectionUtils;
 import  cc.mashroom.util.DigestUtils;
 import  cc.mashroom.util.NoopX509TrustManager;
 import  cc.mashroom.util.FileUtils;
@@ -105,7 +104,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	@Accessors(chain=true)
 	private  Call    call;
 	@Accessors(chain=true)
-	private  LinkedHashSet<LifecycleListener>  lifecycleListeners = new  LinkedHashSet<LifecycleListener>();
+	private  List<LifecycleListener>  lifecycleListeners  = new   CopyOnWriteArrayList<LifecycleListener>();
 	@Setter( value=AccessLevel.PROTECTED )
 	//  0. normal,  do  nothing.  1. connecting  by  id,  but  network  error. 2. ( deprecated:  deliver  to  inbound  handler,   it  makes  connecting  immediately )  secret  key  expired  and  a  new  secret  key  will  be  requested.
 	private  int  connectivityError= 0x00;
@@ -127,12 +126,14 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	
 	public  SquirrelClient  addLifecycleListener(LifecycleListener  listener )
 	{
-		lifecycleListeners.add(listener );   return    this;
+		CollectionUtils.addIfAbsent( this.lifecycleListeners     ,  listener);
+		
+		return   this;
 	}
 	
 	public  SquirrelClient  removeLifecycleListener(      LifecycleListener  listener )
 	{
-		this.lifecycleListeners.remove( listener );
+		CollectionUtils.remove(lifecycleListeners,listener);
 		
 		return   this;
 	}
@@ -242,7 +243,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		this.synchronousRunner.execute( new  Runnable(){   public  void  run()     { SquirrelClient.super.route(); } } );
 	}
 	
-	public  SquirrelClient  route(      @Nonnull ServiceListRequestStrategy  strategy )
+	public  SquirrelClient  route(      @NonNull ServiceListRequestStrategy  strategy )
 	{
 		try
 		{

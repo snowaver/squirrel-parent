@@ -15,9 +15,9 @@
  */
 package cc.mashroom.squirrel.client;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import  java.util.ArrayList;
+import  java.util.List;
+import  java.util.concurrent.CopyOnWriteArrayList;
 import  java.util.concurrent.ExecutorService;
 import  java.util.concurrent.Executors;
 import  java.util.concurrent.TimeUnit;
@@ -26,12 +26,12 @@ import  javax.net.ssl.SSLContext;
 
 import  org.joda.time.DateTime;
 
-import com.google.common.collect.Lists;
+import  com.google.common.collect.Lists;
 
 import  cc.mashroom.router.Schema;
 import  cc.mashroom.router.Service;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
-import cc.mashroom.squirrel.client.storage.Storage;
+import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.codec.PAIPDecoder;
 import  cc.mashroom.squirrel.paip.codec.PAIPExternalDecoder;
@@ -41,6 +41,7 @@ import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
+import  cc.mashroom.util.CollectionUtils;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.SecureUtils;
 import  cc.mashroom.util.collection.map.LinkedMap;
@@ -54,6 +55,7 @@ import  io.netty.channel.socket.nio.NioSocketChannel;
 import  io.netty.util.concurrent.DefaultThreadFactory;
 import  lombok.AccessLevel;
 import  lombok.Getter;
+import  lombok.NonNull;
 import  lombok.Setter;
 import  lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
@@ -83,32 +85,31 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 	private  boolean  authenticated=false;
 	private  EventLoopGroup  eventLooperGroup     = new  NioEventLoopGroup( Integer.parseInt(System.getProperty("eventlopper.size","2") ) );
 	private  InboundHandler  qosHandler  =new     InboundHandler();
+	private  LinkedMap<String  , PAIPExternalDecoder>     externalDecoders = new  LinkedMap<String,PAIPExternalDecoder>();
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
 	private  ConnectState  connectState  =ConnectState.NONE;
-
-	private  LinkedMap<String  , PAIPExternalDecoder>     externalDecoders = new  LinkedMap<String,PAIPExternalDecoder>();
 	
 	private  List<PacketListener>  packetListeners= new  CopyOnWriteArrayList<PacketListener>(      Lists.newArrayList(Storage.INSTANCE ) );
 		
-	public  T  removePacketListener(     PacketListener  listener )
+	public  T  removePacketListener(     @NonNull   PacketListener  listener )
 	{
-		packetListeners.remove(listener );
+		CollectionUtils.remove( this.packetListeners,   listener );
 		
 		return  (T)  this;
 	}
 	
-	public  T  addPacketListener( PacketListener  listener )
-	{
-		packetListeners.add(   listener );
-		
-		return  (T)  this;
-	}
-	
-	public List<PacketListener>  getPacketListeners()
+	public  List<PacketListener> getPacketListeners()
 	{
 		return  new  ArrayList<PacketListener>(  packetListeners );
+	}
+	
+	public  T  addPacketListener(        @NonNull   PacketListener  listener )
+	{
+		CollectionUtils.addIfAbsent( packetListeners,   listener );
+		
+		return  (T)  this;
 	}
 	
 	public  void  channelInactive( ChannelHandlerContext  context )  throws  Exception
@@ -129,7 +130,7 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 		
 	}
 	
-	public  void  channelRead(ChannelHandlerContext  context ,Object  object )  throws  Exception
+	public  void  channelRead(ChannelHandlerContext  context,Object   object )  throws  Exception
 	{
 		this.qosHandler.channelRead(context,object );
 	}
