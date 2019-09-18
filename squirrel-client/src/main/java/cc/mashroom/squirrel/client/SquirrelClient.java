@@ -302,7 +302,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		
 		Service  service =   this.serviceRouteManager.current( Schema.HTTPS );
 		
-		try(Response  response=okhttpClient(5,5,10).newCall(new Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("/user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isConnectingById ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac).addEntry("isConnectingById",isConnectingById).addEntry("isAutoReconnect",isAutoReconnect))).build()).execute() )
+		try(Response  response=okhttpClient(5,5,10).newCall(new Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isConnectingById ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac).addEntry("isConnectingById",isConnectingById).addEntry("isAutoReconnect",isAutoReconnect))).build()).execute() )
 		{
 			if(   response.code() == 200 )
 			{
