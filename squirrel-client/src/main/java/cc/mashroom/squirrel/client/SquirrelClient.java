@@ -26,6 +26,8 @@ import  java.util.concurrent.ScheduledThreadPoolExecutor;
 import  java.util.concurrent.ThreadPoolExecutor;
 import  java.util.concurrent.TimeUnit;
 
+import  javax.annotation.Nonnull;
+
 import  org.apache.commons.codec.binary.Hex;
 
 import  io.netty.channel.ChannelHandler.Sharable;
@@ -48,7 +50,6 @@ import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.router.Schema;
 import  cc.mashroom.router.Service;
 import  cc.mashroom.router.ServiceListRequestStrategy;
-import  cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.connect.UserMetadata;
 import  cc.mashroom.squirrel.client.connect.call.Call;
@@ -58,7 +59,7 @@ import  cc.mashroom.squirrel.client.connect.call.CallState;
 import  cc.mashroom.squirrel.client.connect.util.HttpUtils;
 import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.client.storage.model.user.User;
-import cc.mashroom.squirrel.client.storage.repository.ServiceRepository;
+import  cc.mashroom.squirrel.client.storage.repository.ServiceRepository;
 import  cc.mashroom.squirrel.client.storage.repository.user.UserRepository;
 import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.message.call.CallContentType;
@@ -72,7 +73,6 @@ import  cc.mashroom.util.IOUtils;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.NoopHostnameVerifier;
 import  cc.mashroom.util.ObjectUtils;
-import  cc.mashroom.util.StringUtils;
 
 @Sharable
 
@@ -106,7 +106,7 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	@Accessors(chain=true)
 	private  LinkedHashSet<LifecycleListener>  lifecycleListeners = new  LinkedHashSet<LifecycleListener>();
 	@Setter( value=AccessLevel.PROTECTED )
-	//  0. normal,  do  nothing.  1. connecting  by  id,  but  network  error. 2. (deprecated:  deliver  to  qos  handler,  it  makes  connecting  immediately )  secret  key  expired,  a  new  secret  key  should  be  requested.
+	//  0. normal,  do  nothing.  1. connecting  by  id,  but  network  error. 2. ( deprecated:  deliver  to  inbound  handler,   it  makes  connecting  immediately )  secret  key  expired  and  a  new  secret  key  will  be  requested.
 	private  int  connectivityError= 0x00;
 	
 	private  Runnable        connectivityGuarantor = new  Runnable()   { public  void run()  { check(); } };
@@ -115,12 +115,12 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	{
 		if( this.connectivityError == 0x01 || this.connectivityError == 0x02 )
 		{
-			this.connect( null,null,null,null,null, this.lifecycleListeners );
+			this.connect( connectParameters.getString("username"),connectParameters.getString("password"),connectParameters.getDouble("longitude"),connectParameters.getDouble("latitude"),connectParameters.getString("mac"),false,true );
 		}
 		else
 		if( getConnectState() == ConnectState.DISCONNECTED )
 		{
-			super.connect( String.valueOf(this.userMetadata.getId())    ,this.userMetadata.getSecretKey() );
+			super.connect( String.valueOf(this.userMetadata.getId())   , this.userMetadata.getSecretKey() );
 		}
 	}
 	
@@ -165,7 +165,6 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	 */
 	public  synchronized  void  newCall(final  long contactId,@NonNull  final  CallContentType contentType )
 	{
-//		if( roomId     <= 0 )
 		{
 			this.synchronousRunner.execute
 			(
@@ -215,9 +214,7 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 			
 			this.userMetadata      = new  UserMetadata( id,user.getUsername(),user.getName(),user.getNickname(),0,null );
 			
-			this.connectParameters = new  HashMap<String,Object>().addEntry("username",user.getUsername()).addEntry("password",user.getPassword()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("isConnectingById",true).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry( "mac",mac );
-		
-			this.connect( null,null,null,null,(String)  null/*,listeners */ );
+			this.connect( null, null,null,null, (String)  null, true, false );
 		}
 		catch( Throwable  e )
 		{
@@ -239,7 +236,7 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 		this.synchronousRunner.execute( new  Runnable(){   public  void  run()     { SquirrelClient.super.route(); } } );
 	}
 	
-	public  SquirrelClient  route(final ServiceListRequestStrategy  strategy )
+	public  SquirrelClient  route(      @Nonnull ServiceListRequestStrategy  strategy )
 	{
 		try
 		{
@@ -250,10 +247,10 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 			throw  new  IllegalStateException( "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  adding  datasource  error",e );
 		}
 		
+		super.serviceRouteManager.setStrategy( strategy   );
+		
 		try( InputStream  is = getClass().getResourceAsStream("/config.ddl") )
 		{
-			super.setServiceRouteManager( new ServiceRouteManager(strategy) );
-			
 			Db.tx( "config",java.sql.Connection.TRANSACTION_SERIALIZABLE,new  Callback(){public  Object  execute( cc.mashroom.db.connection.Connection  connection )  throws  Throwable{ connection.runScripts( IOUtils.toString(is,"UTF-8") );  serviceRouteManager.add(ServiceRepository.DAO.lookup());  return  true; }} );
 		}
 		catch( Throwable  e )
@@ -268,12 +265,21 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	/**
 	 *  connect  the  server.  throws  illegal  state  exception  if  not  routed.  use  latest  connect  parameters  if  the  username  is  not  blank.  http  request  ( include  username,  password  encrypted,  longitude,  latitude  and  mac.  connect  and  read  timeout  are  5  seconds )  will  be  used  to  retrieve  the  secret  key.  initialize  user  metadata  and  offline  datas,  connect  to  paip  protocol  server  after  successful  authentication.  authenticate  complete  method  on  lifecycle  listener  will  be  called  no  matter  authentication  error  or  not.  connectivity  guarantor  will  be  scheduled  at  fixed  rate  (5  seconds)  after  connecting  by  id  or  authenticated  successfully.
 	 */
-	protected  SquirrelClient  connect( String  username,String  password,Double  longitude,Double latitude,String  mac )
+	protected  SquirrelClient  connect( String  username,String  password,Double  longitude,Double latitude,String  mac ,   boolean  isConnectingById,    boolean  isAutoReconnect  )
 	{
 		if(    serviceRouteManager.getServices().isEmpty() )    super.route();
 		
-		if( serviceRouteManager.current(Schema.TCP)  == null ||  this.serviceRouteManager.current(Schema.HTTPS) == null )
+		if( !this.serviceRouteManager.isRequested() || this.serviceRouteManager.current(Schema.TCP)  == null || this.serviceRouteManager.current(Schema.HTTPS) == null )
 		{
+			if( this.connectivityGuarantorThreadPool.getTaskCount() == 0    &&    (isConnectingById || isAutoReconnect) )
+			{
+				connectivityError  = 0x01;
+				
+				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( connectivityGuarantor,10,10,TimeUnit.SECONDS );
+				
+				return  this;
+			}
+			
 			throw  new  IllegalStateException(   "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  no  route  is  available." );
 		}
 		
@@ -281,23 +287,18 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 		{
 			throw  new  IllegalArgumentException("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  lifecycle  listeners  is  empty."  );
 		}
-		//  clear  the  connect  parameters  if  the  username  isn' t  blank.
-		if( StringUtils.isNotBlank(    username ) )
-		{
-			this.connectParameters = null;
-		}
 		//  reset  the  connnectivity  error  to  normal  state,which  should  be  changed  by  the  special   situation.
 		this.connectivityError     = 0x00;
 		
 		Service  service =   this.serviceRouteManager.current( Schema.HTTPS );
 		
-		try(Response  response = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("/user/signin").build()).post(HttpUtils.form(connectParameters = connectParameters != null ? connectParameters.addEntry("isAutoReconnect",true) : new  HashMap<String,Object>().addEntry("username",username).addEntry("password",new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
+		try(Response  response=okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("/user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isConnectingById ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac).addEntry("isConnectingById",isConnectingById).addEntry("isAutoReconnect",isAutoReconnect))).build()).execute() )
 		{
 			if(   response.code() == 200 )
 			{
 				this.userMetadata =JsonUtils.mapper.readValue(response.body().string(),UserMetadata.class );
 				//  connecting  to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
-				Storage.INSTANCE.initialize(this,false,lifecycleListeners,this.cacheDir,this.userMetadata  , connectParameters.getString("password") );
+				Storage.INSTANCE.initialize(this,false,lifecycleListeners,this.cacheDir,this.userMetadata  ,   password);
 			
 				this.connect( String.valueOf(this.userMetadata.getId()), this.userMetadata.getSecretKey() );
 			}
@@ -306,20 +307,20 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 		}
 		catch( Throwable  e )
 		{
-			if( connectParameters.containsKey("isConnectingById") && connectParameters.getBoolean( "isConnectingById" ) )
+			Tracer.trace( e);
+			
+			if( isConnectingById)
 			{
 				connectivityError  = 0x01;
 			}
-			
-			Tracer.trace(e );
 			
 			LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,(e instanceof SocketTimeoutException) ? 501  /* TIMEOUT */ : 500 );
 		}
 		finally
 		{
-			//  checking  connectivity  is  necessary  when  connecting  by  id  (authenticated  successfully  last  time)  or  authenticated  successfully.  it  should  be  scheduled  only  once.
+			//  checking  connectivity  is  necessary  if  connecting  by  id  (authenticated  successfully  last  time )  or  authenticated  successfully.  it  should  be  scheduled  only  once.
 			
-			if( connectivityGuarantorThreadPool.getTaskCount() == 0 && (connectParameters.containsKey("isConnectingById") && this.connectParameters.getBoolean("isConnectingById") || super.isAuthenticated()) )
+			if( connectivityGuarantorThreadPool.getTaskCount() == 0    && (isConnectingById || super.isAuthenticated()) )
 			{
 				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( connectivityGuarantor,10,10,TimeUnit.SECONDS );
 			}
@@ -368,7 +369,7 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	{
 		this.lifecycleListeners.addAll( lifecycleListeners);
 		
-		this.synchronousRunner.execute( new  Runnable(){ public  void  run() { try{ connect(username,password,longitude,latitude,mac,lifecycleListeners); }  catch( Throwable  e ) { LifecycleEventDispatcher.onError(lifecycleListeners,e); } } } );
+		this.synchronousRunner.execute( new  Runnable(){ public  void  run() { try{ connect(username,password,longitude,latitude,mac,false,false); }catch( Throwable  e ) { LifecycleEventDispatcher.onError(lifecycleListeners,e); } } } );
 	}
 
 	public  Response  intercept(     Chain  chain )        throws  IOException

@@ -18,9 +18,7 @@ package cc.mashroom.squirrel.client;
 import  cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.handler.AbstractChannelInboundHandlerAdapter;
 import  cc.mashroom.squirrel.client.storage.repository.ServiceRepository;
-import  lombok.AccessLevel;
 import  lombok.Getter;
-import  lombok.Setter;
 import  lombok.experimental.Accessors;
 
 import  java.sql.Connection;
@@ -34,9 +32,8 @@ import  cc.mashroom.router.Schema;
 public  class  RoutableChannelInboundHandlerAdapter  extends  AbstractChannelInboundHandlerAdapter
 {
 	@Accessors( chain= true )
-	@Setter( value= AccessLevel.PROTECTED )
 	@Getter
-	protected  ServiceRouteManager      serviceRouteManager;
+	protected  ServiceRouteManager  serviceRouteManager= new  ServiceRouteManager( null );
 	/**
 	 *  use  previous  cached  services  by  default.  merge  all  requested  services  to  cached  services  if  request  successfully,  then  cache  all  merged  services  and  point  to  a  HTTPS  and  a  TCP  service.
 	 */
