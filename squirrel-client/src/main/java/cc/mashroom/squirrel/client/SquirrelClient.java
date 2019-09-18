@@ -274,7 +274,10 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	 */
 	protected  SquirrelClient  connect( String  username,String  password,Double  longitude,Double latitude,String  mac ,   boolean  isConnectingById,    boolean  isAutoReconnect  )
 	{
-		if(    serviceRouteManager.getServices().isEmpty() )    super.route();
+		if( !serviceRouteManager.isRequested()    )
+		{
+		super.route();
+		}
 		
 		if( !this.serviceRouteManager.isRequested() || this.serviceRouteManager.current(Schema.TCP)  == null || this.serviceRouteManager.current(Schema.HTTPS) == null )
 		{
