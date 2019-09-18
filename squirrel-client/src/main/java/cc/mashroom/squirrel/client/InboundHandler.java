@@ -21,7 +21,6 @@ import  java.util.concurrent.TimeUnit;
 import  org.joda.time.DateTime;
 
 import  cc.mashroom.squirrel.client.connect.ConnectState;
-import  cc.mashroom.squirrel.client.connect.PacketEventDispatcher;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.call.CallAckPacket;
@@ -41,7 +40,7 @@ import  io.netty.util.concurrent.DefaultThreadFactory;
 */
 public  class  InboundHandler
 {
-	private  ScheduledThreadPoolExecutor  pendingScheduledChecker = new  ScheduledThreadPoolExecutor(1,new  DefaultThreadFactory("ACK-CHECKER",false,1) );
+	private  ScheduledThreadPoolExecutor  pendingScheduledChecker= new  ScheduledThreadPoolExecutor(    1, new  DefaultThreadFactory("ACK-SCHEDULED-CHECKER",false,1) );
 	
 	private  Map<Long,Packet>  pendings= new  ConcurrentHashMap<Long,Packet>();
 	
@@ -91,7 +90,7 @@ public  class  InboundHandler
 		else
 		if( packet instanceof PendingAckPacket)
 		{
-			this.unpend(           ObjectUtils.cast(packet, PendingAckPacket.class).getPacketId(),TransportState.SENT );
+			this.unpend( adapter,ObjectUtils.cast(packet, PendingAckPacket.class).getPacketId(),TransportState.SENT );
 			
 			if( !(packet instanceof CallAckPacket) )
 			{
@@ -111,31 +110,31 @@ public  class  InboundHandler
 		else
 		if( packet instanceof      CloseCallPacket )
 		{
-			if( adapter.getCall() == null || adapter.getCall().getId() != ObjectUtils.cast(packet, CloseCallPacket.class).getRoomId() || adapter.getCall().getContactId() != ObjectUtils.cast(packet,CloseCallPacket.class).getContactId() )
+			if( adapter.getCall() == null || adapter.getCall().getId() != ObjectUtils.cast(packet,CloseCallPacket.class).getRoomId() ||adapter.getCall().getContactId() != ObjectUtils.cast(packet,CloseCallPacket.class).getContactId() )
 			{
 				return;
 			}
 		}
 		
-		PacketEventDispatcher.onReceived(  packet );
+		PacketEventDispatcher.onReceived( adapter.getPacketListeners(),packet );
 	}
 	
-	public  Packet  unpend(    long  pendKey, TransportState  dispatchingState )  throws  Exception
+	public  Packet  unpend( TcpAutoReconnectChannelInboundHandlerAdapter<?>  context,long  pendKey, TransportState  transportState )
 	{
 		Packet  packet = pendings.remove( pendKey );
 		
 		if( packet != null )
 		{
-			PacketEventDispatcher.onSent( packet,dispatchingState );
+			PacketEventDispatcher.onSent( context.getPacketListeners(),  packet,  transportState );
 		}
 		
 		return  packet;
 	}
 	
-	public  void  pend( final Packet  pendingPacket,final long  timeout,final  TimeUnit  timeunit )
+	public  void  pend(final  TcpAutoReconnectChannelInboundHandlerAdapter<?> context,final  Packet  pendingPacket,final  long  writeTimeout,final  TimeUnit  timeunit )
 	{
 		pendings.addEntry( pendingPacket.getId(), ObjectUtils.cast( pendingPacket,Packet.class ) );
 		
-		pendingScheduledChecker.schedule( new  Runnable(){public  void  run(){ try{ unpend(pendingPacket.getId(),TransportState.SEND_FAILED); }catch(Throwable  t){t.printStackTrace();} }},timeout,timeunit );
+		pendingScheduledChecker.schedule( new  Runnable(){public  void  run() { try{ unpend(context,pendingPacket.getId(),TransportState.SEND_FAILED); } catch( Throwable  t ) { t.printStackTrace(); } } },      writeTimeout,timeunit );
 	}
 }

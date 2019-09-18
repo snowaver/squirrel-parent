@@ -15,6 +15,9 @@
  */
 package cc.mashroom.squirrel.client;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import  java.util.concurrent.ExecutorService;
 import  java.util.concurrent.Executors;
 import  java.util.concurrent.TimeUnit;
@@ -23,11 +26,12 @@ import  javax.net.ssl.SSLContext;
 
 import  org.joda.time.DateTime;
 
+import com.google.common.collect.Lists;
+
 import  cc.mashroom.router.Schema;
 import  cc.mashroom.router.Service;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
-import  cc.mashroom.squirrel.client.connect.DefaultGenericFutureListener;
-import  cc.mashroom.squirrel.client.connect.PacketEventDispatcher;
+import cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.codec.PAIPDecoder;
 import  cc.mashroom.squirrel.paip.codec.PAIPExternalDecoder;
@@ -54,7 +58,7 @@ import  lombok.Setter;
 import  lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 
-public  class   TcpAutoReconnectChannelInboundHandlerAdapter extends  RoutableChannelInboundHandlerAdapter
+public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoReconnectChannelInboundHandlerAdapter<?>>  extends  RoutableChannelInboundHandlerAdapter
 {
 	public  final  static  SSLContext  SSL_CONTEXT= SecureUtils.getSSLContext( "/squirrel.cer" );
 	
@@ -77,14 +81,35 @@ public  class   TcpAutoReconnectChannelInboundHandlerAdapter extends  RoutableCh
 	@Accessors(chain=true)
 	@Getter
 	private  boolean  authenticated=false;
-	private  EventLoopGroup  eventLooperGroup     = new  NioEventLoopGroup( Integer.parseInt( System.getProperty("eventlopper.size","2")) );
+	private  EventLoopGroup  eventLooperGroup     = new  NioEventLoopGroup( Integer.parseInt(System.getProperty("eventlopper.size","2") ) );
 	private  InboundHandler  qosHandler  =new     InboundHandler();
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
 	private  ConnectState  connectState  =ConnectState.NONE;
 
-	private  LinkedMap<String , PAIPExternalDecoder>  externalDecoders   = new  LinkedMap<String , PAIPExternalDecoder>();
+	private  LinkedMap<String  , PAIPExternalDecoder>     externalDecoders = new  LinkedMap<String,PAIPExternalDecoder>();
+	
+	private  List<PacketListener>  packetListeners= new  CopyOnWriteArrayList<PacketListener>(      Lists.newArrayList(Storage.INSTANCE ) );
+		
+	public  T  removePacketListener(     PacketListener  listener )
+	{
+		packetListeners.remove(listener );
+		
+		return  (T)  this;
+	}
+	
+	public  T  addPacketListener( PacketListener  listener )
+	{
+		packetListeners.add(   listener );
+		
+		return  (T)  this;
+	}
+	
+	public List<PacketListener>  getPacketListeners()
+	{
+		return  new  ArrayList<PacketListener>(  packetListeners );
+	}
 	
 	public  void  channelInactive( ChannelHandlerContext  context )  throws  Exception
 	{
@@ -104,7 +129,7 @@ public  class   TcpAutoReconnectChannelInboundHandlerAdapter extends  RoutableCh
 		
 	}
 	
-	public  void  channelRead(ChannelHandlerContext  context,Object   object )  throws  Exception
+	public  void  channelRead(ChannelHandlerContext  context ,Object  object )  throws  Exception
 	{
 		this.qosHandler.channelRead(context,object );
 	}
@@ -120,7 +145,7 @@ public  class   TcpAutoReconnectChannelInboundHandlerAdapter extends  RoutableCh
 		
         try
         {
-        	if( connectState != ConnectState.CONNECTING && connectState != ConnectState.CONNECTED && authenticated && (channel == null || !channel.isActive()) )
+        	if( connectState != ConnectState.CONNECTING && connectState != ConnectState.CONNECTED && authenticated && (this.channel == null || !channel.isActive()) )
         	{
         		this.onConnectStateChanged( connectState =  ConnectState.CONNECTING );
         		{
@@ -171,7 +196,7 @@ public  class   TcpAutoReconnectChannelInboundHandlerAdapter extends  RoutableCh
 		
 		try
 		{
-			isPreparedBeforeSend=PacketEventDispatcher.onBeforeSend( packet );
+			isPreparedBeforeSend = PacketEventDispatcher.onBeforeSend( packetListeners ,packet );
 		}
 		catch(  Throwable  e )
 		{
@@ -181,13 +206,13 @@ public  class   TcpAutoReconnectChannelInboundHandlerAdapter extends  RoutableCh
 		{
 			if( isPreparedBeforeSend && channel != null  && channel.isActive()   && channel.isWritable() )
 			{
-				PacketEventDispatcher.onSent( packet,TransportState.SENDING );
+				PacketEventDispatcher.onSent(packetListeners,packet,    TransportState.SENDING );
 				
-				this.channel.writeAndFlush(packet).addListener(new  DefaultGenericFutureListener(qosHandler,packet,writeTimeout,timeunit) );
+				channel.writeAndFlush(packet).addListener(new  DefaultGenericFutureListener(this,qosHandler,packet,writeTimeout,timeunit) );
 			}
 			else
 			{
-				PacketEventDispatcher.onSent( packet,    TransportState.SEND_FAILED );
+				PacketEventDispatcher.onSent(packetListeners,packet,TransportState.SEND_FAILED );
 			}
 		}
 	}

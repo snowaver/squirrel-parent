@@ -19,8 +19,10 @@ import  java.io.File;
 import  java.io.IOException;
 import  java.io.InputStream;
 import  java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import  java.util.Collection;
 import  java.util.LinkedHashSet;
+import java.util.List;
 import  java.util.concurrent.LinkedBlockingQueue;
 import  java.util.concurrent.ScheduledThreadPoolExecutor;
 import  java.util.concurrent.ThreadPoolExecutor;
@@ -76,7 +78,7 @@ import  cc.mashroom.util.ObjectUtils;
 
 @Sharable
 
-public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAdapter    implements  Interceptor
+public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandlerAdapter    <SquirrelClient>  implements  Interceptor
 {
 	public  SquirrelClient( Object  context,File  cacheDir )
 	{
@@ -102,7 +104,6 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 	@Getter
 	@Accessors(chain=true)
 	private  Call    call;
-	@Getter( value=AccessLevel.PROTECTED )
 	@Accessors(chain=true)
 	private  LinkedHashSet<LifecycleListener>  lifecycleListeners = new  LinkedHashSet<LifecycleListener>();
 	@Setter( value=AccessLevel.PROTECTED )
@@ -134,6 +135,11 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 		this.lifecycleListeners.remove( listener );
 		
 		return   this;
+	}
+	
+	public  List<LifecycleListener>  getLifecycleListeners()
+	{
+		return   new  ArrayList<LifecycleListener>( this.lifecycleListeners );
 	}
 	
 	protected  SquirrelClient  setConnectState(   ConnectState  connectState )
@@ -287,12 +293,12 @@ public  class  SquirrelClient  extends  TcpAutoReconnectChannelInboundHandlerAda
 		{
 			throw  new  IllegalArgumentException("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  lifecycle  listeners  is  empty."  );
 		}
-		//  reset  the  connnectivity  error  to  normal  state,which  should  be  changed  by  the  special   situation.
+		//  reset  the  connnectivity  error  to  normal  state  that  should  be  changed  by  the  special   situation.
 		this.connectivityError     = 0x00;
 		
 		Service  service =   this.serviceRouteManager.current( Schema.HTTPS );
 		
-		try(Response  response=okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("/user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isConnectingById ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac).addEntry("isConnectingById",isConnectingById).addEntry("isAutoReconnect",isAutoReconnect))).build()).execute() )
+		try(Response  response=okhttpClient(5,5,10).newCall(new Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("/user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isConnectingById ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac).addEntry("isConnectingById",isConnectingById).addEntry("isAutoReconnect",isAutoReconnect))).build()).execute() )
 		{
 			if(   response.code() == 200 )
 			{

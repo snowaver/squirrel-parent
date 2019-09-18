@@ -29,9 +29,8 @@ import  org.webrtc.VideoRenderer;
 import  org.webrtc.VideoSource;
 import  org.webrtc.VideoTrack;
 
+import  cc.mashroom.squirrel.client.PacketListener;
 import  cc.mashroom.squirrel.client.SquirrelClient;
-import  cc.mashroom.squirrel.client.connect.PacketEventDispatcher;
-import  cc.mashroom.squirrel.client.connect.PacketListener;
 import  cc.mashroom.squirrel.client.connect.call.webrtc.ClientObserver;
 import  cc.mashroom.squirrel.client.connect.call.webrtc.PeerConnectionParameters;
 import  cc.mashroom.squirrel.paip.message.Packet;
@@ -55,9 +54,7 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 {
 	public  Call( SquirrelClient  context, long  id,long  contactId,CallContentType  callContentType )
 	{
-		PacketEventDispatcher.addListener(1,this );
-		
-		this.setContext(context).setId(id).setContactId(contactId).setContentType(  callContentType );
+		this.setContext( context.addPacketListener(Call.this)).setId(id).setContactId(contactId).setContentType(   callContentType );
 	}
 	
 	public  Call  initialize(    Object  platform,PeerConnectionParameters  parameters )
@@ -218,8 +215,10 @@ public  class  Call   extends  ClientObserver  implements  PacketListener
 	
 	private  void  release(boolean  proactively,CloseCallReason  reason )
 	{
+		context.removePacketListener(   this );
+		/*
 		PacketEventDispatcher.removeListener( this );
-		
+		*/
 		if( this.connection  != null )  connection.dispose();
 		//  video  source,   connection  or  peer  connection  factory  may  be  null  if  some  permission  was  rejected  by  user.
 		if( videoSource  != null )this.videoSource.dispose();

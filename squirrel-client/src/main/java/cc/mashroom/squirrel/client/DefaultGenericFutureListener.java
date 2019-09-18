@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cc.mashroom.squirrel.client.connect;
+package cc.mashroom.squirrel.client;
 
 import  java.util.concurrent.TimeUnit;
 
-import  cc.mashroom.squirrel.client.InboundHandler;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  io.netty.util.concurrent.Future;
@@ -26,27 +25,29 @@ import  lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 
-public  class  DefaultGenericFutureListener<F extends Future<?>>  implements  GenericFutureListener<F>
+public class DefaultGenericFutureListener<F extends Future<?>>  implements  GenericFutureListener<F>
 {
+	private       TcpAutoReconnectChannelInboundHandlerAdapter  arcontext;
+	
 	private  InboundHandler  handler;
 	
 	private  Packet  packet;
 	
-	private  long  time;
+	private  long  writeTimeout;
 	
-	private  TimeUnit  unit;
+	private  TimeUnit  timeunit;
 	
-	public  void  operationComplete(   Future  future )  throws  Exception
+	public  void  operationComplete(  Future  future )
 	{
 		if( future.isDone()&& future.isSuccess() )
 		{
-			if( packet.getHeader().getAckLevel() == 1 )
+			if( packet.getHeader().getAckLevel()== 1 )
 			{
-				handler.pend( packet,time, unit );
+				handler.pend( arcontext, packet, writeTimeout, timeunit );
 			}
 			else
 			{
-				PacketEventDispatcher.onSent(packet,TransportState.SENT );
+				PacketEventDispatcher.onSent(this.arcontext.getPacketListeners(),this.packet, TransportState.SENT );
 			}
 		}
 	}
