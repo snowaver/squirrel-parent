@@ -96,7 +96,7 @@ public  abstract  class  Packet  <T extends Packet>
 		
 		try
 		{
-			writableByteBuf.writeByte(header.toByte()).writeByte(0).writeShortLE(header.getPacketType().getValue()).writeLongLE(getId()).writeBytes(decodeRemainingLengthByteBuf).writeBytes( variableByteBuf );
+			writableByteBuf.writeByte(header.getAckLevel()).writeByte(0).writeShortLE(header.getPacketType().getValue()).writeLongLE(getId()).writeBytes(decodeRemainingLengthByteBuf).writeBytes( variableByteBuf );
 		}
 		finally
 		{

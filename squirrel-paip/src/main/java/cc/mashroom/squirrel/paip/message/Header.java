@@ -17,7 +17,6 @@ package cc.mashroom.squirrel.paip.message;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  io.netty.handler.codec.CorruptedFrameException;
 import  lombok.AccessLevel;
 import  lombok.AllArgsConstructor;
@@ -54,11 +53,6 @@ public  class  Header
 	@Getter
 	@Accessors(chain=true)
 	private  int  remainingLength;
-	
-	public  byte  toByte()
-	{
-		return  Unpooled.buffer(1).writeByte(ackLevel).getByte( 0 );
-	}
 	
 	public  Header( ByteBuf  byteBuf , Integer  expectedFlags )
 	{

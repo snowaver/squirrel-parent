@@ -41,7 +41,7 @@ import  lombok.Getter;
 @AllArgsConstructor
 public  enum  PAIPPacketType
 {
-	CONNECT(0x01,ConnectPacket.class),CONNECT_ACK(0x02,ConnectAckPacket.class),PING(0x03,PingPacket.class),PING_ACK(0x04,PingAckPacket.class),DISCONNECT_ACK(0x05,DisconnectAckPacket.class),CONTACT_ACK(0x06,PendingAckPacket.class),SUBSCRIBE(0x07,SubscribePacket.class),SUBSCRIBE_ACK(0x08,SubscribeAckPacket.class),CHAT(0x09,ChatPacket.class),CHAT_RECALL(0x0A,ChatRecallPacket.class),GROUP_CHAT(0x0B,GroupChatPacket.class),GROUP_CHAT_EVENT(0x0C,GroupChatEventPacket.class),CALL(0x0D,CallPacket.class),CALL_ACK(0x0E,CallAckPacket.class),CALL_SDP(0x0F,SDPPacket.class),CALL_CANDIDATE(0x10,CandidatePacket.class),CLOSE_CALL(0x11,CloseCallPacket.class),BYTE_ARRAY( 0x12,ByteArrayPacket.class );
+	CONNECT(0x01,ConnectPacket.class),CONNECT_ACK(0x02,ConnectAckPacket.class),PING(0x03,PingPacket.class),PING_ACK(0x04,PingAckPacket.class),DISCONNECT_ACK(0x05,DisconnectAckPacket.class),PENDING_ACK(0x06,PendingAckPacket.class),SUBSCRIBE(0x07,SubscribePacket.class),SUBSCRIBE_ACK(0x08,SubscribeAckPacket.class),CHAT(0x09,ChatPacket.class),CHAT_RECALL(0x0A,ChatRecallPacket.class),GROUP_CHAT(0x0B,GroupChatPacket.class),GROUP_CHAT_EVENT(0x0C,GroupChatEventPacket.class),CALL(0x0D,CallPacket.class),CALL_ACK(0x0E,CallAckPacket.class),CALL_SDP(0x0F,SDPPacket.class),CALL_CANDIDATE(0x10,CandidatePacket.class),CLOSE_CALL(0x11,CloseCallPacket.class),BYTE_ARRAY( 0x12,ByteArrayPacket.class );
 	
 	@Getter
 	private  int  value;

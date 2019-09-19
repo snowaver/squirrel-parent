@@ -37,7 +37,7 @@ public  class  PendingAckPacket<T extends PendingAckPacket<?>>  extends  Packet<
 {
 	public  PendingAckPacket( long  contactId,long  packetId )
 	{
-		super(new  Header(PAIPPacketType.CONNECT_ACK));
+		super(new  Header(PAIPPacketType.PENDING_ACK));
 		
 		super.setContactId(contactId).setPacketId( packetId );
 	}
