@@ -30,66 +30,66 @@ public  class  ClientObserver  implements  SdpObserver,PeerConnection.Observer
 {
 	public  void  onIceConnectionChange( IceConnectionState  connectionState )
 	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.CONNECTION.CHANGE:\t" + connectionState.name() );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.CONNECTION_CHANGE:\t"+ connectionState.name() );
+	}
+	
+	public  void  onDataChannel( DataChannel  channel )
+	{
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.DATA_CHANNEL:\t"+    channel );
 	}
 	
 	public  void  onAddStream(    MediaStream  stream )
 	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ADD.STREAM:\t"+   stream );
-	}
-
-	public  void  onDataChannel( DataChannel  channel )
-	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  DATA.CHANNEL:\t"+channel );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.ADD_STREAM:\t"+stream );
 	}
 
 	public  void  onError()
 	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ERROR" );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.ERROR" );
+	}
+	
+	public  void  onSetSuccess()
+	{
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.SET_SUCCESS" );
+	}
+	
+	public  void  onSetFailure(     String  exception )
+	{
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.SET_FAILURE:\t"+   exception );
 	}
 
 	public  void  onIceCandidate( IceCandidate  iceCandidate )
 	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.CANDIDATE:\t"+iceCandidate );
-	}
-
-	public  void  onSetSuccess()
-	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  SET.SUCCESS" );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.CANDIDATE:\t"+  iceCandidate );
 	}
 	
 	public  void  onRemoveStream( MediaStream  stream )
 	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  REMOVE.STREAM:\t"+stream );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.REMOVE_STREAM:\t"+    stream );
 	}
 	
 	public  void  onRenegotiationNeeded()
 	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  RENEGOTIATION.NEEDED"    );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.RENEGOTIATION_NEEDED" );
 	}
 
 	public  void  onSignalingChange( SignalingState  signalingState )
 	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  SIGNALING.CHANGE:\t"+signalingState.name() );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.SIGNALING_CHANGE:\t"+   signalingState.name() );
 	}
 
 	public  void  onCreateFailure(  String  exception )
 	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CREATE.FAILURE:\t"+  exception );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.CREATE_FAILURE:\t"+exception );
 	}
 	
 	public  void  onCreateSuccess(    SessionDescription  sessionDescription )
 	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CREATE.SUCCESS:\t"+     sessionDescription );
-	}
-
-	public  void  onSetFailure(     String  exception )
-	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  SET.FAILURE:\t"+exception);
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.CREATE_SUCCESS:\t"+        sessionDescription );
 	}
 	
 	public  void  onIceGatheringChange( IceGatheringState  iceGatheringState )
 	{
-		System.err.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.GATHERING.CHANGE:\t"+ iceGatheringState.name() );
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  ICE.GATHERING_CHANGE:\t"+iceGatheringState.name() );
 	}
 }

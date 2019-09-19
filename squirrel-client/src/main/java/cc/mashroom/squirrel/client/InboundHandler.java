@@ -76,7 +76,7 @@ public  class  InboundHandler
 				
 				if(      adapter.isAuthenticated() )
 				{
-					System.err.println( "still  authenticated,  disconnection  of  network  may  result  in  an  authentication  error  (secret  key  unavailable  now),  so  retrive  a  new  secret  key." );
+					System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.CONN:  still  authenticated,  disconnection  may  orignate  in  authentication  error  (secret  key  unavailable  now),  so  retrive  a  new  secret  key.");
 					
 					adapter.connect(null,null,null, null , null, adapter.getLifecycleListeners() );
 				}

@@ -291,7 +291,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		super.route();
 		}
 		
-		if( !   serviceRouteManager.isRequested() || this.serviceRouteManager.current(Schema.TCP) == null || this.serviceRouteManager.current(Schema.HTTPS) == null )
+		if( !   serviceRouteManager.isRequested() || this.serviceRouteManager.current(Schema.TCP) == null ||                this.serviceRouteManager.current( Schema.HTTPS ) == null )
 		{
 			if( connectivityGuarantorThreadPool.getTaskCount() == 0 && (isConnectingById||isAutoReconnect) )
 			{
@@ -329,12 +329,11 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		}
 		catch( Throwable  e )
 		{
+			if(        e instanceof SocketTimeoutException )super.serviceRouteManager.tryNext( Schema.TCP );
+			
 			Tracer.trace( e);
 			
-			if( isConnectingById )
-			{
-				connectivityError  = 0x01;
-			}
+			if( isConnectingById )  connectivityError =0x01;
 			
 			LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,(e instanceof SocketTimeoutException) ? 501  /* TIMEOUT */ : 500 );
 		}

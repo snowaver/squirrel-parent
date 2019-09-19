@@ -19,18 +19,21 @@ import  io.netty.channel.ChannelDuplexHandler;
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.handler.timeout.IdleState;
 import  io.netty.handler.timeout.IdleStateEvent;
+
+import org.joda.time.DateTime;
+
 import  cc.mashroom.squirrel.paip.message.connect.PingPacket;
 import  cc.mashroom.util.ObjectUtils;
 
 public  class  ChannelDuplexIdleTimeoutHandler  extends  ChannelDuplexHandler
 {
-	public  void  userEventTriggered( ChannelHandlerContext  context,Object  event )  throws  Exception
+	public  void  userEventTriggered( ChannelHandlerContext  context  ,Object  event )   throws  Exception
 	{
 		if( event instanceof IdleStateEvent )
 		{
 			if( ObjectUtils.cast(event,IdleStateEvent.class).state() == IdleState.READER_IDLE )
 			{
-				System.err.println( "SQUIRREL-CLIENT:  ** CHANNEL  DUPLEX  IDLE  TIMEOUT  HANDLER **  reader  idle,  so  close  the  channel." );
+				System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.IDLE:  reader  idle,  so  close  the  channel.");
 				
 				context.channel().close(   );
 			}
