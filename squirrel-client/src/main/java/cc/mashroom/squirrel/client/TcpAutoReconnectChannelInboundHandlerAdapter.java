@@ -231,6 +231,6 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 	 */
 	public  void  send(    final  Packet  packet,final  long  timeout,final  TimeUnit  timeunit )
 	{
-		((packet instanceof ChatPacket && ObjectUtils.cast(packet,ChatPacket.class).getContentType() != ChatContentType.WORDS) || (packet instanceof GroupChatPacket && ObjectUtils.cast(packet,GroupChatPacket.class).getContentType() != ChatContentType.WORDS) ? multipartsSendPool : eventLooperGroup).execute( new  Runnable(){ public  void  run(){ send( packet, timeout, timeunit ); } } );
+		((packet instanceof ChatPacket && ObjectUtils.cast(packet,ChatPacket.class).getContentType() != ChatContentType.WORDS) || (packet instanceof GroupChatPacket && ObjectUtils.cast(packet,GroupChatPacket.class).getContentType() != ChatContentType.WORDS) ? multipartsSendPool : eventLooperGroup).execute( () -> this.syncsend(packet,timeout,timeunit) );
 	}
 }
