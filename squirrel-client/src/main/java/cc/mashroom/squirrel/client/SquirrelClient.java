@@ -18,6 +18,7 @@ package cc.mashroom.squirrel.client;
 import  java.io.File;
 import  java.io.IOException;
 import  java.io.InputStream;
+import java.net.ConnectException;
 import  java.net.SocketTimeoutException;
 import  java.util.ArrayList;
 import  java.util.Collection;
@@ -329,7 +330,10 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		}
 		catch( Throwable  e )
 		{
-			if(        e instanceof SocketTimeoutException )super.serviceRouteManager.tryNext( Schema.TCP );
+			if( e instanceof SocketTimeoutException ||  e instanceof ConnectException )
+			{
+				serviceRouteManager.tryNext(    e instanceof ConnectException ? Schema.HTTPS : Schema.TCP );
+			}
 			
 			Tracer.trace( e);
 			
