@@ -225,7 +225,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	
 	public  void    reroute()
 	{
-		this.synchronousRunner.execute(()-> super.route() );
+		this.synchronousRunner.execute(      new  Runnable()  { public  void  run(){ SquirrelClient.super.route(); } } );
 	}
 	
 	public  SquirrelClient  route(     @NonNull  ServiceListRequestStrategy  strategy )
@@ -250,7 +250,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			throw  new  IllegalStateException( "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  cache  error",e );
 		}
 		
-		this.synchronousRunner.execute(()-> super.route() );
+		this.synchronousRunner.execute(      new  Runnable()  { public  void  run(){ SquirrelClient.super.route(); } } );
 		
 		return   this;
 	}
@@ -265,7 +265,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		{
 			super.storage.initialize( this, true, lifecycleListeners,this.cacheDir,new UserMetadata().setId(id),  null );
 			
-			User  user = UserRepository.DAO.lookupOne( User.class,"SELECT  ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME  FROM  "+UserRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
+			final  User  user = UserRepository.DAO.lookupOne( User.class,"SELECT  ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME  FROM  "+UserRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
 			
 			if( user== null )
 			{
@@ -274,7 +274,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			
 			this.userMetadata     = new  UserMetadata( id, user.getUsername(),user.getName(),user.getNickname(),0,null );
 			
-			synchronousRunner.execute( new  Runnable() { public  void  run() {connect(user,longitude,latitude,mac );}} );
+			synchronousRunner.execute( new  Runnable() { public  void  run(){connect(user,longitude,latitude,mac );} } );
 		}
 		catch( Throwable  e )
 		{
@@ -311,7 +311,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			{
 				connectivityError  = 0x01;
 				
-				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( () -> this.check(), 10, 10, TimeUnit.SECONDS );
+				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( new  Runnable() { public  void  run(){ check(); } },10,10,TimeUnit.SECONDS );
 				
 				return  this;
 			}
@@ -352,7 +352,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			
 			if( isConnectingById )  connectivityError= 0x01;
 			
-			LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,(e instanceof SocketTimeoutException) ? 501  /* TIMEOUT */ : 500 );
+			LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,(e instanceof SocketTimeoutException) ? 501 /* TIMEOUT */  : 500 );
 		}
 		finally
 		{
@@ -360,7 +360,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			
 			if( connectivityGuarantorThreadPool.getTaskCount() == 0    && (isConnectingById || super.isAuthenticated()) )
 			{
-				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( ()->  this.check(), 10, 10, TimeUnit.SECONDS );
+				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( new  Runnable(){public  void  run(){check();} } , 10  ,10,TimeUnit.SECONDS );
 			}
 		}
 		
@@ -385,7 +385,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		this.lifecycleListeners.clear(  );
 	}
 	/**
-	 *  close  the  client.  send  a  disconnect  packet  to  the  server,  then  close  the  netty  nio  event  loop  group  and  connectiviy  guarantor  thread  pool.  the  client  instance  can  not  be  used  anymore  after  closed.
+	 *  close  the  client.  send  a  disconnect  packet  to  the  server,  then  close  the  netty  nio  event  loop  group  and  connectiviy  guarantor  thread  pool.  the  client  instance  can  not  be  used  anymore  after  released  since  all  coordinated  thread  are  shutdown.
 	 */
 	public  void    release()
 	{
@@ -399,7 +399,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	public  void disconnect()
 	{
 		reset();
-		//  deprecated:  it  is  not  necessary  that  close  the  channel,  while  the  socket  channel  can  be  reused  anyway.  sending  packet  should  be  restricted  by  id,  connect  state  and  authenticate  state.
+		//  deprecated:  it  is  not  necessary  that  close  the  channel,  while  the  socket  channel  can  be  reused  anyway.  the  sending  packet  should  be  restricted  by  id,  connect  state  and  authenticate  state.
 //		send(   new  DisconnectPacket() );
 	}
 	
@@ -407,11 +407,11 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	{
 		this.lifecycleListeners.addAll(lifecycleListeners );
 		
-		this.synchronousRunner.execute(() -> this.connectQuietly(username,password,longitude,latitude,mac,false,false) );
+		this.synchronousRunner.execute(new  Runnable(){ public  void  run(){connectQuietly(username,password,longitude,latitude,mac,false,false);} } );
 	}
 
 	public  Response  intercept(     Chain  chain )        throws  IOException
 	{
-		return  chain.proceed( chain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata == null || this.userMetadata.getSecretKey() == null     ? "" :    this.userMetadata.getSecretKey()).build() );
+		return  chain.proceed( chain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata == null || this.userMetadata.getSecretKey()== null      ? "" :    this.userMetadata.getSecretKey()).build() );
 	}
 }
