@@ -28,7 +28,7 @@ import  cc.mashroom.db.common.Db;
 import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.squirrel.client.LifecycleEventDispatcher;
 import  cc.mashroom.squirrel.client.LifecycleListener;
-import cc.mashroom.squirrel.client.PacketListener;
+import  cc.mashroom.squirrel.client.PacketListener;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.connect.UserMetadata;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
@@ -87,11 +87,11 @@ public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirre
 	
 	public  void  stop()
 	{
-		ConnectionManager.INSTANCE.stop();
+		ConnectionManager.INSTANCE.removeDataSource(id + "" );
 	}
-	
+	/*
 	public  final  static  Storage  INSTANCE = new  Storage();
-	
+	*/
 	@Getter( value=AccessLevel.PROTECTED )
 	@Setter
 	@Accessors( chain=true )

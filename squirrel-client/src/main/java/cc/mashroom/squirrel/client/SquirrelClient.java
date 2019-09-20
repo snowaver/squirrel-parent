@@ -18,7 +18,7 @@ package cc.mashroom.squirrel.client;
 import  java.io.File;
 import  java.io.IOException;
 import  java.io.InputStream;
-import java.net.ConnectException;
+import  java.net.ConnectException;
 import  java.net.SocketTimeoutException;
 import  java.util.ArrayList;
 import  java.util.Collection;
@@ -58,7 +58,6 @@ import  cc.mashroom.squirrel.client.connect.call.CallError;
 import  cc.mashroom.squirrel.client.connect.call.CallEventDispatcher;
 import  cc.mashroom.squirrel.client.connect.call.CallState;
 import  cc.mashroom.squirrel.client.connect.util.HttpUtils;
-import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.client.storage.model.user.User;
 import  cc.mashroom.squirrel.client.storage.repository.ServiceRepository;
 import  cc.mashroom.squirrel.client.storage.repository.user.UserRepository;
@@ -262,7 +261,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	{
 		try
 		{
-			Storage.INSTANCE.initialize( this,true,lifecycleListeners,this.cacheDir,new  UserMetadata().setId(id),null );
+			super.storage.initialize( this, true, lifecycleListeners,this.cacheDir,new UserMetadata().setId(id),  null );
 			
 			User  user = UserRepository.DAO.lookupOne( User.class,"SELECT  ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME  FROM  "+UserRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
 			
@@ -275,7 +274,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			
 			lifecycleListeners.addAll( lifecycleListeners );
 			
-			this.synchronousRunner.execute( ()->connect(user,longitude,latitude,mac) );
+			synchronousRunner.execute( ()->this.connect(user,longitude,latitude,mac) );
 		}
 		catch( Throwable  e )
 		{
@@ -335,7 +334,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			{
 				this.userMetadata =JsonUtils.mapper.readValue(response.body().string(),UserMetadata.class );
 				//  connecting  to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
-				Storage.INSTANCE.initialize( this,false,lifecycleListeners,this.cacheDir,this.userMetadata , connectParameters.getString("password") );
+				super.storage.initialize( this,false,lifecycleListeners,this.cacheDir,this.userMetadata    , connectParameters.getString("password") );
 			
 				this.connect( String.valueOf(this.userMetadata.getId()), this.userMetadata.getSecretKey() );
 			}
@@ -375,9 +374,9 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	/**
 	 *  clear  all  states,  include  user  metadata,  connect  parameters,  call,  lifecycle  listener  and  super  class  states  ( id,  authenticate  state  and  connect  state ).
 	 */
-	protected   void  clear()
+	protected   void  reset()
 	{
-		super.clear();
+		super.reset();
 		
 		userMetadata =  null;
 		
@@ -399,7 +398,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	 */
 	public  void disconnect()
 	{
-		clear();
+		reset();
 		//  deprecated:  it  is  not  necessary  that  close  the  channel,  while  the  socket  channel  can  be  reused  anyway.  sending  packet  should  be  restricted  by  id,  connect  state  and  authenticate  state.
 //		send(   new  DisconnectPacket() );
 	}

@@ -91,7 +91,9 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 	@Accessors(chain=true)
 	private  ConnectState  connectState  =ConnectState.NONE;
 	
-	private  List<PacketListener>  packetListeners= new  CopyOnWriteArrayList<PacketListener>(      Lists.newArrayList(Storage.INSTANCE ) );
+	protected  Storage     storage =   new Storage();
+	
+	private  List<PacketListener>  packetListeners  = new  CopyOnWriteArrayList<PacketListener>(       Lists.newArrayList( this.storage ) );
 		
 	public  T  removePacketListener(     @NonNull   PacketListener  listener )
 	{
@@ -184,7 +186,7 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 		this.send(  packet , 10 , TimeUnit.SECONDS );
 	}
 	
-	protected  void    clear()
+	protected  void    reset()
 	{
 		setId(null).setAuthenticated(false).setAuthenticated(false).setConnectState(  ConnectState.NONE );
 	}

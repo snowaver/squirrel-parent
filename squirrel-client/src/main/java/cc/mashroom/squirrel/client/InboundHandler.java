@@ -58,7 +58,7 @@ public  class  InboundHandler
 			{
 				LifecycleEventDispatcher.onLogout( adapter.getLifecycleListeners(),1 /* remote  signin  confiction */ );
 				
-				adapter.clear();
+				adapter.reset();
 				
 				context.close();
 			}
