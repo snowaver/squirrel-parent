@@ -209,7 +209,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	/**
 	 *  connect  by  the  user  id.  the  username  and  encrypted  password,  which  are  stored  in  local  h2  database,  can  be  fetched  by  the  unique  user  id.  a  new  connect  parameters  will  be  created  for  the     https  authenticate  request.
 	 */
-	protected  SquirrelClient  connect(@NonNull  User  user,Double  longitude,Double  latitude,String  mac )
+	private    SquirrelClient  connect(@NonNull  User  user,Double  longitude,Double  latitude,String  mac )
 	{
 		try
 		{
@@ -259,6 +259,8 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	 */
 	public  void  connect( final  @NonNull  Long  id,final  Double  longitude,final  Double  latitude,final  String  mac,@NonNull  Collection<LifecycleListener>  lifecycleListeners )
 	{
+		this.lifecycleListeners.addAll(lifecycleListeners );
+		
 		try
 		{
 			super.storage.initialize( this, true, lifecycleListeners,this.cacheDir,new UserMetadata().setId(id),  null );
@@ -272,9 +274,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			
 			this.userMetadata     = new  UserMetadata( id, user.getUsername(),user.getName(),user.getNickname(),0,null );
 			
-			lifecycleListeners.addAll( lifecycleListeners );
-			
-			synchronousRunner.execute( () -> new  Runnable() { public  void  run() {connect(user,longitude,latitude,mac);  } } );
+			synchronousRunner.execute( new  Runnable() { public  void  run() {connect(user,longitude,latitude,mac );}} );
 		}
 		catch( Throwable  e )
 		{
@@ -343,14 +343,14 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		}
 		catch( Throwable  e )
 		{
-			if( e instanceof SocketTimeoutException ||  e instanceof ConnectException )
+			if( e instanceof SocketTimeoutException || e instanceof ConnectException  )
 			{
 				serviceRouteManager.tryNext(    e instanceof ConnectException ? Schema.HTTPS : Schema.TCP );
 			}
 			
 			Tracer.trace( e);
 			
-			if( isConnectingById )  connectivityError =0x01;
+			if( isConnectingById )  connectivityError= 0x01;
 			
 			LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,(e instanceof SocketTimeoutException) ? 501  /* TIMEOUT */ : 500 );
 		}
