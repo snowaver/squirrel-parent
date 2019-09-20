@@ -274,7 +274,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			
 			lifecycleListeners.addAll( lifecycleListeners );
 			
-			synchronousRunner.execute( ()->this.connect(user,longitude,latitude,mac) );
+			synchronousRunner.execute( () -> new  Runnable() { public  void  run() {connect(user,longitude,latitude,mac);  } } );
 		}
 		catch( Throwable  e )
 		{
