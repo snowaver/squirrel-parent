@@ -210,16 +210,10 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	/**
 	 *  connect  by  the  user  id.  the  username  and  encrypted  password,  which  are  stored  in  local  h2  database,  can  be  fetched  by  the  unique  user  id.  a  new  connect  parameters  will  be  created  for  the     https  authenticate  request.
 	 */
-	protected  SquirrelClient  connect( @NonNull  Long  id, Double  longitude,Double  latitude,String  mac )
+	protected  SquirrelClient  connect(@NonNull  User  user,Double  longitude,Double  latitude,String  mac )
 	{
 		try
 		{
-			Storage.INSTANCE.initialize( this,true,lifecycleListeners,this.cacheDir,new  UserMetadata().setId(id),null );
-			
-			User  user = UserRepository.DAO.lookupOne( User.class,"SELECT  ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME  FROM  "+UserRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
-			
-			this.userMetadata      = new  UserMetadata( id,user.getUsername(),user.getName(),user.getNickname(),0,null );
-			
 			this.connectQuietly( user.getUsername(),user.getPassword(), longitude,latitude,mac,true,false );
 		}
 		catch( Throwable  e )
@@ -228,13 +222,6 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		}
 		
 		return   this;
-	}
-	
-	public  void  connect( final  @NonNull  Long  id,final  Double  longitude,final  Double  latitude,final  String  mac,@NonNull  Collection<LifecycleListener>  lifecycleListeners )
-	{
-		this.lifecycleListeners.addAll(lifecycleListeners );
-		
-		this.synchronousRunner.execute(()-> this.connect(id, longitude,latitude,mac) );
 	}
 	
 	public  void    reroute()
@@ -268,8 +255,35 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		
 		return   this;
 	}
+	/**
+	 *  connect  the  server  in  synchronous  thread  ( so  lifecycle  listeners  are  neccessary  for  connect  event )  by  username  and  encrypt  password  that  are  stored  in  local  storage.
+	 */
+	public  void  connect( final  @NonNull  Long  id,final  Double  longitude,final  Double  latitude,final  String  mac,@NonNull  Collection<LifecycleListener>  lifecycleListeners )
+	{
+		try
+		{
+			Storage.INSTANCE.initialize( this,true,lifecycleListeners,this.cacheDir,new  UserMetadata().setId(id),null );
+			
+			User  user = UserRepository.DAO.lookupOne( User.class,"SELECT  ID,LAST_ACCESS_TIME,USERNAME,PASSWORD,NAME,NICKNAME  FROM  "+UserRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{id} );
+			
+			if( user== null )
+			{
+				throw  new   IllegalArgumentException( String.format( "SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  user  whoes  id  is  %d  is  not  found  in  local  storage.",id ) );
+			}
+			
+			this.userMetadata     = new  UserMetadata( id, user.getUsername(),user.getName(),user.getNickname(),0,null );
+			
+			lifecycleListeners.addAll( lifecycleListeners );
+			
+			this.synchronousRunner.execute( ()->connect(user,longitude,latitude,mac) );
+		}
+		catch( Throwable  e )
+		{
+			Tracer.trace( e);  LifecycleEventDispatcher.onError(lifecycleListeners,e );
+		}
+	}
 	
-	protected  SquirrelClient  connectQuietly(String  username,String  password,Double  longitude,Double  latitude,String  mac  , boolean  isConnectingById,boolean  isAutoReconnect )
+	protected  SquirrelClient  connectQuietly( String  username,String  password,Double  longitude,Double  latitude,String  mac , boolean  isConnectingById,boolean  isAutoReconnect )
 	{
 		try
 		{
@@ -343,7 +357,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		}
 		finally
 		{
-			//  checking  connectivity  is  necessary  if  connecting  by  id  (authenticated  successfully  last  time )  or  authenticated  successfully.  it  should  be  scheduled  only  once.
+			//  checking  connectivity  is  necessary  if  connecting  by  id  (authenticated  successfully  last  time )  or  authenticated  successfully.  so  it  should  be  scheduled  only  once.
 			
 			if( connectivityGuarantorThreadPool.getTaskCount() == 0    && (isConnectingById || super.isAuthenticated()) )
 			{
