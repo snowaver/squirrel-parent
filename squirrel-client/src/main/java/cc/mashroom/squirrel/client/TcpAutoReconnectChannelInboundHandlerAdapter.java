@@ -114,7 +114,7 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 		return  (T)  this;
 	}
 	
-	public  void  channelInactive( ChannelHandlerContext  context )  throws  Exception
+	public  void  channelInactive(  ChannelHandlerContext  context)  throws  Exception
 	{
 		super.channelInactive(  context );
 		
@@ -122,9 +122,9 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 		
 		context.close();
 		
-		this.onConnectStateChanged( this.connectState  =  ConnectState.DISCONNECTED );
+		this.onConnectStateChanged( this.connectState   =  ConnectState.DISCONNECTED);
 		
-		this.eventLooperGroup.execute(   new  Runnable(){  public  void  run()  {connect(); }} );
+		this.eventLooperGroup.execute(new  Runnable()   {  public  void  run()  {connect(); }} );
 	}
 	
 	public  void  onConnectStateChanged(ConnectState connectState )
