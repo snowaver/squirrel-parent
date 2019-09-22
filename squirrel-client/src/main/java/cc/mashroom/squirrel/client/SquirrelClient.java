@@ -327,7 +327,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		//  reset  the  connnectivity  error  to  normal  state  that  should  be  changed  by  the  special   situation.
 		this.connectivityError     = 0x00;
 		
-		Service  service =   this.serviceRouteManager.current( Schema.HTTPS );
+		Service  service    =this.serviceRouteManager.current( Schema.HTTPS );
 		
 		try(Response  response=okhttpClient(5,5,10).newCall(new Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isConnectingById ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac).addEntry("isConnectingById",isConnectingById).addEntry("isAutoReconnect",isAutoReconnect))).build()).execute() )
 		{
@@ -406,16 +406,18 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	
 	protected    void  disconnectQuietly()
 	{
-		Service  service =   this.serviceRouteManager.current( Schema.HTTPS );
+		Service  service    =this.serviceRouteManager.current( Schema.HTTPS );
 		
 		try(Response  response=okhttpClient(5,5,10).newCall( new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("user/logout").build()).post(new  FormBody.Builder().build()).build()).execute() )
 		{
+			LifecycleEventDispatcher.onLogout( this.lifecycleListeners , 200 ,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
+			
 			if(    response.code()== 200 )
 			{
 				this.reset();
+				
+				this.close();
 			}
-			
-			LifecycleEventDispatcher.onLogout( this.lifecycleListeners , 200 ,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
 		}
 		catch( Exception  e )
 		{

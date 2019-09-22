@@ -34,7 +34,6 @@ import  cc.mashroom.squirrel.paip.message.chat.ChatRecallPacket;
 import  cc.mashroom.util.FileUtils;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.Reference;
-import  cc.mashroom.util.StringUtils;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 import  okhttp3.HttpUrl;
@@ -69,7 +68,7 @@ public  class  ChatMessageRepository  extends  RepositorySupport
 			
 			upsert(   messages );
 			
-			NewsProfileRepository.DAO.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,IFNULL((SELECT  BADGE_COUNT  FROM  news_profile  WHERE  ID = ?  AND  PACKET_TYPE = ?),0)+1)",new  Object[]{messages.get(messages.size()-1).getContactId(),messages.get(messages.size()-1).getCreateTime(),PAIPPacketType.CHAT.getValue(),messages.get(messages.size()-1).getContactId(),ChatContentType.valueOf(messages.get(messages.size()-1).getContentType()) == ChatContentType.WORDS ? new  String(messages.get(messages.size()-1).getContent()) : "&"+StringUtils.leftPad(Integer.toHexString(PAIPPacketType.CHAT.getValue()),2,"0")+StringUtils.leftPad(Integer.toHexString(messages.get(messages.size()-1).getContentType()),2,"0")+";",messages.get(messages.size()-1).getContactId(),PAIPPacketType.CHAT.getValue()} );
+			NewsProfileRepository.DAO.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,IFNULL((SELECT  BADGE_COUNT  FROM  news_profile  WHERE  ID = ?  AND  PACKET_TYPE = ?),0)+1)",new  Object[]{messages.get(messages.size()-1).getContactId(),messages.get(messages.size()-1).getCreateTime(),PAIPPacketType.CHAT.getValue(),messages.get(messages.size()-1).getContactId(),ChatContentType.valueOf(messages.get(messages.size()-1).getContentType()) == ChatContentType.WORDS ? new  String(messages.get(messages.size()-1).getContent()) : ChatContentType.valueOf(messages.get(messages.size()-1).getContentType()).getPlaceholder(),messages.get(messages.size()-1).getContactId(),PAIPPacketType.CHAT.getValue()} );
 		}
 		
 		return  true;

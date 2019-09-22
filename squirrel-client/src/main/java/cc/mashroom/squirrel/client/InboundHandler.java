@@ -54,13 +54,16 @@ public  class  InboundHandler
 		
 		if( packet instanceof DisconnectAckPacket  )
 		{
-			if( /*      ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_PROACTIVELY || */  ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_REMOTE_SIGNIN )
+			if( ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason()==DisconnectAckPacket.REASON_CLIENT_LOGOUT || ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_REMOTE_SIGNIN )
 			{
-				LifecycleEventDispatcher.onLogout( adapter.getLifecycleListeners(), 200, 1   /* signin  confiction */ );
+				if( ObjectUtils.cast(packet, DisconnectAckPacket.class).getReason()    == DisconnectAckPacket.REASON_REMOTE_SIGNIN )
+				{
+					LifecycleEventDispatcher.onLogout( adapter.getLifecycleListeners() ,200,1/* signin  confiction */ );
+				}
 				
 				adapter.reset();
 				
-				context.close();
+				adapter.close();
 			}
 		}
 		else

@@ -120,7 +120,7 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 		
 		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS") +"  CHANNEL.LEFT:\tNONE" );
 		
-		context.close();
+		context.close(  );
 		
 		this.onConnectStateChanged( this.connectState   =  ConnectState.DISCONNECTED);
 		
@@ -179,6 +179,11 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 		eventLooperGroup.shutdownGracefully().sync();
 		
 		multipartsSendPool.shutdown();
+	}
+	
+	protected  synchronized  void  close()
+	{
+		if( channel.isOpen() )  this.channel.close();
 	}
 	
 	public  void  send(Packet  packet)
