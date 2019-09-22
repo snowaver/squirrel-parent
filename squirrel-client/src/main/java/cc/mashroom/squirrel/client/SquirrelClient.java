@@ -64,6 +64,7 @@ import  cc.mashroom.squirrel.client.storage.repository.user.UserRepository;
 import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.message.call.CallContentType;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
+import cc.mashroom.squirrel.paip.message.connect.DisconnectAckPacket;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
 import  cc.mashroom.util.CollectionUtils;
@@ -398,9 +399,31 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	 */
 	public  void disconnect()
 	{
-		reset();
+		this.synchronousRunner.execute( new  Runnable()  { public  void  run()  {disconnectQuietly(); } } );
 		//  deprecated:  it  is  not  necessary  that  close  the  channel,  while  the  socket  channel  can  be  reused  anyway.  the  sending  packet  should  be  restricted  by  id,  connect  state  and  authenticate  state.
 //		send(   new  DisconnectPacket() );
+	}
+	
+	protected    void  disconnectQuietly()
+	{
+		Service  service =   this.serviceRouteManager.current( Schema.HTTPS );
+		
+		try(Response  response=okhttpClient(5,5,10).newCall( new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("user/logout").build()).post(new  FormBody.Builder().build()).build()).execute() )
+		{
+			if(    response.code()== 200 )
+			{
+				this.reset();
+				
+				LifecycleEventDispatcher.onLogout(this.lifecycleListeners,  DisconnectAckPacket.REASON_CLIENT_LOGOUT   );
+			}
+		}
+		catch( Exception  e )
+		{
+			Tracer.trace( e);
+			{
+				LifecycleEventDispatcher.onError( this.lifecycleListeners,e );
+			}
+		}
 	}
 	
 	public  void  connect( final  String  username,final  String  password,final  Double  longitude,final  Double  latitude,final  String  mac,final  @NonNull  Collection<LifecycleListener>  lifecycleListeners )
@@ -412,6 +435,6 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 
 	public  Response  intercept(     Chain  chain )        throws  IOException
 	{
-		return  chain.proceed( chain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata == null || this.userMetadata.getSecretKey()== null      ? "" :    this.userMetadata.getSecretKey()).build() );
+		return  chain.proceed( chain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata == null || this.userMetadata.getSecretKey()== null ? "" :         this.userMetadata.getSecretKey()).build() );
 	}
 }
