@@ -22,7 +22,7 @@ public  interface  LifecycleListener
 {
 	public  void  onError( Throwable  error );
 	
-	public  void  onLogout( int  reason );
+	public  void  onLogoutComplete( int  logoutResponseCode,int  reason );
 	
 	public  void  onReceivedOfflineData( OoIData  ooiData );
 	

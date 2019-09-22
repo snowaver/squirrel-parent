@@ -413,16 +413,17 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			if(    response.code()== 200 )
 			{
 				this.reset();
-				
-				LifecycleEventDispatcher.onLogout(this.lifecycleListeners,  DisconnectAckPacket.REASON_CLIENT_LOGOUT   );
 			}
+			
+			LifecycleEventDispatcher.onLogout( this.lifecycleListeners , 200 ,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
 		}
 		catch( Exception  e )
 		{
 			Tracer.trace( e);
-			{
-				LifecycleEventDispatcher.onError( this.lifecycleListeners,e );
-			}
+			
+			LifecycleEventDispatcher.onError(  this.lifecycleListeners , e  );
+			
+			LifecycleEventDispatcher.onLogout( this.lifecycleListeners , 500 ,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
 		}
 	}
 	
