@@ -111,7 +111,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		{
 			if( this.connectivityError  ==  0x01 ||connectivityError == 0x02 )
 			{
-				this.connectQuietly( connectParameters.getString("username"),connectParameters.getString("password"),connectParameters.getDouble("longitude"),connectParameters.getDouble("latitude"),connectParameters.getString("mac"),false,true );
+				this.connectQuietly( connectParameters.getString("username"),connectParameters.getString("password"),connectParameters.getDouble("longitude"),connectParameters.getDouble("latitude"),connectParameters.getString("mac"),connectParameters.getBoolean("isConnectById"),true );
 			}
 			else
 			if(    super.getConnectState()       ==ConnectState.DISCONNECTED )
