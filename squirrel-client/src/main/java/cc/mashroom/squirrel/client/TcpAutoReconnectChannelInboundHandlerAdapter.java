@@ -127,19 +127,19 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 		this.eventLooperGroup.execute(new  Runnable()   {  public  void  run()  {connect(); }} );
 	}
 	
-	public  void  onConnectStateChanged(ConnectState connectState )
+	protected  void  onConnectStateChanged(     ConnectState   connectState  )
 	{
 		
+	}
+	
+	protected  void  connect( String  id,String  accessKey )
+	{
+		setId(id).setAccessKey( accessKey).setAuthenticated( true ).connect();
 	}
 	
 	public  void  channelRead(ChannelHandlerContext  context,Object   object )  throws  Exception
 	{
 		this.qosHandler.channelRead(context,object );
-	}
-	
-	protected  void  connect( String  id,String  accessKey )
-	{
-		setId( id).setAccessKey( accessKey).setAuthenticated(true ).connect();
 	}
 	
 	private  synchronized  void  connect()

@@ -40,9 +40,9 @@ import  io.netty.util.concurrent.DefaultThreadFactory;
 */
 public  class  InboundHandler
 {
-	private  ScheduledThreadPoolExecutor  pendingScheduledChecker= new  ScheduledThreadPoolExecutor(    1, new  DefaultThreadFactory("ACK-SCHEDULED-CHECKER",false,1) );
+	private  ScheduledThreadPoolExecutor pendingScheduledChecker = new  ScheduledThreadPoolExecutor(    1, new  DefaultThreadFactory("ACK-SCHEDULED-CHECKER",false,1) );
 	
-	private  Map<Long,Packet>  pendings= new  ConcurrentHashMap<Long,Packet>();
+	private  Map<Long,Packet>  pendings =new  ConcurrentHashMap<Long,Packet>();
 	
 	public  void  channelRead( ChannelHandlerContext  context,Object  object )    throws  Exception
 	{
@@ -58,7 +58,7 @@ public  class  InboundHandler
 			{
 				if( ObjectUtils.cast(packet, DisconnectAckPacket.class).getReason()    == DisconnectAckPacket.REASON_REMOTE_SIGNIN )
 				{
-					LifecycleEventDispatcher.onLogout( adapter.getLifecycleListeners() ,200,1/* signin  confiction */ );
+					LifecycleEventDispatcher.onLogout( adapter.getLifecycleListeners() ,  200, 1 );
 				}
 				
 				adapter.reset();
@@ -75,25 +75,25 @@ public  class  InboundHandler
 			}
 			else
 			{
-				context.close();
+				adapter.close();
 				
-				if(      adapter.isAuthenticated() )
+				if( adapter.isAuthenticated() )
 				{
-					System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.CONN:  still  authenticated,  disconnection  may  orignate  in  authentication  error  (secret  key  unavailable  now),  so  retrive  a  new  secret  key.");
+					System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.CONN:\tstill  authenticated,  disconnection  may  orignate  in  authentication  error  (secret  key  unavailable  now),  so  retrive  a  new  secret  key.");
 					
-					adapter.connect(null,null,null, null , null, adapter.getLifecycleListeners() );
+					adapter.setConnectivityError(2);  //  access  key  expired,  so  switch  connectivity  error  and  call  the  check  method  to  reconnect  for  a  new  access  key.
 				}
 			}
 		}
 		else
 		if( packet instanceof GroupChatPacket )
 		{
-			//  do  nothing  while  the  receipt  qos  packet  is  delivered  by  the  server  side
+			//  do  nothing  while  the  pending  ack  packet  is  delivered  by  the  server  side
 		}
 		else
 		if( packet instanceof PendingAckPacket)
 		{
-			this.unpend( adapter,ObjectUtils.cast(packet, PendingAckPacket.class).getPacketId(),TransportState.SENT );
+			this.unpend( adapter, ObjectUtils.cast(packet, PendingAckPacket.class).getPacketId()  ,TransportState.SENT);
 			
 			if( !(packet instanceof CallAckPacket) )
 			{
