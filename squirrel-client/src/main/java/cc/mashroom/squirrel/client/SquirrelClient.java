@@ -431,6 +431,8 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			{
 				this.reset();
 				
+				this.connectivityGuarantorThreadPool.remove(      this.connectivityChecker );
+				
 				this.close();
 			}
 		}

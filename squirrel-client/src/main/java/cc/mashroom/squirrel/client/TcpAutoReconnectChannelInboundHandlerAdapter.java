@@ -208,7 +208,7 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 		}
 		catch(  Throwable  e )
 		{
-			Tracer.trace( e );
+			Tracer.trace(  e);
 		}
 		finally
 		{
@@ -231,7 +231,7 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 	{
 		this.externalDecoders.put(      externalDecoder.getClass().getName() , externalDecoder );
 		
-		if(  channel  != null )   ObjectUtils.cast(channel.pipeline().get("decoder"),PAIPDecoder.class).addExternalDecoder(externalDecoder);
+		if(  channel != null )  ObjectUtils.cast(channel.pipeline().get("decoder"),PAIPDecoder.class).addExternalDecoder( externalDecoder );
 	}
 	/**
 	 *  multipart  uploading  is  a  heavily  time-consuming  io  operation,  so  seperate  it  from  other  data  packet  by  a  new  pool  named  MULTIPART-PACKET-SEND-THREAD  to  avoid  blocking  data  interaction  by  multipart  uploading  operations.
