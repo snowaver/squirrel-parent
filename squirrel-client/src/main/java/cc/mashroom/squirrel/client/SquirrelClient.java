@@ -338,37 +338,39 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		//  reset  the  connnectivity  error  to  normal  state  that  should  be  changed  by  the  special   situation.
 		this.connectivityError     = 0x00;
 		
-		try(Response  response=okhttpClient(5,5,10).newCall(new Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isConnectById ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac).addEntry("isConnectById",isConnectById).addEntry("isAutoReconnect",isAutoReconnect))).build()).execute() )
+		try(Response  response=okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isConnectById ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac).addEntry("isConnectById",isConnectById).addEntry("isAutoReconnect",isAutoReconnect))).build()).execute() )
 		{
 			if(    response.code()== 200 )
 			{
 				this.userMetadata =JsonUtils.mapper.readValue(response.body().string(),UserMetadata.class );
+				
+				LifecycleEventDispatcher.onAuthenticateComplete(  this.lifecycleListeners,response.code() );
 				//  connecting  to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
-				super.storage.initialize( this,false,lifecycleListeners,this.cacheDir ,this.userMetadata   , connectParameters.getString("password") );
+				super.storage.initialize( this,false,lifecycleListeners,this.cacheDir , this.userMetadata  , connectParameters.getString("password") );
 			
 				this.connect( String.valueOf(this.userMetadata.getId()), this.userMetadata.getSecretKey() );
 			}
 			else
 			{
+				LifecycleEventDispatcher.onAuthenticateComplete(  this.lifecycleListeners,response.code() );
+				
 				this.reset();
 				
 				this.connectivityGuarantorThreadPool.remove(      this.connectivityChecker );
 			}
-			
-			LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,      response.code() );
 		}
 		catch( Throwable  e )
 		{
+			if( isConnectById  || isAutoReconnect )   this.connectivityError = isConnectById? 0x01   : 0x02;
+			
 			if(        e instanceof SocketTimeoutException || e instanceof ConnectException )
 			{
 				serviceRouteManager.tryNext(   e instanceof ConnectException ? Schema.HTTPS : Schema.TCP  );
 			}
 			
-			if( isConnectById  || isAutoReconnect )   this.connectivityError = isConnectById? 0x01   : 0x02;
-			
 			Tracer.trace( e);
 			
-			LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,(e instanceof SocketTimeoutException) ? 501 /* TIMEOUT */  : 500 );
+			LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,(e instanceof SocketTimeoutException) ? 501/* TIMEOUT */  :  500 );
 		}
 		finally
 		{
