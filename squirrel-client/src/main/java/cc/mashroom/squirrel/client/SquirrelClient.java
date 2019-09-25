@@ -105,6 +105,8 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	private  Call    call;
 	//  0. normal,  do  nothing.  1. connection  is  authenticaed  last  time,  so  connect  by  id,  but  network  error. 2.   the  secret  key  is  expired  now  and  a  new  one  should  be  requested.  
 	private  int  connectivityError= 0x00;
+	
+	private  Runnable  connectivityChecker = new  Runnable()          { public    void  run()  {check();} };
 	private   synchronized  void   check()
 	{
 		try
@@ -164,7 +166,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		this.call     = null;
 	}
 	
-	synchronized  void  addCall(final  long  roomId,final  long  contactId,@NonNull final  CallContentType  contentType )
+	synchronized  void  addCall(final long  roomId, final  long  contactId,@NonNull final  CallContentType  contentType )
 	{
 		this.call     = new  Call(  this , roomId , contactId , contentType );
 	}
@@ -316,7 +318,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 				
 				if( this.connectivityGuarantorThreadPool.getTaskCount() == 0 )
 				{
-					connectivityGuarantorThreadPool.scheduleAtFixedRate(new  Runnable() {public  void  run() {check();}},   10  ,10,TimeUnit.SECONDS );
+					connectivityGuarantorThreadPool.scheduleAtFixedRate( this.connectivityChecker,   10, 10,  TimeUnit.SECONDS );
 				}
 				
 				this.connectivityError   =       isConnectById ?  0x01 : 0x02;
@@ -346,6 +348,12 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			
 				this.connect( String.valueOf(this.userMetadata.getId()), this.userMetadata.getSecretKey() );
 			}
+			else
+			{
+				this.reset();
+				
+				this.connectivityGuarantorThreadPool.remove(      this.connectivityChecker );
+			}
 			
 			LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,      response.code() );
 		}
@@ -368,7 +376,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			
 			if( connectivityGuarantorThreadPool.getTaskCount() == 0    &&  ( isConnectById || super.isAuthenticated() ) )
 			{
-				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( new  Runnable(){public  void  run(){check();} } , 10  ,10,TimeUnit.SECONDS );
+				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( this.connectivityChecker , 10, 10,  TimeUnit.SECONDS );
 			}
 		}
 		
