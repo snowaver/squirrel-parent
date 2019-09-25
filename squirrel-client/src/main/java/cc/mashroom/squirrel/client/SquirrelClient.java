@@ -376,7 +376,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		{
 			//  checking  connectivity  is  necessary  if  connecting  by  id  (authenticated  successfully  last  time )  or  authenticated  successfully.  so  it  should  be  scheduled  only  once.
 			
-			if( connectivityGuarantorThreadPool.getTaskCount() == 0    &&  ( isConnectById || super.isAuthenticated() ) )
+			if( this.connectivityGuarantorThreadPool.getTaskCount() == 0    &&     super.isAuthenticated() )
 			{
 				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( this.connectivityChecker , 10, 10,  TimeUnit.SECONDS );
 			}
@@ -387,7 +387,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	@Override
 	protected  void  onConnectStateChanged(ConnectState  changedConnectState )
 	{
-		LifecycleEventDispatcher.onConnectStateChanged(    this.lifecycleListeners  , changedConnectState );
+		LifecycleEventDispatcher.onConnectStateChanged(    this.lifecycleListeners ,  changedConnectState );
 	}
 	/**
 	 *  clear  all  states,  include  user  metadata,  connect  parameters,  call,  lifecycle  listener  and  super  class  states  ( id,  authenticate  state  and  connect  state ).
