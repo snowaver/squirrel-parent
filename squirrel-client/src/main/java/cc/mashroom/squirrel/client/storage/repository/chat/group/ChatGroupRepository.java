@@ -16,20 +16,26 @@
 package cc.mashroom.squirrel.client.storage.repository.chat.group;
 
 import  java.sql.Timestamp;
+import  java.util.HashSet;
 import  java.util.LinkedList;
+import  java.util.Set;
 
-import  org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import  org.joda.time.DateTime;
 import  org.joda.time.DateTimeZone;
+
+import  com.google.common.collect.Lists;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
+import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupUser;
 import  cc.mashroom.squirrel.client.storage.repository.chat.NewsProfileRepository;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.util.Reference;
+import  cc.mashroom.util.collection.map.HashMap;
+import  cc.mashroom.util.collection.map.Map;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 
@@ -37,35 +43,35 @@ import  lombok.NoArgsConstructor;
 @NoArgsConstructor(  access = AccessLevel.PRIVATE )
 public  class  ChatGroupRepository  extends  RepositorySupport
 {
-	public  final  static  ChatGroupRepository  DAO   = new  ChatGroupRepository();
+	public  final  static  ChatGroupRepository  DAO = new  ChatGroupRepository();
 	
-	public  boolean  attach(   SquirrelClient  context,OoIData  ooiData )  throws  IllegalArgumentException,IllegalAccessException
+	public  boolean  attach(   SquirrelClient  context,OoIData  ooiData )    throws  IllegalArgumentException,  IllegalAccessException
 	{
-		long  nowMillis = DateTime.now(DateTimeZone.UTC).getMillis() - 1;
+		long  nowMillis= DateTime.now( DateTimeZone.UTC ).getMillis() -1;
 		
 		super.upsert(    ooiData.getChatGroups() );
 		
-		ArrayListValuedHashMap<Long, ChatGroupUser>  chatGroupUsers = new  ArrayListValuedHashMap<Long,ChatGroupUser>();
+		Map<Long,ChatGroup>  chatGroups = new  HashMap<Long,ChatGroup>();
 		
-		for( ChatGroupUser  chatGroupUser : ooiData.getChatGroupUsers() )
+		Set<String>  adds = new  HashSet<String>();
+		
+		for( ChatGroup   chatGroup : ooiData.getChatGroups() )  chatGroups.put( chatGroup.getId(),chatGroup );
+		
+		for( ChatGroupUser  chatGroupUser :  Lists.reverse(  ooiData.getChatGroupUsers()) )
 		{
-			if( chatGroupUser.getContactId() == context.getUserMetadata().getId().longValue() )  chatGroupUsers.put( chatGroupUser.getChatGroupId(),chatGroupUser );
+			if( adds.add(chatGroupUser.getContactId()+":"+chatGroupUser.getChatGroupId()) )
+			{
+				if( chatGroupUser.getIsDeleted() || chatGroups.get(chatGroupUser.getChatGroupId()).getIsDeleted() )
+				{
+					NewsProfileRepository.DAO.update( "DELETE  FROM  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{chatGroupUser.getChatGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );
+				}
+				else
+				{
+					NewsProfileRepository.DAO.insert( new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{chatGroupUser.getChatGroupId(),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
+				}
+			}
 		}
 		
-		for( Long  groupId :chatGroupUsers.keys() )
-		{
-			ChatGroupUser  chatGroupUser  =   chatGroupUsers.get(groupId).get( chatGroupUsers.get(groupId).size() - 1 );
-			
-			if( !    chatGroupUser.getIsDeleted() )
-			{
-				NewsProfileRepository.DAO.insert( new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{chatGroupUser.getChatGroupId(),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
-			}
-			else
-			{
-				NewsProfileRepository.DAO.update( "DELETE  FROM  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{chatGroupUser.getChatGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );
-			}
-		}
-		
-		ChatGroupUserRepository.DAO.upsert(ooiData.getChatGroupUsers() );         return  true;
+		ChatGroupUserRepository.DAO.upsert(ooiData.getChatGroupUsers() );     return  true;
 	}
 }
