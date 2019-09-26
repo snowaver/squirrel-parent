@@ -20,6 +20,7 @@ import  java.util.HashSet;
 import  java.util.LinkedList;
 import  java.util.Set;
 
+import  org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import  org.joda.time.DateTime;
 import  org.joda.time.DateTimeZone;
 
@@ -43,33 +44,46 @@ import  lombok.NoArgsConstructor;
 @NoArgsConstructor(  access = AccessLevel.PRIVATE )
 public  class  ChatGroupRepository  extends  RepositorySupport
 {
-	public  final  static  ChatGroupRepository  DAO = new  ChatGroupRepository();
+	public  final  static  ChatGroupRepository  DAO          =  new  ChatGroupRepository();
 	
-	public  boolean  attach(   SquirrelClient  context,OoIData  ooiData )    throws  IllegalArgumentException,  IllegalAccessException
+	public  boolean  attach(   SquirrelClient  context,OoIData  ooiData )  throws  IllegalArgumentException,IllegalAccessException
 	{
-		long  nowMillis= DateTime.now( DateTimeZone.UTC ).getMillis() -1;
+		long  nowMillis =DateTime.now(DateTimeZone.UTC).getMillis()  - 1;
 		
 		super.upsert(    ooiData.getChatGroups() );
 		
 		Map<Long,ChatGroup>  chatGroups = new  HashMap<Long,ChatGroup>();
 		
-		Set<String>  adds = new  HashSet<String>();
+		Set<Long>  addedIds = new  HashSet<Long>();
 		
-		for( ChatGroup   chatGroup : ooiData.getChatGroups() )  chatGroups.put( chatGroup.getId(),chatGroup );
+		ArrayListValuedHashMap<String, Object[]>  updateNewsProfileParameters   =  new  ArrayListValuedHashMap<String,Object[]>();
+		
+		for( ChatGroup   chatGroup : ooiData.getChatGroups() )
+		{
+			if( addedIds.add( chatGroup.getId() ) )
+			{
+				updateNewsProfileParameters.put( chatGroup.getIsDeleted() ? "DELETE" : "UPSERT",chatGroup.getIsDeleted() ? new  Object[]{chatGroup.getId(),PAIPPacketType.GROUP_CHAT.getValue()} : new  Object[]{chatGroup.getId(),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
+			}
+			
+			chatGroups.put(   chatGroup.getId() , chatGroup );
+		}
 		
 		for( ChatGroupUser  chatGroupUser :  Lists.reverse(  ooiData.getChatGroupUsers()) )
 		{
-			if( adds.add(chatGroupUser.getContactId()+":"+chatGroupUser.getChatGroupId()) )
+			if( addedIds.add(chatGroupUser.getChatGroupId()) )
 			{
-				if( chatGroupUser.getIsDeleted() || chatGroups.get(chatGroupUser.getChatGroupId()).getIsDeleted() )
-				{
-					NewsProfileRepository.DAO.update( "DELETE  FROM  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{chatGroupUser.getChatGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );
-				}
-				else
-				{
-					NewsProfileRepository.DAO.insert( new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{chatGroupUser.getChatGroupId(),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
-				}
+				updateNewsProfileParameters.put( chatGroups.get(chatGroupUser.getChatGroupId()).getIsDeleted() || chatGroupUser.getIsDeleted() ? "DELETE" : "UPSERT",chatGroups.get(chatGroupUser.getChatGroupId()).getIsDeleted() || chatGroupUser.getIsDeleted() ? new  Object[]{chatGroupUser.getChatGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} : new  Object[]{chatGroupUser.getChatGroupId(),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
 			}
+		}
+		
+		if( updateNewsProfileParameters.containsKey("DELETE"))
+		{
+			NewsProfileRepository.DAO.update( "DELETE  FROM  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",updateNewsProfileParameters.get("DELETE").toArray(new  Object[updateNewsProfileParameters.get("DELETE").size()][]) );
+		}
+		
+		if( updateNewsProfileParameters.containsKey("UPSERT"))
+		{
+			NewsProfileRepository.DAO.insert( new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",updateNewsProfileParameters.get("UPSERT").toArray(new  Object[updateNewsProfileParameters.get("UPSERT").size()][]) );
 		}
 		
 		ChatGroupUserRepository.DAO.upsert(ooiData.getChatGroupUsers() );     return  true;
