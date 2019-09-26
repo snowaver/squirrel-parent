@@ -18,6 +18,7 @@ package cc.mashroom.squirrel.client.storage.repository.chat.group;
 import  java.sql.Timestamp;
 import  java.util.LinkedList;
 
+import  org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import  org.joda.time.DateTime;
 import  org.joda.time.DateTimeZone;
 
@@ -36,7 +37,7 @@ import  lombok.NoArgsConstructor;
 @NoArgsConstructor(  access = AccessLevel.PRIVATE )
 public  class  ChatGroupRepository  extends  RepositorySupport
 {
-	public  final  static  ChatGroupRepository  DAO = new  ChatGroupRepository();
+	public  final  static  ChatGroupRepository  DAO   = new  ChatGroupRepository();
 	
 	public  boolean  attach(   SquirrelClient  context,OoIData  ooiData )  throws  IllegalArgumentException,IllegalAccessException
 	{
@@ -44,21 +45,27 @@ public  class  ChatGroupRepository  extends  RepositorySupport
 		
 		super.upsert(    ooiData.getChatGroups() );
 		
+		ArrayListValuedHashMap<Long, ChatGroupUser>  chatGroupUsers = new  ArrayListValuedHashMap<Long,ChatGroupUser>();
+		
 		for( ChatGroupUser  chatGroupUser : ooiData.getChatGroupUsers() )
 		{
-			if( chatGroupUser.getContactId()   == context.getUserMetadata().getId().longValue() )
+			if( chatGroupUser.getContactId() == context.getUserMetadata().getId().longValue() )  chatGroupUsers.put( chatGroupUser.getChatGroupId(),chatGroupUser );
+		}
+		
+		for( Long  groupId :chatGroupUsers.keys() )
+		{
+			ChatGroupUser  chatGroupUser  =   chatGroupUsers.get(groupId).get( chatGroupUsers.get(groupId).size() - 1 );
+			
+			if( !    chatGroupUser.getIsDeleted() )
 			{
-				if( !chatGroupUser.getIsDeleted() )
-				{
-					NewsProfileRepository.DAO.insert( new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{chatGroupUser.getChatGroupId(),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
-				}
-				else
-				{
-					NewsProfileRepository.DAO.update( "DELETE  FROM  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{chatGroupUser.getChatGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );
-				}
+				NewsProfileRepository.DAO.insert( new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{chatGroupUser.getChatGroupId(),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
+			}
+			else
+			{
+				NewsProfileRepository.DAO.update( "DELETE  FROM  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{chatGroupUser.getChatGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );
 			}
 		}
 		
-		ChatGroupUserRepository.DAO.upsert(ooiData.getChatGroupUsers() );      return  true;
+		ChatGroupUserRepository.DAO.upsert(ooiData.getChatGroupUsers() );         return  true;
 	}
 }
