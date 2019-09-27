@@ -46,17 +46,17 @@ public  class  ChatGroupRepository  extends  RepositorySupport
 {
 	public  final  static  ChatGroupRepository  DAO          =  new  ChatGroupRepository();
 	
-	public  boolean  attach(   SquirrelClient  context,OoIData  ooiData )  throws  IllegalArgumentException,IllegalAccessException
+	public  synchronized  boolean  attach(      SquirrelClient  context ,OoIData  ooiData )  throws  IllegalArgumentException,IllegalAccessException
 	{
-		long  nowMillis =DateTime.now(DateTimeZone.UTC).getMillis()  - 1;
-		
 		super.upsert(    ooiData.getChatGroups() );
 		
 		Map<Long,ChatGroup>  chatGroups = new  HashMap<Long,ChatGroup>();
 		
 		Set<Long>  addedIds = new  HashSet<Long>();
 		
-		ArrayListValuedHashMap<String, Object[]>  updateNewsProfileParameters   =  new  ArrayListValuedHashMap<String,Object[]>();
+		ArrayListValuedHashMap<String, Object[]>  updateNewsProfileParameters = new  ArrayListValuedHashMap<String,Object[]>();
+		
+		long  nowMillis  =  DateTime.now(DateTimeZone.UTC).getMillis()-1;
 		
 		for( ChatGroup   chatGroup : ooiData.getChatGroups() )
 		{

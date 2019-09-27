@@ -236,8 +236,8 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 	/**
 	 *  multipart  uploading  is  a  heavily  time-consuming  io  operation,  so  seperate  it  from  other  data  packet  by  a  new  pool  named  MULTIPART-PACKET-SEND-THREAD  to  avoid  blocking  data  interaction  by  multipart  uploading  operations.
 	 */
-	public  void  send(    final  Packet  packet,final  long  timeout,final  TimeUnit  timeunit )
+	public  void  send(  final  Packet  packet,final  long  timeout,     final  TimeUnit timeoutTimeUnit )
 	{
-		((packet instanceof ChatPacket && ObjectUtils.cast(packet,ChatPacket.class).getContentType() != ChatContentType.WORDS) || (packet instanceof GroupChatPacket && ObjectUtils.cast(packet,GroupChatPacket.class).getContentType() != ChatContentType.WORDS) ? multipartsSendPool : eventLooperGroup).execute( new  Runnable() { public  void  run(){syncsend(packet,timeout,timeunit);} } );
+		((packet instanceof ChatPacket && ObjectUtils.cast(packet,ChatPacket.class).getContentType() != ChatContentType.WORDS) || (packet instanceof GroupChatPacket && ObjectUtils.cast(packet,GroupChatPacket.class).getContentType() != ChatContentType.WORDS) ? multipartsSendPool : eventLooperGroup).execute( new  Runnable() { public  void  run(){syncsend(packet,timeout,timeoutTimeUnit);} } );
 	}
 }

@@ -207,9 +207,9 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		*/
 	}
 	
-	public  OkHttpClient  okhttpClient( long  connecttimeoutSeconds,long  writetimeoutSeconds ,long  readtimeoutSeconds )
+	public  OkHttpClient  okhttpClient( long  connectTimeoutSeconds,long  writeTimeoutSeconds ,long  readTimeoutSeconds )
 	{
-		return  new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).addInterceptor(this).connectTimeout(connecttimeoutSeconds,TimeUnit.SECONDS).writeTimeout(writetimeoutSeconds,TimeUnit.SECONDS).readTimeout(readtimeoutSeconds,TimeUnit.SECONDS).build();
+		return  new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).addInterceptor(this).connectTimeout(connectTimeoutSeconds,TimeUnit.SECONDS).writeTimeout(writeTimeoutSeconds,TimeUnit.SECONDS).readTimeout(readTimeoutSeconds,TimeUnit.SECONDS).build();
 	}
 	/**
 	 *  connect  by  the  user  id.  the  username  and  encrypted  password,  which  are  stored  in  local  h2  database,  can  be  fetched  by  the  unique  user  id.  a  new  connect  parameters  will  be  created  for  the     https  authenticate  request.
