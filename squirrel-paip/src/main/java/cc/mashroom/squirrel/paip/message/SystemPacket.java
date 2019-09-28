@@ -16,7 +16,6 @@
 package cc.mashroom.squirrel.paip.message;
 
 import  io.netty.buffer.ByteBuf;
-import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
@@ -40,7 +39,7 @@ public  abstract  class  SystemPacket<T extends SystemPacket<?>>  extends  Packe
 		return  byteBuf.writeBytes(PAIPCodecUtils.encode(clusterNodeId));
 	}
 	
-	@Setter( value=AccessLevel.PROTECTED )
+	@Setter
 	@Getter
 	@Accessors(chain=true)
 	private  String  clusterNodeId;
