@@ -27,11 +27,11 @@ import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(  callSuper = true )
-public  class  SDPPacket  extends  AbstractCallPacket<SDPPacket>
+public  class  SDPPacket  extends  RoomPacket<SDPPacket>
 {
-	public  SDPPacket( long contactId,long roomId,SDP  sdp )
+	public  SDPPacket( long  contactId,long roomId,SDP  sdp )
 	{
-		super( new  Header( PAIPPacketType.CALL_SDP) , roomId );
+		super(new  Header(PAIPPacketType.CALL_SDP),roomId  );
 		
 		this.setContactId(contactId).setSdp( sdp );
 	}
@@ -55,7 +55,7 @@ public  class  SDPPacket  extends  AbstractCallPacket<SDPPacket>
 	
 	public  int  getInitialVariableByteBufferSize()
 	{
-		return   8 +   super.getInitialVariableByteBufferSize();
+		return   8+ super.getInitialVariableByteBufferSize();
 	}
 	/*
 	public  void  writeTo(  ByteBuf  buf )

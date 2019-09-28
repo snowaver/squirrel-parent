@@ -25,7 +25,7 @@ import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  CloseCallPacket  extends  AbstractCallPacket<CloseCallPacket>
+public  class  CloseCallPacket  extends  RoomPacket  <CloseCallPacket>
 {
 	public  CloseCallPacket( long  contactId,long  roomId,CloseCallReason  reason )
 	{

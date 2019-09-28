@@ -25,13 +25,13 @@ import cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.Packet;
 
 @ToString(callSuper=true )
-public  abstract  class  AbstractCallPacket<T extends AbstractCallPacket<?>>  extends  Packet<T>
+public  abstract  class  RoomPacket   <T extends RoomPacket<?>>  extends  Packet<T>
 {	
-	public  AbstractCallPacket(  Header  header , long roomId )
+	public  RoomPacket(Header  header,long roomId )
 	{
 		super(   header );
 		
-		setRoomId(roomId);
+		this.setRoomId(roomId);
 	}
 	
 	public  ByteBuf  writeToVariableByteBuf( ByteBuf  byteBuf )
@@ -39,9 +39,9 @@ public  abstract  class  AbstractCallPacket<T extends AbstractCallPacket<?>>  ex
 		return  byteBuf.writeLongLE( this.roomId );
 	}
 	
-	public  AbstractCallPacket( ByteBuf   byteBuf,int  expectedFlags )
+	public  RoomPacket( ByteBuf   byteBuf,int   expectedFlags )
 	{
-		super( byteBuf , 0x00 );
+		super( byteBuf, 0x00 );
 		
 		this.setRoomId(byteBuf.readLongLE());
 	}

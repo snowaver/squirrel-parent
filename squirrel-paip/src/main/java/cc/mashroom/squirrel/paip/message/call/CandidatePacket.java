@@ -26,20 +26,20 @@ import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  CandidatePacket      extends  AbstractCallPacket<CandidatePacket>
-{	
-	public  CandidatePacket( long  contactId,long  roomId,Candidate  candidate )
-	{
-		super( new  Header(PAIPPacketType.CALL_CANDIDATE) , roomId );
-		
-		super.setContactId(contactId).setCandidate( candidate );
-	}
-	
+public  class  CandidatePacket  extends   RoomPacket<CandidatePacket>
+{
 	public  CandidatePacket( ByteBuf  buf )
 	{
 		super(  buf, 0x00 );
 		
 		this.setContactId(buf.readLongLE()).setCandidate( new  Candidate(PAIPCodecUtils.decode(buf),buf.readIntLE(),PAIPCodecUtils.decode(buf)) );
+	}
+	
+	public  CandidatePacket( long  contactId,long  roomId,Candidate  candidate )
+	{
+		super( new  Header(PAIPPacketType.CALL_CANDIDATE),roomId   );
+		
+		super.setContactId(contactId).setCandidate( candidate );
 	}
 	
 	@Setter(  value=AccessLevel.PROTECTED )
@@ -54,7 +54,7 @@ public  class  CandidatePacket      extends  AbstractCallPacket<CandidatePacket>
 	
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
 	{
-		ByteBuf  candidateByteBuf = PAIPCodecUtils.encode(candidate.getCandidate() );  ByteBuf  idBuf= PAIPCodecUtils.encode( candidate.getId() );  super.writeToVariableByteBuf(byteBuf).writeLongLE(contactId).writeBytes(idBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf);  idBuf.release();  candidateByteBuf.release();  return  byteBuf;
+		ByteBuf  candidateByteBuf = PAIPCodecUtils.encode(this.candidate.getCandidate() );  ByteBuf  idBuf= PAIPCodecUtils.encode( candidate.getId() );  super.writeToVariableByteBuf(byteBuf).writeLongLE(contactId).writeBytes(idBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf);  idBuf.release();  candidateByteBuf.release();  return  byteBuf;
 	}
 	/*
 	public  void  writeTo(      ByteBuf  buf )

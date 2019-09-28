@@ -21,7 +21,7 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
-import  cc.mashroom.squirrel.paip.message.Packet;
+import  cc.mashroom.squirrel.paip.message.SystemPacket;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
@@ -33,7 +33,7 @@ import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
+public  class  GroupChatEventPacket     extends  SystemPacket<GroupChatEventPacket>
 {
 	public  final  static  int  EVENT_GROUP_ADDED     = 0x00;
 	
@@ -54,11 +54,16 @@ public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
 		this.setGroupId(byteBuf.readLongLE()).setEvent(byteBuf.readByte()).setAttatchmentsOriginal(PAIPCodecUtils.decode(byteBuf)).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(this.attatchmentsOriginal,new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
-	public  GroupChatEventPacket( long  groupId,int  event,Map<String,?>  attatchments )
+	public  GroupChatEventPacket( long  groupId,int  event,String  clusterNodeId,Map<String,?>  attatchments )
 	{
-		super( new  Header(PAIPPacketType.GROUP_CHAT_EVENT));
+		super(new  Header(PAIPPacketType.GROUP_CHAT_EVENT),clusterNodeId);
 		
-		setEvent(event).setGroupId(groupId).setAttatchments(attatchments);
+		this.setEvent(event).setGroupId(groupId).setAttatchments(  attatchments  );
+	}
+	
+	public  ByteBuf    writeToVariableByteBuf(  ByteBuf  variableByteBuf )
+	{
+		return  variableByteBuf.writeLongLE(groupId).writeByte(event).writeBytes( PAIPCodecUtils.encode(JsonUtils.toJson(attatchments)) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -88,8 +93,4 @@ public  class  GroupChatEventPacket  extends  Packet<GroupChatEventPacket>
 		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.GROUP_CHAT_INVITED );
 	}
 	*/
-	public  ByteBuf  writeToVariableByteBuf(    ByteBuf  variableByteBuf )
-	{
-		return  variableByteBuf.writeLongLE(groupId).writeByte(event).writeBytes( PAIPCodecUtils.encode(JsonUtils.toJson(attatchments)) );
-	}
 }

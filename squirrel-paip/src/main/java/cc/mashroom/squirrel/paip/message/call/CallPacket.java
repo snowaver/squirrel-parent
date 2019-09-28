@@ -26,13 +26,13 @@ import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  CallPacket  extends  AbstractCallPacket  <CallPacket>
+public  class  CallPacket  extends   RoomPacket<CallPacket>
 {
 	public  final  static  AttributeKey<Long>  CALL_ROOM_ID  = AttributeKey.newInstance( "CALL_ROOM_ID" );
 	
 	public  CallPacket( long  contactId,long  roomId,CallContentType  contentType )
 	{
-		super( new  Header(PAIPPacketType.CALL) , roomId );
+		super( new  Header(PAIPPacketType.CALL),  roomId );
 		
 		super.setContactId(contactId).setContentType( contentType );
 	}
