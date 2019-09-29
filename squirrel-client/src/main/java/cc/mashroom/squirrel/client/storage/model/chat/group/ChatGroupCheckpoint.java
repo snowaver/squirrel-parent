@@ -26,33 +26,15 @@ import  lombok.NoArgsConstructor;
 import  lombok.experimental.Accessors;
 
 @Data
-@Accessors( chain = true )
+@Accessors( chain=true )
 @NoArgsConstructor
 @AllArgsConstructor
-public  class    ChatGroup
+public  class  ChatGroupCheckpoint
 {
-	@JsonProperty( value="ID"  )
-	@Column( name="ID"   )
+	@JsonProperty( value="ID" )
+	@Column( name="ID" )
 	private  Long  id;
-	@JsonProperty( value="IS_DELETED" )
-	@Column( name="IS_DELETED" )
-	private  Boolean  isDeleted;
-	@JsonProperty( value="CREATE_TIME")
-	@Column( name="CREATE_TIME")
-	private  Timestamp  createTime;
-	@JsonProperty( value="CREATE_BY"  )
-	@Column( name="CREATE_BY"  )
-	private  Long      createBy;
-	@JsonProperty( value="LAST_MODIFY_TIME" )
-	@Column( name="LAST_MODIFY_TIME"  )
-	private  Timestamp  lastModifyTime;
-	@JsonProperty( value="LAST_MODIFY_BY"   )
-	@Column( name="LAST_MODIFY_BY")
-	private  Long  lastModifyBy;
 	@JsonProperty( value="CHECK_POINT_TIME" )
 	@Column( name="CHECK_POINT_TIME"  )
-	private  Timestamp  checkPointTime;
-	@JsonProperty( value="NAME")
-	@Column( name="NAME" )
-	private  String  name;
+	private  Timestamp  checkpointTime;
 }
