@@ -58,7 +58,7 @@ public  class  GroupChatEventPacket     extends  SystemPacket<GroupChatEventPack
 	{
 		super(new  Header(PAIPPacketType.GROUP_CHAT_EVENT),clusterNodeId);
 		
-		this.setEvent(event).setGroupId(groupId).setAttatchments(  attatchments  );
+		this.setAckLevel(1,0).setEvent(event).setGroupId(groupId).setAttatchments(  attatchments  );
 	}
 	
 	public  ByteBuf    writeToVariableByteBuf(  ByteBuf  variableByteBuf )

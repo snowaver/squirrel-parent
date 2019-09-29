@@ -68,7 +68,7 @@ public  abstract  class  Packet  <T extends Packet>
 	
 	public  T  setAckLevel( int  ackLevel,  long   contactId )
 	{
-		if(    contactId <= 0 )
+		if(    contactId <  0 )
 		{
 			throw  new  IllegalArgumentException("SQUIRREL-PAIP:  ** PACKET **  contact  id  is  invalidate." );
 		}
