@@ -22,11 +22,6 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.message.SystemPacket;
-import  cc.mashroom.util.JsonUtils;
-import  cc.mashroom.util.collection.map.HashMap;
-import  cc.mashroom.util.collection.map.Map;
-
-import  com.fasterxml.jackson.core.type.TypeReference;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
@@ -51,19 +46,19 @@ public  class  GroupChatEventPacket     extends  SystemPacket<GroupChatEventPack
 	{
 		super( byteBuf,0x00 );
 		
-		this.setGroupId(byteBuf.readLongLE()).setEvent(byteBuf.readByte()).setAttatchmentsOriginal(PAIPCodecUtils.decode(byteBuf)).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(this.attatchmentsOriginal,new  TypeReference<Map<String,Object>>(){})) );
+		this.setGroupId(byteBuf.readLongLE()).setEvent(byteBuf.readByte()).setAttatchments( PAIPCodecUtils.decode(byteBuf) );
 	}
 	
-	public  GroupChatEventPacket( long  groupId,int  event,String  clusterNodeId,Map<String,?>  attatchments )
+	public  GroupChatEventPacket( long  groupId,int  event,String  clusterNodeId,String  attatchments )
 	{
 		super(new  Header(PAIPPacketType.GROUP_CHAT_EVENT),clusterNodeId);
 		
-		this.setAckLevel(1,0).setEvent(event).setGroupId(groupId).setAttatchments(  attatchments  );
+		this.setEvent(event).setGroupId(groupId).setAttatchments(   attatchments );
 	}
 	
 	public  ByteBuf    writeToVariableByteBuf(  ByteBuf  variableByteBuf )
 	{
-		return  variableByteBuf.writeLongLE(groupId).writeByte(event).writeBytes( PAIPCodecUtils.encode(JsonUtils.toJson(attatchments)) );
+		return  variableByteBuf.writeLongLE(groupId).writeByte(event).writeBytes( PAIPCodecUtils.encode(this.attatchments) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -77,11 +72,7 @@ public  class  GroupChatEventPacket     extends  SystemPacket<GroupChatEventPack
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors( chain = true )
-	private  Map<String,?>  attatchments =  new  HashMap<>();
-	@Setter( value=AccessLevel.PROTECTED )
-	@Getter
-	@Accessors( chain = true )
-	private  String  attatchmentsOriginal;
+	private  String  attatchments;
 
 	public   int  getInitialVariableByteBufferSize()
 	{

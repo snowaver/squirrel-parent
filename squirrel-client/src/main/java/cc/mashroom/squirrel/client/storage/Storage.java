@@ -148,7 +148,7 @@ public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirre
 		else
 		if( packet instanceof GroupChatEventPacket   )
 		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatGroupRepository.DAO.attach( context,JsonUtils.fromJson(ObjectUtils.cast(packet,GroupChatEventPacket.class).getAttatchmentsOriginal(),OoIData.class) );}} );
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatGroupRepository.DAO.attach( context,JsonUtils.fromJson(ObjectUtils.cast(packet,GroupChatEventPacket.class).getAttatchments(),OoIData.class),true );}} );
 		}
 		else
 		if( packet instanceof ChatPacket )

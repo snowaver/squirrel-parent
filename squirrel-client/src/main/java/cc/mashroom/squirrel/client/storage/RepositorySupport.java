@@ -16,13 +16,12 @@
 package cc.mashroom.squirrel.client.storage;
 
 import  java.lang.reflect.Field;
+import  java.util.ArrayList;
+import  java.util.Collection;
 import  java.util.LinkedList;
 import  java.util.List;
 
 import  org.apache.commons.lang3.StringUtils;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import  com.google.common.collect.Lists;
 
 import  cc.mashroom.db.GenericRepository;
 import  cc.mashroom.db.util.ConnectionUtils;
@@ -33,36 +32,38 @@ import  cc.mashroom.util.collection.map.Map;
 
 public  class  RepositorySupport  extends  GenericRepository
 {
-	public  int  upsert( List<?>  rcs )  throws  IllegalArgumentException,IllegalAccessException
+	public  int  upsert( List<?>  beans )  throws  IllegalArgumentException,IllegalAccessException
 	{
-		if( rcs.isEmpty() )
+		if( beans.isEmpty() )
 		{
 			return  0;
 		}
 		
-		if( rcs.get(0).getClass().getPackage().getName().startsWith("java.") && !(rcs.get(0) instanceof Map) )
+		Object  firstBean= beans.get(0 );
+		
+		if( firstBean.getClass().getPackage().getName().startsWith("java.") &&      !(firstBean instanceof Map) )
 		{
-			throw  new  IllegalArgumentException( String.format("SQUIRREL-CLIENT:  ** H2  UTILS **  class  ( %s )  can  not  be  resolved.",rcs.get(0).getClass().getName()) );
+			throw  new  IllegalArgumentException( String.format("SQUIRREL-CLIENT:  ** H2  UTILS **  class  ( %s )  can  not  be  resolved.",beans.get(0).getClass().getName()) );
 		}
 		
-		if( rcs.get(0) instanceof Map )
+		if( firstBean instanceof    Map )
 		{
-			List<String> fields = new  LinkedList<String>(  ObjectUtils.cast(rcs.get(0),Map.class).keySet() );
+			ArrayList<String>  fields = new  ArrayList<String>( ObjectUtils.cast(firstBean,Map.class).keySet() );
 			
-			return  ConnectionUtils.batchUpdatedCount( super.insert(new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+super.getDataSourceBind().table()+"  ("+StringUtils.join(fields,",")+")  VALUES  ("+StringUtils.rightPad("?",2*(fields.size()-1)+1,",?")+")",ConnectionUtils.prepare(ObjectUtils.cast(rcs,new  TypeReference<List<Map<String,Object>>>(){}),fields).toArray(new  Object[rcs.size()][])) );
+			return  ConnectionUtils.batchUpdatedCount( super.insert(new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+super.getDataSourceBind().table()+"  ("+StringUtils.join(fields,",")+")  VALUES  ("+StringUtils.rightPad("?",2*(fields.size()-1)+1,",?")+")",ConnectionUtils.prepare((Collection<? extends Map>)beans,fields)) );
 		}
 		else
 		{
-			Map<String,Field>  columnBeanFieldMapper = RecordUtils.createColumnBeanFieldMapper( rcs.get(0).getClass() );
+			Map<String,Field>  columnBeanFieldMapper = RecordUtils.createColumnBeanFieldMapper(  firstBean.getClass()  );
 			
 			if( columnBeanFieldMapper.isEmpty() )
 			{
-				throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** H2  UTILS **  can  not  find  any  column  annotated  fields  in  class  ( %s ).",rcs.get(0).getClass().getName()) );
+				throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** H2  UTILS **  can  not  find  any  column  annotated  fields  in  class  ( %s ).",beans.get(0).getClass().getName()) );
 			}
 			
-			List<String>  fields    = new  LinkedList<String>( columnBeanFieldMapper.keySet() );
+			ArrayList<String>  fields = new  ArrayList<String>(  columnBeanFieldMapper.keySet() );
 			
-			return  ConnectionUtils.batchUpdatedCount( super.insert(new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+getDataSourceBind().table()+"  ("+StringUtils.join(fields,",")+")  VALUES  ("+StringUtils.rightPad("?",2*(fields.size()-1)+1,",?")+")",ConnectionUtils.prepare(Lists.newArrayList(rcs),fields,columnBeanFieldMapper ).toArray(new  Object[rcs.size()][])) );
+			return  ConnectionUtils.batchUpdatedCount( super.insert(new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+getDataSourceBind().table()+"  ("+StringUtils.join(fields,",")+")  VALUES  ("+StringUtils.rightPad("?",2*(fields.size()-1)+1,",?")+")",ConnectionUtils.prepare(beans,fields,columnBeanFieldMapper)) );
 		}
 	}
 }

@@ -35,6 +35,8 @@ import  lombok.experimental.Accessors;
 @AllArgsConstructor
 public  class  OoIData
 {
+	@JsonProperty( value="CHAT_GROUP_SYNC_ID"    )
+	private  Long  chatGroupSyncId;
 	@JsonProperty( value="CONTACTS" )
 	private  List<Contact>  contacts;
 	@JsonProperty( value="CHAT_GROUPS"  )

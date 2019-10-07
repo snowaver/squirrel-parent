@@ -15,61 +15,53 @@
  */
 package cc.mashroom.squirrel.client.storage.repository.chat.group;
 
-import  java.sql.Timestamp;
-import  java.util.LinkedList;
-import java.util.List;
+import  java.io.IOException;
+import  java.util.Collection;
 
-import  org.joda.time.DateTime;
-import  org.joda.time.DateTimeZone;
+import  com.fasterxml.jackson.core.type.TypeReference;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
+import  cc.mashroom.router.Schema;
+import  cc.mashroom.router.Service;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
-import cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupCheckpoint;
+import cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupSync;
 import  cc.mashroom.squirrel.client.storage.repository.chat.NewsProfileRepository;
-import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
-import  cc.mashroom.util.Reference;
+import  cc.mashroom.util.JsonUtils;
+import  cc.mashroom.util.ObjectUtils;
+import  cc.mashroom.util.collection.map.HashMap;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
+import  okhttp3.HttpUrl;
+import  okhttp3.Request;
+import  okhttp3.Response;
 
 @DataSourceBind(name="*",table="chat_group",primaryKeys="ID" )
 @NoArgsConstructor(  access = AccessLevel.PRIVATE )
 public  class  ChatGroupRepository  extends  RepositorySupport
 {
-	public  final  static  ChatGroupRepository  DAO =  new  ChatGroupRepository();
+	public  final  static  ChatGroupRepository  DAO = new  ChatGroupRepository();
 	
-	public  synchronized boolean  attach( SquirrelClient  context,OoIData  ooiData, boolean  validateCheckpoints )  throws  IllegalArgumentException,IllegalAccessException
+	public  synchronized boolean  attach( SquirrelClient  context,OoIData  ooiData,boolean  validateChatGroupSyncId )  throws  IllegalArgumentException,IllegalAccessException,IOException
 	{
-		long  nowMillis  =  DateTime.now(DateTimeZone.UTC).getMillis()-1;
+		Long  nativeLatestSyncId = super.lookupOne(Long.class,   "SELECT  MAX(SYNC_ID)  FROM  "+super.getDataSourceBind().table() );
 		
-		List<ChatGroupCheckpoint>    checkpoints  = new  LinkedList<ChatGroupCheckpoint>();
-		
-		super.upsert(    ooiData.getChatGroups() );
-		
-		for( ChatGroup   chatGroup : ooiData.getChatGroups() )
+		if( validateChatGroupSyncId && ooiData.getChatGroupSyncId() !=nativeLatestSyncId  + 1 )
 		{
-			if( validateCheckpoints )
-			{
-				Timestamp  latestModifyTime = ChatGroupRepository.DAO.lookupOne( Timestamp.class,"SELECT  MAX(LAST_MODIFY_TIME)  AS  LATEST_MODIFY_TIME  FROM  "+ChatGroupRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?",new  Object[]{chatGroup.getId()} );
-				
-				if( chatGroup.getCheckPointTime().getTime() != latestModifyTime.getTime() )
-				{
-					checkpoints.add( new  ChatGroupCheckpoint( chatGroup.getId(), latestModifyTime ) );  continue;
-				}
-			}
+			Service  service =context.getServiceRouteManager().current(  Schema.HTTPS );
 			
-			if( !        chatGroup.getIsDeleted() )
+			try( Response  response = context.okhttpClient(5,5,10).newCall(new  Request.Builder().url(new   HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("offline/lookup").addQueryParameter("checkpoints",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CHAT_GROUP_SYNC_ID",nativeLatestSyncId))).build()).build()).execute() )
 			{
-				NewsProfileRepository.DAO.insert( new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{chatGroup.getId(),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
-			}
-			else
-			{
-				NewsProfileRepository.DAO.update( "DELETE  FROM  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{chatGroup.getId(),PAIPPacketType.GROUP_CHAT.getValue()} );
+				return   response.code()   == 200 ? this.attach(context,JsonUtils.mapper.readValue(response.body().string(),OoIData.class),false) : false;
 			}
 		}
 		
-		ChatGroupUserRepository.DAO.upsert(ooiData.getChatGroupUsers() );     return  true;
+		NewsProfileRepository.DAO.upsert( ObjectUtils.cast(ooiData.getChatGroups(),new  TypeReference<Collection<ChatGroup>>(){}) );
+		
+		ChatGroupSyncRepository.DAO.insert( new  ChatGroupSync(ooiData.getChatGroupSyncId()) );
+		
+		super.upsert(    ooiData.getChatGroups() );  ChatGroupUserRepository.DAO.upsert( ooiData.getChatGroupUsers() );return  true;
 	}
 }
