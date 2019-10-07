@@ -338,7 +338,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		//  reset  the  connnectivity  error  to  normal  state  that  should  be  changed  by  the  special   situation.
 		this.connectivityError     = 0x00;
 		
-		try(Response  response=okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isConnectById ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac).addEntry("isConnectById",isConnectById).addEntry("isAutoReconnect",isAutoReconnect))).build()).execute() )
+		try(Response  response=okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isConnectById || isAutoReconnect ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac).addEntry("isConnectById",isConnectById).addEntry("isAutoReconnect",isAutoReconnect))).build()).execute() )
 		{
 			if(    response.code()== 200 )
 			{

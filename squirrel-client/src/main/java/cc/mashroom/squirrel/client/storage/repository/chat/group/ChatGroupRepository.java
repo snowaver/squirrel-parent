@@ -46,11 +46,11 @@ public  class  ChatGroupRepository  extends  RepositorySupport
 	
 	public  synchronized boolean  attach( SquirrelClient  context,OoIData  ooiData,boolean  validateChatGroupSyncId )  throws  IllegalArgumentException,IllegalAccessException,IOException
 	{
-		Long  nativeLatestSyncId = super.lookupOne(Long.class,   "SELECT  MAX(SYNC_ID)  FROM  "+super.getDataSourceBind().table() );
+		Long  nativeLatestSyncId = super.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupSyncRepository.DAO.getDataSourceBind().table() );
 		
-		if( validateChatGroupSyncId && ooiData.getChatGroupSyncId() !=nativeLatestSyncId  + 1 )
+		if( validateChatGroupSyncId && ooiData.getChatGroupSyncId() != nativeLatestSyncId + 1 )
 		{
-			Service  service =context.getServiceRouteManager().current(  Schema.HTTPS );
+			Service  service =context.getServiceRouteManager().current(   Schema.HTTPS );
 			
 			try( Response  response = context.okhttpClient(5,5,10).newCall(new  Request.Builder().url(new   HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("offline/lookup").addQueryParameter("checkpoints",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CHAT_GROUP_SYNC_ID",nativeLatestSyncId))).build()).build()).execute() )
 			{
@@ -62,6 +62,6 @@ public  class  ChatGroupRepository  extends  RepositorySupport
 		
 		ChatGroupSyncRepository.DAO.insert( new  ChatGroupSync(ooiData.getChatGroupSyncId()) );
 		
-		super.upsert(    ooiData.getChatGroups() );  ChatGroupUserRepository.DAO.upsert( ooiData.getChatGroupUsers() );return  true;
+		super.upsert(    ooiData.getChatGroups() );  ChatGroupUserRepository.DAO.upsert(ooiData.getChatGroupUsers());  return  true;
 	}
 }

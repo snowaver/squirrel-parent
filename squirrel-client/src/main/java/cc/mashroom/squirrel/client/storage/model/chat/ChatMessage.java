@@ -17,6 +17,7 @@ package cc.mashroom.squirrel.client.storage.model.chat;
 
 import  java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import  com.fasterxml.jackson.annotation.JsonProperty;
 
 import  cc.mashroom.db.annotation.Column;
@@ -34,6 +35,7 @@ public  class  ChatMessage
 	@JsonProperty( value="ID"  )
 	@Column( name="ID"   )
 	private  Long  id;
+	@JsonFormat( pattern="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" )
 	@JsonProperty( value="CREATE_TIME" )
 	@Column( name="CREATE_TIME")
 	private  Timestamp  createTime;

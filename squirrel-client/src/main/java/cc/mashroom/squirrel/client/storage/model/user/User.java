@@ -18,6 +18,7 @@ package cc.mashroom.squirrel.client.storage.model.user;
 import java.io.Serializable;
 import  java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import  com.fasterxml.jackson.annotation.JsonProperty;
 
 import  cc.mashroom.db.annotation.Column;
@@ -35,6 +36,7 @@ public  class  User  implements  Serializable
 	@JsonProperty( value="ID")
 	@Column( name="ID"   )
 	private  Long  id;
+	@JsonFormat( pattern="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" )
 	@JsonProperty( value="LAST_ACCESS_TIME" )
 	@Column( name="LAST_ACCESS_TIME")
 	private  Timestamp  lastAccessTime;

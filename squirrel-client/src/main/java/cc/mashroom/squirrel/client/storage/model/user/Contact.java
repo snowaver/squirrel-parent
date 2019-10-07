@@ -18,6 +18,7 @@ package cc.mashroom.squirrel.client.storage.model.user;
 import  java.io.Serializable;
 import  java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import  com.fasterxml.jackson.annotation.JsonProperty;
 
 import  cc.mashroom.db.annotation.Column;
@@ -39,9 +40,11 @@ public  class  Contact  implements  Cloneable     ,Serializable
 	@JsonProperty(value="USERNAME" )
 	@Column( name="USERNAME" )
 	private  String  username;
+	@JsonFormat( pattern="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" )
 	@JsonProperty(value="CREATE_TIME" )
 	@Column( name="CREATE_TIME" )
 	private  Timestamp   createTime;
+	@JsonFormat( pattern="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" )
 	@JsonProperty(value="LAST_MODIFY_TIME"  )
 	@Column( name="LAST_MODIFY_TIME"  )
 	private  Timestamp  lastModifyTime;
