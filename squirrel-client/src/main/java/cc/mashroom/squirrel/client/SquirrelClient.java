@@ -361,12 +361,12 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		}
 		catch( Throwable  e )
 		{
-			if( isConnectById  || isAutoReconnect )   this.connectivityError = isConnectById? 0x01   : 0x02;
-			
 			if(        e instanceof SocketTimeoutException || e instanceof ConnectException )
 			{
-				serviceRouteManager.tryNext(   e instanceof ConnectException ? Schema.HTTPS : Schema.TCP  );
+				serviceRouteManager.tryNext( Schema.HTTPS );
 			}
+			
+			if( isConnectById  || isAutoReconnect )   this.connectivityError = isConnectById? 0x01   : 0x02;
 			
 			Tracer.trace( e);
 			
