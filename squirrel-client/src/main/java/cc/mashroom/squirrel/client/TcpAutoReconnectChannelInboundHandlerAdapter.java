@@ -15,6 +15,8 @@
  */
 package cc.mashroom.squirrel.client;
 
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import  java.util.ArrayList;
 import  java.util.List;
 import  java.util.concurrent.CopyOnWriteArrayList;
@@ -167,6 +169,11 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
         }
         catch(  Throwable  e )
         {
+        	if( e instanceof SocketTimeoutException || e instanceof ConnectException )
+			{
+				serviceRouteManager.tryNext(   Schema.TCP );
+			}
+        	
         	Tracer.trace( e );
         	
         	this.onConnectStateChanged( this.connectState=ConnectState.DISCONNECTED );
