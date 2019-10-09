@@ -58,7 +58,7 @@ public  class  GroupChatEventPacket     extends  SystemPacket<GroupChatEventPack
 	
 	public  ByteBuf    writeToVariableByteBuf(  ByteBuf  variableByteBuf )
 	{
-		return  variableByteBuf.writeLongLE(groupId).writeByte(event).writeBytes( PAIPCodecUtils.encode(this.attatchments) );
+		return  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(groupId).writeByte(event).writeBytes( PAIPCodecUtils.encode(this.attatchments) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
