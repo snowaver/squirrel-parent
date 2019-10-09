@@ -38,7 +38,6 @@ public  abstract  class  SystemPacket<T extends SystemPacket<?>>  extends  Packe
 	{
 		return  byteBuf.writeBytes(PAIPCodecUtils.encode(clusterNodeId));
 	}
-	
 	@Setter
 	@Getter
 	@Accessors(chain=true)
