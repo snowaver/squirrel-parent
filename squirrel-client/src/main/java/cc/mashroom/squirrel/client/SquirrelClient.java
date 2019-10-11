@@ -338,11 +338,15 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		//  reset  the  connnectivity  error  to  normal  state  that  should  be  changed  by  the  special   situation.
 		this.connectivityError     = 0x00;
 		
+		boolean startupConnectivityChecker = isConnectById || isAutoReconnect;
+		
 		try(Response  response=okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isConnectById || isAutoReconnect ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac).addEntry("isConnectById",isConnectById).addEntry("isAutoReconnect",isAutoReconnect))).build()).execute() )
 		{
 			if(    response.code()== 200 )
 			{
 				this.userMetadata =JsonUtils.mapper.readValue(response.body().string(),UserMetadata.class );
+				
+				startupConnectivityChecker =  true;
 				
 				LifecycleEventDispatcher.onAuthenticateComplete(  this.lifecycleListeners,response.code() );
 				//  connecting  to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
@@ -354,6 +358,8 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			{
 				LifecycleEventDispatcher.onAuthenticateComplete(  this.lifecycleListeners,response.code() );
 				
+				startupConnectivityChecker = false;
+				
 				this.reset();
 				
 				this.connectivityGuarantorThreadPool.remove(      this.connectivityChecker );
@@ -361,12 +367,12 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		}
 		catch( Throwable  e )
 		{
-			if(        e instanceof SocketTimeoutException || e instanceof ConnectException )
+			if(       e instanceof SocketTimeoutException ||  e instanceof ConnectException )
 			{
 				serviceRouteManager.tryNext( Schema.HTTPS );
 			}
 			
-			if( isConnectById  || isAutoReconnect )   this.connectivityError = isConnectById? 0x01   : 0x02;
+			if( isConnectById  || isAutoReconnect )   this.connectivityError= isConnectById ? 0x01   : 0x02;
 			
 			Tracer.trace( e);
 			
@@ -374,9 +380,9 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		}
 		finally
 		{
-			//  checking  connectivity  is  necessary  if  connecting  by  id  (authenticated  successfully  last  time )  or  authenticated  successfully.  so  it  should  be  scheduled  only  once.
+			//  checking  connectivity  is  necessary  if  connecting  by  id ( authenticated  successfully  last  time )  or  authenticated  successfully.  so  it  should  be  scheduled  only  once.
 			
-			if( this.connectivityGuarantorThreadPool.getTaskCount() == 0    &&     super.isAuthenticated() )
+			if( this.connectivityGuarantorThreadPool.getTaskCount() == 0    &&  startupConnectivityChecker )
 			{
 				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( this.connectivityChecker , 10, 10,  TimeUnit.SECONDS );
 			}
