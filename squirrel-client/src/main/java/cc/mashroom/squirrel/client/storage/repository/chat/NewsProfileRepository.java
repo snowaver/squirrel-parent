@@ -15,19 +15,21 @@
  */
 package cc.mashroom.squirrel.client.storage.repository.chat;
 
-import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.LinkedList;
+import  java.sql.Timestamp;
+import  java.util.Collection;
+import  java.util.LinkedList;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import  org.joda.time.DateTime;
+import  org.joda.time.DateTimeZone;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
+import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
-import cc.mashroom.squirrel.client.storage.model.chat.NewsProfile;
-import cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
-import cc.mashroom.squirrel.paip.message.PAIPPacketType;
-import cc.mashroom.util.Reference;
+import  cc.mashroom.squirrel.client.storage.model.chat.NewsProfile;
+import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
+import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupUser;
+import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
+import  cc.mashroom.util.Reference;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 
@@ -36,7 +38,18 @@ import  lombok.NoArgsConstructor;
 public  class  NewsProfileRepository  extends  RepositorySupport
 {
 	public  final  static  NewsProfileRepository  DAO = new  NewsProfileRepository();
-		
+	
+	public  void   upsert(  SquirrelClient  context,Collection<ChatGroupUser>  chatGroupUsers )
+	{
+		for(    ChatGroupUser  chatGroupUser :  chatGroupUsers )
+		{
+			if( context.getUserMetadata().getId() == chatGroupUser.getContactId() && chatGroupUser.getIsDeleted() )
+			{
+				NewsProfileRepository.DAO.update( "DELETE  FROM  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{chatGroupUser.getChatGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );
+			}
+		}
+	}
+	
 	public  void   upsert( Collection<ChatGroup>    chatGroups )
 	{
 		long  nowMillis    =DateTime.now(DateTimeZone.UTC).getMillis() -1;
@@ -56,7 +69,7 @@ public  class  NewsProfileRepository  extends  RepositorySupport
 			}
 		}
 	}
-	
+		
 	public  int  clearBadgeCount(     long  id,int  packetType )
 	{
 		return  super.update( "UPDATE  "+super.getDataSourceBind().table()+"  SET  BADGE_COUNT = 0  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{id,packetType} );

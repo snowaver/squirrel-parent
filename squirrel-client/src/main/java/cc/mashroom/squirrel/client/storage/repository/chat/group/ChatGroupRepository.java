@@ -28,6 +28,7 @@ import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
 import cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupSync;
+import cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupUser;
 import  cc.mashroom.squirrel.client.storage.repository.chat.NewsProfileRepository;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.ObjectUtils;
@@ -59,6 +60,8 @@ public  class  ChatGroupRepository  extends  RepositorySupport
 		}
 		
 		NewsProfileRepository.DAO.upsert( ObjectUtils.cast(ooiData.getChatGroups(),new  TypeReference<Collection<ChatGroup>>(){}) );
+		
+		NewsProfileRepository.DAO.upsert( context,ObjectUtils.cast(ooiData.getChatGroupUsers(),new  TypeReference<Collection<ChatGroupUser>>(){}) );
 		
 		ChatGroupSyncRepository.DAO.insert( new  ChatGroupSync(ooiData.getChatGroupSyncId()) );
 		
