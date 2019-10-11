@@ -60,7 +60,7 @@ public  class  ChatGroupRepository  extends  RepositorySupport
 		}
 		
 		NewsProfileRepository.DAO.upsert( ObjectUtils.cast(ooiData.getChatGroups(),new  TypeReference<Collection<ChatGroup>>(){}) );
-		
+		//  the  news  profile  should  be  removed  also  when  you  secede  the  chat  group  that  is  created  by  others.
 		NewsProfileRepository.DAO.upsert( context,ObjectUtils.cast(ooiData.getChatGroupUsers(),new  TypeReference<Collection<ChatGroupUser>>(){}) );
 		
 		ChatGroupSyncRepository.DAO.insert( new  ChatGroupSync(ooiData.getChatGroupSyncId()) );
