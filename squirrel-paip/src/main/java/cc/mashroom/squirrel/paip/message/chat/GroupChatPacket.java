@@ -46,6 +46,10 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
+	private  long  syncId;
+	@Setter( value=AccessLevel.PROTECTED )
+	@Getter
+	@Accessors(chain=true)
 	private  long groupId;
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter

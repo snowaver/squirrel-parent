@@ -47,7 +47,11 @@ public  class  ChatPacket  extends  Packet<ChatPacket>  //  implements  Receipta
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  String  md5 = "";
+	private  long  syncId;
+	@Setter( value=AccessLevel.PROTECTED )
+	@Getter
+	@Accessors(chain=true)
+	private  String   md5= "";
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
