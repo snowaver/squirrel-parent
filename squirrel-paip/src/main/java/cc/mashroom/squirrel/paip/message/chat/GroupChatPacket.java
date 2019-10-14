@@ -35,12 +35,12 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 		
 		super.setAckLevel(1,buf.readLongLE()).setSyncId(buf.readLongLE()).setGroupId(buf.readLongLE()).setContentType(ChatContentType.valueOf(buf.readByte())).setMd5(PAIPCodecUtils.decode(buf)).setContent( PAIPCodecUtils.decodeBytes(buf) );
 	}
-
-	public  GroupChatPacket( long  groupId,String  md5,ChatContentType  contentType,byte[]  content )
+	
+	public  GroupChatPacket( long  contactId,long  groupId,String  md5,ChatContentType  contentType,byte[]  content )
 	{
 		super( new  Header(PAIPPacketType.GROUP_CHAT));
 		
-		this.setGroupId(groupId).setMd5(md5).setContentType(contentType).setContent( content );
+		setContactId(contactId).setGroupId(groupId).setMd5(md5 ).setContentType( contentType ).setContent( content );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )

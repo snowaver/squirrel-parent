@@ -63,7 +63,7 @@ public  class  ChatPacket  extends  Packet<ChatPacket>  //  implements  Receipta
 	
 	public  ByteBuf writeToVariableByteBuf( ByteBuf  variableByteBuf )
 	{
-		ByteBuf  contentByteBuf = PAIPCodecUtils.encodeBytes( this.content );  ByteBuf  md5ByteBuf = PAIPCodecUtils.encode( md5 == null ? "" : md5 );  variableByteBuf.writeLongLE(contactId).writeLongLE(syncId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableByteBuf;
+		ByteBuf  contentByteBuf = PAIPCodecUtils.encodeBytes(content);  ByteBuf  md5ByteBuf = PAIPCodecUtils.encode(md5 == null ? "" : md5 );  variableByteBuf.writeLongLE(contactId).writeLongLE(syncId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableByteBuf;
 	}
 	
 	public  int     getInitialVariableByteBufferSize()
