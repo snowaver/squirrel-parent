@@ -34,7 +34,7 @@ public  class  ChatPacket  extends  Packet<ChatPacket>  //  implements  Receipta
 	{
 		super( byteBuf,0x00 );
 		
-		super.setContactId(byteBuf.readLongLE()).setContentType(ChatContentType.valueOf(byteBuf.readByte())).setMd5(PAIPCodecUtils.decode(byteBuf)).setContent( PAIPCodecUtils.decodeBytes(byteBuf) );
+		super.setContactId(byteBuf.readLongLE()).setSyncId(byteBuf.readLongLE()).setContentType(ChatContentType.valueOf(byteBuf.readByte())).setMd5(PAIPCodecUtils.decode(byteBuf)).setContent( PAIPCodecUtils.decodeBytes(byteBuf) );
 	}
 	
 	public  ChatPacket( long  contactId,String  md5, ChatContentType  contentType , byte[]  content )
@@ -63,12 +63,12 @@ public  class  ChatPacket  extends  Packet<ChatPacket>  //  implements  Receipta
 	
 	public  ByteBuf writeToVariableByteBuf( ByteBuf  variableByteBuf )
 	{
-		ByteBuf  contentByteBuf = PAIPCodecUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPCodecUtils.encode( md5 == null ? "" : md5 );  variableByteBuf.writeLongLE(contactId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableByteBuf;
+		ByteBuf  contentByteBuf = PAIPCodecUtils.encodeBytes( this.content );  ByteBuf  md5ByteBuf = PAIPCodecUtils.encode( md5 == null ? "" : md5 );  variableByteBuf.writeLongLE(contactId).writeLongLE(syncId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableByteBuf;
 	}
 	
 	public  int     getInitialVariableByteBufferSize()
 	{
-		return  9+super.getInitialVariableByteBufferSize();
+		return   17+super.getInitialVariableByteBufferSize();
 	}
 	/*
 	public  void  writeTo(  ByteBuf  buf )

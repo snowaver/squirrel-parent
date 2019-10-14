@@ -33,14 +33,14 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 	{
 		super( buf,0x00 );
 		
-		super.setAckLevel(1,buf.readLongLE()).setGroupId(buf.readLongLE()).setContentType(ChatContentType.valueOf(buf.readByte())).setMd5(PAIPCodecUtils.decode(buf)).setContent( PAIPCodecUtils.decodeBytes(buf) );
+		super.setAckLevel(1,buf.readLongLE()).setSyncId(buf.readLongLE()).setGroupId(buf.readLongLE()).setContentType(ChatContentType.valueOf(buf.readByte())).setMd5(PAIPCodecUtils.decode(buf)).setContent( PAIPCodecUtils.decodeBytes(buf) );
 	}
-	
-	public  GroupChatPacket( long  contactId,long  groupId,String  md5,ChatContentType  contentType,byte[]  content )
+
+	public  GroupChatPacket( long  groupId,String  md5,ChatContentType  contentType,byte[]  content )
 	{
 		super( new  Header(PAIPPacketType.GROUP_CHAT));
 		
-		setContactId(contactId).setGroupId(groupId).setMd5(md5 ).setContentType( contentType ).setContent( content );
+		this.setGroupId(groupId).setMd5(md5).setContentType(contentType).setContent( content );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -66,12 +66,12 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 	
 	public  int      getInitialVariableByteBufferSize()
 	{
-		return  17+super.getInitialVariableByteBufferSize();
+		return  25+super.getInitialVariableByteBufferSize();
 	}
 	
 	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variableBuf )
 	{
-		ByteBuf  contentByteBuf= PAIPCodecUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPCodecUtils.encode( md5 );  variableBuf.writeLongLE(contactId).writeLongLE(groupId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableBuf;
+		ByteBuf  contentByteBuf= PAIPCodecUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPCodecUtils.encode( md5 );  variableBuf.writeLongLE(contactId).writeLongLE(syncId).writeLongLE(groupId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableBuf;
 	}
 	/*
 	public  void  writeTo(  ByteBuf  buf )
