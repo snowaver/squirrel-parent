@@ -28,7 +28,7 @@ import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  GroupChatEventPacket     extends  SystemPacket<GroupChatEventPacket>
+public  class  ChatGroupEventPacket     extends  SystemPacket<ChatGroupEventPacket>
 {
 	public  final  static  int  EVENT_GROUP_ADDED     = 0x00;
 	
@@ -42,14 +42,14 @@ public  class  GroupChatEventPacket     extends  SystemPacket<GroupChatEventPack
 	
 	public  final  static  int  EVENT_MEMBER_REMOVED  = 0x05;
 	
-	public  GroupChatEventPacket( ByteBuf  byteBuf )
+	public  ChatGroupEventPacket( ByteBuf  byteBuf )
 	{
 		super( byteBuf,0x00 );
 		
 		this.setGroupId(byteBuf.readLongLE()).setEvent(byteBuf.readByte()).setAttatchments( PAIPCodecUtils.decode(byteBuf) );
 	}
 	
-	public  GroupChatEventPacket( long  groupId,int  event,String  clusterNodeId,String  attatchments )
+	public  ChatGroupEventPacket( long  groupId,int  event,String  clusterNodeId,String  attatchments )
 	{
 		super(new  Header(PAIPPacketType.GROUP_CHAT_EVENT),clusterNodeId);
 		

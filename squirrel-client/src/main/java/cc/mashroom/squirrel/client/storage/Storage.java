@@ -45,7 +45,7 @@ import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
 import  cc.mashroom.squirrel.paip.message.chat.ChatRecallPacket;
-import  cc.mashroom.squirrel.paip.message.chat.GroupChatEventPacket;
+import  cc.mashroom.squirrel.paip.message.chat.ChatGroupEventPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribeAckPacket;
 import  cc.mashroom.squirrel.paip.message.subscribes.SubscribePacket;
@@ -146,9 +146,9 @@ public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirre
 			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  GroupChatMessageRepository.DAO.upsert( context,cacheDir,ObjectUtils.cast(packet,GroupChatPacket.class),TransportState.RECEIVED );}} );
 		}
 		else
-		if( packet instanceof GroupChatEventPacket   )
+		if( packet instanceof ChatGroupEventPacket   )
 		{
-			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatGroupRepository.DAO.attach( context,JsonUtils.fromJson(ObjectUtils.cast(packet,GroupChatEventPacket.class).getAttatchments(),OoIData.class),true );}} );
+			Db.tx( String.valueOf(id),Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(cc.mashroom.db.connection.Connection  connection)  throws  Throwable{return  ChatGroupRepository.DAO.attach( context,JsonUtils.fromJson(ObjectUtils.cast(packet,ChatGroupEventPacket.class).getAttatchments(),OoIData.class),true );}} );
 		}
 		else
 		if( packet instanceof ChatPacket )
