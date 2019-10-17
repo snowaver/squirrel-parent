@@ -38,7 +38,7 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 	
 	public  final  static  AttributeKey<Boolean>  CONNECT_STATUS = AttributeKey.newInstance( "CONNECT_STATUS" );
 	
-	public  final  static  AttributeKey<Long>  CLIENT_ID    = AttributeKey.newInstance( "CLIENT_ID" );
+	public  final  static  AttributeKey<Long>  USER_ID = AttributeKey.newInstance( "USER_ID" );
 	
 	public  final  static  AttributeKey<Integer>  KEEPALIVE = AttributeKey.newInstance( "KEEPALIVE" );
 	
@@ -46,7 +46,7 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 	{
 		super( byteBuf, 0x00 );
 		
-		this.protocolName= PAIPCodecUtils.decode( byteBuf );
+		this.protocolName = PAIPCodecUtils.decode(   byteBuf);
 		
 		if( !"PAIP".equals( protocolName ) )
 		{
