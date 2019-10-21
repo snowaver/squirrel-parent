@@ -25,7 +25,7 @@ import  cc.mashroom.router.Schema;
 import  cc.mashroom.router.Service;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
-import  cc.mashroom.squirrel.client.storage.model.chat.GroupChatMessage;
+import  cc.mashroom.squirrel.client.storage.model.chat.ChatGroupMessage;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
@@ -37,31 +37,31 @@ import  lombok.NoArgsConstructor;
 import  okhttp3.HttpUrl;
 import  okhttp3.Request;
 
-@DataSourceBind(name="*",table="group_chat_message",primaryKeys="ID")
+@DataSourceBind(name="*",table="chat_group_message",primaryKeys="ID")
 @NoArgsConstructor( access=AccessLevel.PRIVATE )
-public  class  GroupChatMessageRepository  extends  RepositorySupport
+public  class  ChatGroupMessageRepository  extends  RepositorySupport
 {
-	public  final  static  GroupChatMessageRepository  DAO = new  GroupChatMessageRepository();
+	public  final  static  ChatGroupMessageRepository  DAO = new  ChatGroupMessageRepository();
 	
-	public  boolean  attach( SquirrelClient  context,File  cacheDir,List<GroupChatMessage>  messages )  throws  IOException,IllegalArgumentException,IllegalAccessException
+	public  boolean  attach( SquirrelClient  context,File  cacheDir,List<ChatGroupMessage>  messages )  throws  IOException,IllegalArgumentException,IllegalAccessException
 	{
 		if( !messages.isEmpty() )
 		{
 			Service  service= context.getServiceRouteManager().current( Schema.HTTPS );
 			
-			for( GroupChatMessage  message : messages )
+			for( ChatGroupMessage  message:messages )
 			{
 				if( ChatContentType.valueOf(message.getContentType()) ==ChatContentType.AUDIO )
 				{
 					FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+message.getMd5()),context.okhttpClient(5,5,1200).newCall(new  Request.Builder().get().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("file/"+message.getMd5()).build()).build()).execute().body().bytes() );
 				}
 				
-				message.setTransportState( TransportState.RECEIVED.getValue()   ).setIsLocal( false );
+				message.setIsLocal(false).setTransportState(  context.getUserMetadata().getId() == message.getContactId() ? TransportState.SENT.getValue() : TransportState.RECEIVED.getValue() );
 			}
 			
 			upsert(   messages );
 			
-			GroupChatMessage  gm = messages.get( messages.size()-1 );
+			ChatGroupMessage  gm = messages.get( messages.size()-1 );
 			
 			NewsProfileRepository.DAO.insert(new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,IFNULL((SELECT  BADGE_COUNT  FROM  news_profile  WHERE  ID = ?  AND  PACKET_TYPE = ?),0)+1)",new  Object[]{gm.getGroupId(),new  Timestamp(gm.getId()),PAIPPacketType.GROUP_CHAT.getValue(),gm.getContactId(),ChatContentType.valueOf(gm.getContentType()).getPlaceholder() == null ? new  String(gm.getContent()) : ChatContentType.valueOf(gm.getContentType()).getPlaceholder(),gm.getGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );
 		}
@@ -71,7 +71,7 @@ public  class  GroupChatMessageRepository  extends  RepositorySupport
 	
 	public  int  upsert( SquirrelClient  context,File  cacheDir,GroupChatPacket  packet,TransportState  transportState )  throws  IOException
 	{
-		if( transportState == TransportState.RECEIVED )
+		if( transportState==TransportState.RECEIVED )
 		{
 			Service  service= context.getServiceRouteManager().current( Schema.HTTPS );
 			

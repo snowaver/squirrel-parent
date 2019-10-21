@@ -25,11 +25,10 @@ import  cc.mashroom.router.Service;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.repository.chat.ChatMessageRepository;
-import  cc.mashroom.squirrel.client.storage.repository.chat.GroupChatMessageRepository;
+import  cc.mashroom.squirrel.client.storage.repository.chat.ChatGroupMessageRepository;
 import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupRepository;
 import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupSyncRepository;
 import  cc.mashroom.squirrel.client.storage.repository.user.ContactRepository;
-import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.collection.map.HashMap;
 import  lombok.AccessLevel;
@@ -48,15 +47,15 @@ public  class  OfflineRepository  extends  GenericRepository
 	{
 		Timestamp  contactLatestModifyTime = ContactRepository.DAO.lookupOne( Timestamp.class,"SELECT  MAX(LAST_MODIFY_TIME)  AS  LATEST_MODIFY_TIME  FROM  "+ContactRepository.DAO.getDataSourceBind().table(),new  Object[]{} );
 		
-		Long  latestReceivedChatMessageId = ChatMessageRepository.DAO.lookupOne( Long.class,"SELECT  MAX(ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table()+"  WHERE  TRANSPORT_STATE = ?",new  Object[]{TransportState.RECEIVED.getValue()} );
+		Long  latestChatGroupSyncId = ChatGroupSyncRepository.DAO.lookupOne( Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupSyncRepository.DAO.getDataSourceBind().table() );
 		
-		Long  latestReceivedGroupChatMessageId = GroupChatMessageRepository.DAO.lookupOne( Long.class,"SELECT  MAX(ID)  FROM  "+GroupChatMessageRepository.DAO.getDataSourceBind().table()+"  WHERE  TRANSPORT_STATE = ?",new  Object[]{TransportState.RECEIVED.getValue()} );
+		Long  latestChatMessageSyncId = ChatMessageRepository.DAO.lookupOne( Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{} );
 		
-		Long  latestChatGroupSyncId = ChatGroupSyncRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupSyncRepository.DAO.getDataSourceBind().table() );
+		Long  latestChatGroupMessageSyncId = ChatGroupMessageRepository.DAO.lookupOne( Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{} );
 		
 		Service  service=context.getServiceRouteManager().current(Schema.HTTPS);
 		
-		try(Response  response = context.okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("offline/lookup").addQueryParameter("checkpoints",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CHAT_MESSAGE_CHECK_POINT",latestReceivedChatMessageId == null ? 0 : latestReceivedChatMessageId).addEntry("GROUP_CHAT_MESSAGE_CHECK_POINT",latestReceivedGroupChatMessageId == null ? 0 : latestReceivedGroupChatMessageId).addEntry("CONTACT_CHECK_POINT",contactLatestModifyTime == null ? 0 : contactLatestModifyTime.getTime()).addEntry("CHAT_GROUP_CHECK_POINT",latestChatGroupSyncId == null ? 0 : latestChatGroupSyncId))).build()).build()).execute() )
+		try(Response  response = context.okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("offline/lookup").addQueryParameter("checkpoints",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CHAT_MESSAGE_CHECK_POINT",latestChatMessageSyncId == null ? 0 : latestChatMessageSyncId).addEntry("GROUP_CHAT_MESSAGE_CHECK_POINT",latestChatGroupMessageSyncId == null ? 0 : latestChatGroupMessageSyncId).addEntry("CONTACT_CHECK_POINT",contactLatestModifyTime == null ? 0 : contactLatestModifyTime.getTime()).addEntry("CHAT_GROUP_CHECK_POINT",latestChatGroupSyncId == null ? 0 : latestChatGroupSyncId))).build()).build()).execute() )
 		{
 			if( response.code() == 200 )
 			{
@@ -66,7 +65,7 @@ public  class  OfflineRepository  extends  GenericRepository
 				
 				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineChatMessages() );
 				
-				GroupChatMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineGroupChatMessages() );    return  ooiData;
+				ChatGroupMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineGroupChatMessages() );    return  ooiData;
 			}
 			else
 			{

@@ -23,14 +23,16 @@ import  com.fasterxml.jackson.annotation.JsonProperty;
 import  cc.mashroom.db.annotation.Column;
 import  lombok.AllArgsConstructor;
 import  lombok.Data;
+import  lombok.EqualsAndHashCode;
 import  lombok.NoArgsConstructor;
 import  lombok.experimental.Accessors;
 
 @Data
-@Accessors( chain = true )
+@Accessors( chain=true )
 @NoArgsConstructor
 @AllArgsConstructor
-public  class  ChatMessage
+@EqualsAndHashCode( callSuper=false )
+public  class   ChatGroupMessage
 {
 	@JsonProperty( value="ID"  )
 	@Column( name="ID"   )
@@ -63,4 +65,7 @@ public  class  ChatMessage
 	@JsonProperty( value="LOCAL_DESCRIPTION" )
 	@Column( name="LOCAL_DESCRIPTION"  )
 	private  String    localDescription;
+	@JsonProperty( value="GROUP_ID" )
+	@Column( name="GROUP_ID")
+	private  String  groupId;
 }

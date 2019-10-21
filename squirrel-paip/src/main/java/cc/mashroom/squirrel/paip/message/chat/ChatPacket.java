@@ -28,13 +28,13 @@ import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(  callSuper = true )
-public  class  ChatPacket  extends  Packet<ChatPacket>  //  implements  Receiptable
+public  class  ChatPacket  extends  Packet<ChatPacket>
 {	
 	public  ChatPacket( ByteBuf  byteBuf )
 	{
 		super( byteBuf,0x00 );
 		
-		super.setContactId(byteBuf.readLongLE()).setSyncId(byteBuf.readLongLE()).setContentType(ChatContentType.valueOf(byteBuf.readByte())).setMd5(PAIPCodecUtils.decode(byteBuf)).setContent( PAIPCodecUtils.decodeBytes(byteBuf) );
+		super.setContactId(byteBuf.readLongLE()).setContactSyncId(byteBuf.readLongLE()).setSyncId(byteBuf.readLongLE()).setContentType(ChatContentType.valueOf(byteBuf.readByte())).setMd5(PAIPCodecUtils.decode(byteBuf)).setContent( PAIPCodecUtils.decodeBytes(byteBuf) );
 	}
 	
 	public  ChatPacket( long  contactId,String  md5, ChatContentType  contentType , byte[]  content )
@@ -44,10 +44,14 @@ public  class  ChatPacket  extends  Packet<ChatPacket>  //  implements  Receipta
 		super.setAckLevel(1,contactId).setMd5(md5).setContentType(contentType).setContent( content );
 	}
 	
-	@Setter( value=AccessLevel.PROTECTED )
+	@Setter
 	@Getter
 	@Accessors(chain=true)
 	private  long  syncId;
+	@Setter
+	@Getter
+	@Accessors(chain=true)
+	private  long  contactSyncId;
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
@@ -63,12 +67,12 @@ public  class  ChatPacket  extends  Packet<ChatPacket>  //  implements  Receipta
 	
 	public  ByteBuf writeToVariableByteBuf( ByteBuf  variableByteBuf )
 	{
-		ByteBuf  contentByteBuf = PAIPCodecUtils.encodeBytes(content);  ByteBuf  md5ByteBuf = PAIPCodecUtils.encode(md5 == null ? "" : md5 );  variableByteBuf.writeLongLE(contactId).writeLongLE(syncId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableByteBuf;
+		ByteBuf  contentByteBuf = PAIPCodecUtils.encodeBytes(content);  ByteBuf  md5ByteBuf = PAIPCodecUtils.encode(md5 == null ? "" : md5 );  variableByteBuf.writeLongLE(contactId).writeLongLE(contactSyncId).writeLongLE(syncId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableByteBuf;
 	}
 	
 	public  int     getInitialVariableByteBufferSize()
 	{
-		return   17+super.getInitialVariableByteBufferSize();
+		return   25+super.getInitialVariableByteBufferSize();
 	}
 	/*
 	public  void  writeTo(  ByteBuf  buf )

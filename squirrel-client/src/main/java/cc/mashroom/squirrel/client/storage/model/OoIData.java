@@ -20,7 +20,7 @@ import  java.util.List;
 import  com.fasterxml.jackson.annotation.JsonProperty;
 
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
-import  cc.mashroom.squirrel.client.storage.model.chat.GroupChatMessage;
+import  cc.mashroom.squirrel.client.storage.model.chat.ChatGroupMessage;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroupUser;
 import  cc.mashroom.squirrel.client.storage.model.user.Contact;
@@ -46,5 +46,5 @@ public  class  OoIData
 	@JsonProperty( value="CHAT_GROUP_USERS" )
 	private  List<ChatGroupUser>   chatGroupUsers;
 	@JsonProperty( value="OFFLINE_GROUP_CHAT_MESSAGES" )
-	private  List<GroupChatMessage>  offlineGroupChatMessages;
+	private  List<ChatGroupMessage>  offlineGroupChatMessages;
 }

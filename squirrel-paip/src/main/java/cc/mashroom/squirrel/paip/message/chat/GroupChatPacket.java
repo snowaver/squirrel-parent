@@ -19,15 +19,17 @@ import  io.netty.buffer.ByteBuf;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
+import  lombok.SneakyThrows;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
+import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
+public  class  GroupChatPacket     extends  Packet    <GroupChatPacket>  implements  Cloneable
 {	
 	public  GroupChatPacket(ByteBuf  buf )
 	{
@@ -43,7 +45,7 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 		setContactId(contactId).setGroupId(groupId).setMd5(md5 ).setContentType( contentType ).setContent( content );
 	}
 	
-	@Setter( value=AccessLevel.PROTECTED )
+	@Setter
 	@Getter
 	@Accessors(chain=true)
 	private  long  syncId;
@@ -63,6 +65,12 @@ public  class  GroupChatPacket  extends  Packet  <GroupChatPacket>
 	@Getter
 	@Accessors(chain=true)
 	private  byte[]   content;
+	@SneakyThrows
+	@Override
+	public  GroupChatPacket  clone()
+	{
+		return  ObjectUtils.cast(super.clone(),GroupChatPacket.class );
+	}
 	
 	public  int      getInitialVariableByteBufferSize()
 	{

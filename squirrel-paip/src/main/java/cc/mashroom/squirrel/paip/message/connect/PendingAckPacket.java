@@ -16,11 +16,6 @@
 package cc.mashroom.squirrel.paip.message.connect;
 
 import  cc.mashroom.squirrel.paip.message.Packet;
-import  cc.mashroom.util.JsonUtils;
-import  cc.mashroom.util.collection.map.HashMap;
-import  cc.mashroom.util.collection.map.Map;
-
-import  com.fasterxml.jackson.core.type.TypeReference;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
@@ -46,21 +41,21 @@ public  class  PendingAckPacket<T extends PendingAckPacket<?>>  extends  Packet<
 	{
 		super(buf, 0x00 );
 		
-		this.setContactId(buf.readLongLE()).setPacketId(buf.readLongLE()).setAttatchments( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(PAIPCodecUtils.decode(buf),new  TypeReference<Map<String,Object>>(){})) );
+		this.setContactId(buf.readLongLE()).setPacketId(buf.readLongLE()).setAttatchments( PAIPCodecUtils.decode(buf) );
 	}
 	
 	@Setter( value= AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
 	protected  long   packetId;
-	@Setter( value= AccessLevel.PROTECTED )
+	@Setter( value= AccessLevel.PUBLIC    )
 	@Getter
 	@Accessors(chain=true)
-	protected  Map<String,Object>  attatchments   = new  HashMap<String,Object>();
+	protected  String  attatchments = "{}";
 
 	public  ByteBuf  writeToVariableByteBuf(ByteBuf  byteBuf )
 	{
-		return  byteBuf.writeLongLE(this.contactId).writeLongLE(this.packetId).writeBytes( PAIPCodecUtils.encode(JsonUtils.toJson(this.attatchments)) );
+		return  byteBuf.writeLongLE(this.contactId).writeLongLE(this.packetId).writeBytes( PAIPCodecUtils.encode(this.attatchments) );
 	}
 	
 	public  int      getInitialVariableByteBufferSize()
