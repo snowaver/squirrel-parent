@@ -67,7 +67,7 @@ public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirre
 		
 		ConnectionManager.INSTANCE.setDataSourceLocator( new  DataSourceLocator(){public  String  locate(GenericRepository  repository,DataSourceBind  dataSourceBind){return  "*".equals(dataSourceBind.name()) ? String.valueOf(getId())  : dataSourceBind.name();}} );
 		
-		ConnectionManager.INSTANCE.addDataSource("org.h2.Driver",String.valueOf(id),"jdbc:h2:"+FileUtils.createFileIfAbsent(new  File(cacheDir,"db/"+StringUtils.leftPad(String.valueOf(id),20,String.valueOf(0))+".db"),null).getPath()+";FILE_LOCK=FS;DB_CLOSE_DELAY=-1;AUTO_RECONNECT=TRUE",null,null,2,4,null,"SELECT  2",true );
+		ConnectionManager.INSTANCE.addDataSource("org.h2.Driver",String.valueOf(id),"jdbc:h2:"+FileUtils.createFileIfAbsent(new  File(cacheDir,"db/"+StringUtils.leftPad(String.valueOf(id),20,String.valueOf(0))+".db"),null).getPath()+";MVCC=TRUE;FILE_LOCK=FS;DB_CLOSE_DELAY=-1;AUTO_RECONNECT=TRUE",null,null,2,4,null,"SELECT  2",true );
 		
 		//  recache  the  contacts  if  no  connection  or  connecting  by  stored  credential  (only  ID  is  provided  for  username  and  encryped  password).
 		if(      isConnectDataSourceOnly )  {        ContactRepository.DAO.recache(); }

@@ -32,7 +32,7 @@ import  cc.mashroom.util.collection.map.Map;
 
 public  class  RepositorySupport  extends  GenericRepository
 {
-	public  int  upsert( List<?>  beans )  throws  IllegalArgumentException,IllegalAccessException
+	public  int  upsert( List<?>  beans )//throws  IllegalArgumentException,IllegalAccessException
 	{
 		if( beans.isEmpty() )
 		{
@@ -58,12 +58,19 @@ public  class  RepositorySupport  extends  GenericRepository
 			
 			if( columnBeanFieldMapper.isEmpty() )
 			{
-				throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** H2  UTILS **  can  not  find  any  column  annotated  fields  in  class  ( %s ).",beans.get(0).getClass().getName()) );
+				throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** REPOSITORY  SUPPORT **  can  not  find  any  column  annotated  fields  in  class  ( %s ).",beans.get(0).getClass().getName()) );
 			}
 			
 			ArrayList<String>  fields = new  ArrayList<String>(  columnBeanFieldMapper.keySet() );
 			
-			return  ConnectionUtils.batchUpdatedCount( super.insert(new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+getDataSourceBind().table()+"  ("+StringUtils.join(fields,",")+")  VALUES  ("+StringUtils.rightPad("?",2*(fields.size()-1)+1,",?")+")",ConnectionUtils.prepare(beans,fields,columnBeanFieldMapper)) );
+			try
+			{
+				return  ConnectionUtils.batchUpdatedCount( super.insert(new  LinkedList<Reference<Object>>(),"MERGE  INTO  "+getDataSourceBind().table()+"  ("+StringUtils.join(fields,",")+")  VALUES  ("+StringUtils.rightPad("?",2*(fields.size()-1)+1,",?")+")",ConnectionUtils.prepare(beans,fields,columnBeanFieldMapper)) );
+			}
+			catch( IllegalArgumentException | IllegalAccessException  err )
+			{
+				throw  new  IllegalStateException( "SQUIRREL-CLIENT:  ** REPOSITORY  SUPPORT **  error  in  merging  beans  into  database.",err );
+			}
 		}
 	}
 }

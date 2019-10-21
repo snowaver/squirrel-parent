@@ -82,7 +82,7 @@ public  class  InboundHandler
 				{
 					System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.CONN:\tstill  authenticated,  disconnection  may  orignate  in  authentication  error  (secret  key  unavailable  now),  so  retrive  a  new  secret  key.");
 					
-					adapter.setConnectivityError(2);  //  access  key  expired,  so  switch  connectivity  error  and  call  the  check  method  to  reconnect  for  a  new  access  key.
+					adapter.setConnectivityError(2);  //  access  key  expired,  so  switch  connectivity  error  and  call  the  check  method  to  reconnect  by  a  new  access  key.
 				}
 			}
 		}
@@ -99,12 +99,12 @@ public  class  InboundHandler
 		else
 		if( packet instanceof PendingAckPacket)
 		{
-			unpend( adapter,ObjectUtils.cast(packet, PendingAckPacket.class),TransportState.SENT );
+			unpend( adapter,ObjectUtils.cast(packet,PendingAckPacket.class), TransportState.SENT );
 		}
 		else
 		if( packet instanceof CallPacket )
 		{
-			adapter.addCall( ObjectUtils.cast(packet , CallPacket.class).getRoomId(),ObjectUtils.cast(packet , CallPacket.class).getContactId(),ObjectUtils.cast( packet,CallPacket.class ).getContentType() );
+			adapter.addCall(ObjectUtils.cast(packet,CallPacket.class).getRoomId(),ObjectUtils.cast(packet,CallPacket.class).getContactId(),ObjectUtils.cast(packet,CallPacket.class).getContentType() );
 		}
 		else
 		if( packet.getHeader().getAckLevel() ==  1 )
@@ -123,22 +123,32 @@ public  class  InboundHandler
 		PacketEventDispatcher.onReceived( adapter.getPacketListeners(),packet );
 	}
 	
-	public  Packet  unpend( TcpAutoReconnectChannelInboundHandlerAdapter<?>  context             ,PendingAckPacket<?>  pendingAckPacket,TransportState  transportState )
+	public  Packet  unpend( TcpAutoReconnectChannelInboundHandlerAdapter<?>  context,PendingAckPacket<?>  pendingAckPacket,TransportState  transportState )
 	{
 		Packet  packet = this.pendings.remove( pendingAckPacket.getPacketId() );
 		
-		if( packet != null )
+		if( packet == null )
 		{
-			PacketEventDispatcher.onSent( context.getPacketListeners(),packet instanceof ChatPacket ? ObjectUtils.cast(packet,ChatPacket.class).setSyncId(Long.parseLong(JsonUtils.fromJson(pendingAckPacket.getAttatchments(),Map.class).getString("SYNC_ID"))) : packet,transportState );
+			return   packet;
 		}
 		
-		return  packet;
+		if( packet instanceof ChatPacket )
+		{
+			ObjectUtils.cast(packet,ChatPacket.class).setSyncId(      Long.parseLong(JsonUtils.fromJson(pendingAckPacket.getAttatchments(),Map.class).get("SYNC_ID").toString()) );
+		}
+		else
+		if( packet instanceof GroupChatPacket )
+		{
+			ObjectUtils.cast(packet,GroupChatPacket.class).setSyncId( Long.parseLong(JsonUtils.fromJson(pendingAckPacket.getAttatchments(),Map.class).get("SYNC_ID").toString()) );
+		}
+		
+		PacketEventDispatcher.onSent(    context.getPacketListeners() , packet ,  transportState );  return  packet;
 	}
 	
 	public  void  pend(final  TcpAutoReconnectChannelInboundHandlerAdapter<?> context,final  Packet  pendingPacket,final  long  writeTimeout,final  TimeUnit  timeunit )
 	{
 		pendings.addEntry( pendingPacket.getId(), ObjectUtils.cast( pendingPacket,Packet.class ) );
 		
-		pendingScheduledChecker.schedule( new  Runnable(){public  void  run() { try{ unpend(context,new  PendingAckPacket(pendingPacket.getContactId(),pendingPacket.getId()),TransportState.SEND_FAILED); } catch( Throwable  t ) { t.printStackTrace(); } } },   writeTimeout,timeunit );
+		pendingScheduledChecker.schedule( new  Runnable(){public  void  run() { unpend(context,new  PendingAckPacket(pendingPacket.getContactId(),pendingPacket.getId()) , TransportState.SEND_FAILED ); } },   writeTimeout,timeunit );
 	}
 }

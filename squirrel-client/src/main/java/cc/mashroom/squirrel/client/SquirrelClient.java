@@ -348,10 +348,11 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 				
 				startupConnectivityChecker =  true;
 				
-				LifecycleEventDispatcher.onAuthenticateComplete(  this.lifecycleListeners,response.code() );
 				//  connecting  to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
 				super.storage.initialize( this,false,lifecycleListeners,this.cacheDir , this.userMetadata  , connectParameters.getString("password") );
 			
+				LifecycleEventDispatcher.onAuthenticateComplete(  this.lifecycleListeners,response.code() );
+				
 				this.connect( String.valueOf(this.userMetadata.getId()), this.userMetadata.getSecretKey() );
 			}
 			else
@@ -435,11 +436,14 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		{
 			LifecycleEventDispatcher.onLogout( this.lifecycleListeners , 200 ,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
 			
-			if(    response.code()== 200 )
+			if(   response.code() == 200 )
 			{
 				this.reset();
 				
-				this.connectivityGuarantorThreadPool.remove(      this.connectivityChecker );
+				if( !this.connectivityGuarantorThreadPool.remove(this.connectivityChecker ) )
+				{
+					System.err.println( "SQUIRREL-CLIENT:  ** SQUIRREL-CLIENT **  failed  to  remove  the  connectivity  checker  from  the  pool."  );
+				}
 				
 				this.close();
 			}

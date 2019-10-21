@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import  com.fasterxml.jackson.annotation.JsonProperty;
 
 import  cc.mashroom.db.annotation.Column;
+import cc.mashroom.util.ObjectUtils;
 import  lombok.AllArgsConstructor;
 import  lombok.Data;
 import  lombok.NoArgsConstructor;
@@ -32,7 +33,7 @@ import  lombok.experimental.Accessors;
 @Accessors( chain=true )
 @NoArgsConstructor
 @AllArgsConstructor
-public  class  Contact  implements  Cloneable     ,Serializable
+public  class  Contact  implements  Cloneable     , Serializable
 {
 	@JsonProperty(value="ID" )
 	@Column( name="ID" )
@@ -62,8 +63,8 @@ public  class  Contact  implements  Cloneable     ,Serializable
 	private  Boolean   isDeleted;
 	@SneakyThrows
 	@Override
-	public  Contact  clone()  throws  CloneNotSupportedException
+	public  Contact  clone()
 	{
-		return  (Contact)super.clone();
+		return  ObjectUtils.cast( super.clone(),Contact.class );
 	}
 }

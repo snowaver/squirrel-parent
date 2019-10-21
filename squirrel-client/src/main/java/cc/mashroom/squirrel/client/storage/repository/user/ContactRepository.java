@@ -40,13 +40,13 @@ import  lombok.NoArgsConstructor;
 @NoArgsConstructor( access=AccessLevel.PRIVATE )
 public  class  ContactRepository    extends  RepositorySupport
 {
-	public  final  static  ContactRepository  DAO = new  ContactRepository();
-	
 	private  LinkedMap<Long,Contact>  contactDirect  = new  LinkedMap<Long,Contact>();
+	
+	public  final  static  ContactRepository  DAO = new  ContactRepository();
 	
 	private  ArrayListValuedHashMap<String,Contact>  contactGroups = new  ArrayListValuedHashMap<String,Contact>();
 	
-	public  int  upsert(      Contact  contact,boolean  isUpdateNewsProfile ) throws  IllegalArgumentException,IllegalAccessException
+	public  int  upsert(      Contact  contact,boolean  isUpdateNewsProfile )// throws  IllegalArgumentException,IllegalAccessException
 	{
 		Timestamp  now = new  Timestamp( DateTime.now(DateTimeZone.UTC).getMillis() );
 		
@@ -81,7 +81,7 @@ public  class  ContactRepository    extends  RepositorySupport
 			return  super.upsert(       Lists.newArrayList(contact) );
 		}
 
-		throw  new  IllegalArgumentException( String.format("SQUIRREL-CLIENT:  ** CONTACT **  subscribe  status  ( %d )  is  not  supported.",  contact.getSubscribeStatus()) );
+		throw  new  IllegalArgumentException( String.format("SQUIRREL-CLIENT:  ** CONTACT **  subscribe  status  ( %d )  is  not  supported.",contact.getSubscribeStatus()) );
 	}
 	
 	public  ArrayListValuedHashMap<String,Contact>  getContactGroups()
@@ -100,7 +100,7 @@ public  class  ContactRepository    extends  RepositorySupport
 		
 		for(Contact  contact : ContactRepository.DAO.lookup(Contact.class,"SELECT  ID,USERNAME,CREATE_TIME,LAST_MODIFY_TIME,SUBSCRIBE_STATUS,REMARK,GROUP_NAME,IS_DELETED  FROM  "+ContactRepository.DAO.getDataSourceBind().table()) )
 		{
-			if( (contact.getSubscribeStatus() == 7 || contact.getSubscribeStatus() == 8) && !contact.getIsDeleted() )  this.contactGroups.put( contact.getGroupName(),contact );
+			if( (contact.getSubscribeStatus() == 7 || contact.getSubscribeStatus() == 8) && !contact.getIsDeleted() )this.contactGroups.put( contact.getGroupName(),contact );
 		
 			this.contactDirect.put( contact.getId(),contact );
 		}
@@ -108,7 +108,7 @@ public  class  ContactRepository    extends  RepositorySupport
 		return  this;
 	}
 	
-	public  void  attach(    List<Contact>   contacts ) throws  NumberFormatException,IllegalArgumentException,IllegalAccessException
+	public  void  attach(  List<Contact>     contacts ) throws  NumberFormatException, IllegalArgumentException, IllegalAccessException
 	{
 		for(Contact  contact :contacts )
 		{
@@ -125,6 +125,6 @@ public  class  ContactRepository    extends  RepositorySupport
 	
 	public  boolean  remove(   long  contactId )
 	{
-		super.update( "UPDATE  "+super.getDataSourceBind().table()+"  SET  IS_DELETED = 1  WHERE  ID = ?",new  Object[]{contactId} );  return  this.contactGroups.removeMapping( contactId,this.contactDirect.remove(contactId) );
+		super.update( "UPDATE  "+super.getDataSourceBind().table()+"  SET  IS_DELETED = 1  WHERE  ID = ?" , new  Object[]{contactId} );  return  this.contactGroups.removeMapping( contactId,this.contactDirect.remove(contactId) );
 	}
 }
