@@ -21,10 +21,7 @@ import  java.sql.Timestamp;
 import  java.util.List;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
-import  cc.mashroom.router.Schema;
-import  cc.mashroom.router.Service;
 import  cc.mashroom.squirrel.client.SquirrelClient;
-import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
 import  cc.mashroom.squirrel.client.storage.repository.OfflineRepository;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
@@ -32,17 +29,14 @@ import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
 import  cc.mashroom.squirrel.paip.message.chat.ChatRecallPacket;
-import  cc.mashroom.util.FileUtils;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.Reference;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
-import  okhttp3.HttpUrl;
-import  okhttp3.Request;
 
 @DataSourceBind( name="*",table="chat_message",primaryKeys="ID" )
 @NoArgsConstructor( access=AccessLevel.PRIVATE )
-public  class  ChatMessageRepository   extends  RepositorySupport
+public  class  ChatMessageRepository   extends  MessageRepository
 {
 	public  final  static  ChatMessageRepository  DAO = new  ChatMessageRepository();
 	
@@ -55,15 +49,7 @@ public  class  ChatMessageRepository   extends  RepositorySupport
 	{
 		if( !messages.isEmpty() )
 		{
-			Service   service=context.getServiceRouteManager().current(Schema.HTTPS);
-			
-			for(      ChatMessage  message : messages )
-			{
-				if( ChatContentType.valueOf(message.setIsLocal( false ).getContentType())== ChatContentType.AUDIO )
-				{
-					FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+message.getMd5()),context.okhttpClient(5,5,1200).newCall(new  Request.Builder().get().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("file/"+message.getMd5()).build()).build()).execute().body().bytes() );
-				}
-			}
+			super.cacheAudioFiles( context,messages.toArray(new  ChatMessage[messages.size()]) );
 			
 			upsert(   messages );
 			
@@ -77,19 +63,12 @@ public  class  ChatMessageRepository   extends  RepositorySupport
 	{
 		if( transportState == TransportState.RECEIVED )
 		{
-			Service   service=context.getServiceRouteManager().current(Schema.HTTPS);
-			
-			Long  latestChatMessageSyncId = ObjectUtils.getOrDefaultIfNull( ChatMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),0L );
-			
-			if( packet.getSyncId() != latestChatMessageSyncId+1 )
+			if( packet.getSyncId() != ObjectUtils.getOrDefaultIfNull(ChatMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),0L)+1 )
 			{
 				OfflineRepository.DAO.attach( context , false, false, true , false );  return  1;
 			}
 			
-			if( packet.getContentType()== ChatContentType.AUDIO )
-			{
-				FileUtils.createFileIfAbsent( new  File(cacheDir,"file/"+ObjectUtils.cast(packet,ChatPacket.class).getMd5()),context.okhttpClient(5,5,1200).newCall(new  Request.Builder().get().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("file/"+ObjectUtils.cast(packet,ChatPacket.class).getMd5()).build()).build()).execute().body().bytes() );
-			}
+			cacheAudioFiles( context,packet.getMd5() );
 
 			NewsProfileRepository.DAO.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,IFNULL((SELECT  BADGE_COUNT  FROM  news_profile  WHERE  ID = ?  AND  PACKET_TYPE = ?),0)+1)",new  Object[]{packet.getContactId(),new  Timestamp(packet.getId()),PAIPPacketType.CHAT.getValue(),packet.getContactId(),packet.getContentType() == ChatContentType.WORDS ? new  String(packet.getContent()) : packet.getContentType().getPlaceholder(),packet.getContactId(),PAIPPacketType.CHAT.getValue()} );
 		}

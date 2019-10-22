@@ -75,7 +75,7 @@ public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirre
 		{
 			try( InputStream  is =  getClass().getResourceAsStream( "/squirrel.ddl" ) )
 			{
-				Db.tx( String.valueOf(id),java.sql.Connection.TRANSACTION_SERIALIZABLE,new  Callback(){public  Object  execute( cc.mashroom.db.connection.Connection  connection )  throws  Throwable{ connection.runScripts( IOUtils.toString(is,"UTF-8") );  UserRepository.DAO.upsert( new  User(metadata.getId(),null,metadata.getUsername(),encryptPassword,metadata.getName(),metadata.getNickname()) );  LifecycleEventDispatcher.onReceivedOfflineData(lifecycleListeners,OfflineRepository.DAO.attach(context));  return  true; }});
+				Db.tx( String.valueOf(id),java.sql.Connection.TRANSACTION_SERIALIZABLE,new  Callback(){public  Object  execute( cc.mashroom.db.connection.Connection  connection )  throws  Throwable{ connection.runScripts( IOUtils.toString(is,"UTF-8") );  UserRepository.DAO.upsert( new  User(metadata.getId(),null,metadata.getUsername(),encryptPassword,metadata.getName(),metadata.getNickname()) );  LifecycleEventDispatcher.onReceivedOfflineData(lifecycleListeners,OfflineRepository.DAO.attach(context,true,true,true,true));  return  true; }});
 			}
 		}
 	}
