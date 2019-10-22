@@ -45,23 +45,28 @@ public  class  ChatGroupRepository  extends  RepositorySupport
 {
 	public  final  static  ChatGroupRepository  DAO = new  ChatGroupRepository();
 	
-	public  synchronized boolean  attach( SquirrelClient  context,OoIData  ooiData,boolean  validateChatGroupSyncId )  throws  IllegalArgumentException,IllegalAccessException,IOException
+	public  synchronized boolean  attach( SquirrelClient  context,OoIData  ooiData,boolean  validateChatGroupSyncId )  throws  IllegalArgumentException  ,IllegalAccessException,IOException
 	{
-		Long  nativeLatestSyncId = super.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupSyncRepository.DAO.getDataSourceBind().table() );
+		if(     ooiData.getChatGroups().isEmpty() )
+		{
+			return  true;
+		}
+		
+		Long    nativeLatestSyncId = ObjectUtils.getOrDefaultIfNull(super.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupSyncRepository.DAO.getDataSourceBind().table()),0L );
 		
 		if( validateChatGroupSyncId && ooiData.getChatGroupSyncId() != nativeLatestSyncId + 1 )
 		{
-			Service  service =context.getServiceRouteManager().current(   Schema.HTTPS );
+			Service  service = context.getServiceRouteManager().current(  Schema.HTTPS );
 			
 			try( Response  response = context.okhttpClient(5,5,10).newCall(new  Request.Builder().url(new   HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("offline/lookup").addQueryParameter("checkpoints",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CHAT_GROUP_SYNC_ID",nativeLatestSyncId))).build()).build()).execute() )
 			{
-				return   response.code()   == 200 ? this.attach(context,JsonUtils.mapper.readValue(response.body().string(),OoIData.class),false) : false;
+				return  response.code()    == 200 ? this.attach(context,JsonUtils.mapper.readValue(response.body().string(),OoIData.class),false) : false;
 			}
 		}
 		
 		NewsProfileRepository.DAO.upsert( ObjectUtils.cast(ooiData.getChatGroups(),new  TypeReference<Collection<ChatGroup>>(){}) );
 		//  the  news  profile  should  be  removed  also  when  you  secede  the  chat  group  that  is  created  by  others.
-		NewsProfileRepository.DAO.upsert( context,ObjectUtils.cast(ooiData.getChatGroupUsers(),new  TypeReference<Collection<ChatGroupUser>>(){}) );
+		NewsProfileRepository.DAO.upsert( context,ObjectUtils.cast(ooiData.getChatGroupUsers(),new  TypeReference<Collection<ChatGroupUser>>(){}));
 		
 		ChatGroupSyncRepository.DAO.insert( new  ChatGroupSync(ooiData.getChatGroupSyncId()) );
 		

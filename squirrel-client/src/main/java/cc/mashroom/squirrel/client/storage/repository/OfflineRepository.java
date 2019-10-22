@@ -15,7 +15,6 @@
  */
 package cc.mashroom.squirrel.client.storage.repository;
 
-import  java.io.IOException;
 import  java.sql.Timestamp;
 
 import  cc.mashroom.db.GenericRepository;
@@ -30,6 +29,7 @@ import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupRepos
 import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupSyncRepository;
 import  cc.mashroom.squirrel.client.storage.repository.user.ContactRepository;
 import  cc.mashroom.util.JsonUtils;
+import cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.collection.map.HashMap;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
@@ -38,39 +38,43 @@ import  okhttp3.Request;
 import  okhttp3.Response;
 
 @DataSourceBind( name="*"  , table="*" )
-@NoArgsConstructor(access=AccessLevel.PRIVATE )
+@NoArgsConstructor( access=AccessLevel.PRIVATE )
 public  class  OfflineRepository  extends  GenericRepository
 {
-	public  final  static  OfflineRepository  DAO    = new  OfflineRepository();
+	public  final  static OfflineRepository  DAO    =  new  OfflineRepository();
 	
-	public  OoIData  attach( SquirrelClient  context )  throws  IOException,NumberFormatException,IllegalArgumentException,IllegalAccessException
+	public  OoIData  attach( SquirrelClient  context,boolean  includeContacts,boolean  includeChatGroups,boolean  includeChatMessages,boolean  includeChatGroupMessages )
 	{
-		Timestamp  contactLatestModifyTime = ContactRepository.DAO.lookupOne( Timestamp.class,"SELECT  MAX(LAST_MODIFY_TIME)  AS  LATEST_MODIFY_TIME  FROM  "+ContactRepository.DAO.getDataSourceBind().table(),new  Object[]{} );
+		Timestamp  contactLatestModifyTime = ObjectUtils.getOrDefaultIfNull(ContactRepository.DAO.lookupOne(Timestamp.class,"SELECT  MAX(LAST_MODIFY_TIME)  AS  LATEST_MODIFY_TIME  FROM  "+ContactRepository.DAO.getDataSourceBind().table(),new  Object[]{}),!includeContacts ? null : new  Timestamp(0) );
 		
-		Long  latestChatGroupSyncId = ChatGroupSyncRepository.DAO.lookupOne( Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupSyncRepository.DAO.getDataSourceBind().table() );
+		Long  latestChatGroupSyncId = ObjectUtils.getOrDefaultIfNull( ChatGroupSyncRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupSyncRepository.DAO.getDataSourceBind().table()),!includeChatGroups ? null : 0L );
 		
-		Long  latestChatMessageSyncId = ChatMessageRepository.DAO.lookupOne( Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{} );
+		Long  latestChatMessageSyncId = ObjectUtils.getOrDefaultIfNull( ChatMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),!includeChatMessages ? null : 0L );
 		
-		Long  latestChatGroupMessageSyncId = ChatGroupMessageRepository.DAO.lookupOne( Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{} );
+		Long  latestChatGroupMessageSyncId = ObjectUtils.getOrDefaultIfNull(ChatGroupMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),!includeChatGroupMessages ? null : 0L );
 		
 		Service  service=context.getServiceRouteManager().current(Schema.HTTPS);
 		
-		try(Response  response = context.okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("offline/lookup").addQueryParameter("checkpoints",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CHAT_MESSAGE_CHECK_POINT",latestChatMessageSyncId == null ? 0 : latestChatMessageSyncId).addEntry("GROUP_CHAT_MESSAGE_CHECK_POINT",latestChatGroupMessageSyncId == null ? 0 : latestChatGroupMessageSyncId).addEntry("CONTACT_CHECK_POINT",contactLatestModifyTime == null ? 0 : contactLatestModifyTime.getTime()).addEntry("CHAT_GROUP_CHECK_POINT",latestChatGroupSyncId == null ? 0 : latestChatGroupSyncId))).build()).build()).execute() )
+		try(Response  response = context.okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("offline/lookup").addQueryParameter("checkpoints",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CHAT_MESSAGE_CHECK_POINT",latestChatMessageSyncId).addEntry("GROUP_CHAT_MESSAGE_CHECK_POINT",latestChatGroupMessageSyncId).addEntry("CONTACT_CHECK_POINT",contactLatestModifyTime == null ? null : contactLatestModifyTime.getTime()).addEntry("CHAT_GROUP_CHECK_POINT",latestChatGroupSyncId))).build()).build()).execute() )
 		{
-			if( response.code() == 200 )
+			if( response.code() != 200 )
 			{
-				OoIData  ooiData = JsonUtils.mapper.readValue( response.body().string(),OoIData.class );
-				
-				ContactRepository.DAO.recache().attach( ooiData.getContacts() );  ChatGroupRepository.DAO.attach( context,ooiData,false );
-				
-				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineChatMessages() );
-				
-				ChatGroupMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineGroupChatMessages() );    return  ooiData;
+				throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** OFFLINE  REPOSITORY **  response  code  (%d)  error",response.code()) );
 			}
 			else
 			{
-				throw  new  IllegalStateException("SQUIRREL-CLIENT:  ** OFFLINE  REPOSITORY **  error  in  retrieving  the  offline  messages" );
+				OoIData  ooiData = JsonUtils.mapper.readValue( response.body().string(),OoIData.class );
+				
+				ContactRepository.DAO.recache().attach( ooiData.getContacts() );    ChatGroupRepository.DAO.attach( context,ooiData,false );
+				
+				ChatMessageRepository.DAO.attach( context,context.getCacheDir(),ooiData.getOfflineChatMessages() );
+				
+				ChatGroupMessageRepository.DAO.attach(context,context.getCacheDir(),ooiData.getOfflineGroupChatMessages() );return  ooiData;    
 			}
+		}
+		catch(           Throwable   e )
+		{
+			throw  new  RuntimeException( "SQUIRREL-CLIENT:  ** OFFLINE  REPOSITORY **  error  in  pulling  the  offline/insert  datas",e );
 		}
 	}
 }

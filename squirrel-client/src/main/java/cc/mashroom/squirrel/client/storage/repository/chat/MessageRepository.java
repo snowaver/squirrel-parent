@@ -42,13 +42,16 @@ import  okhttp3.Request;
 
 @DataSourceBind( name="*",table="chat_message",primaryKeys="ID" )
 @NoArgsConstructor( access=AccessLevel.PRIVATE )
-public  class  ChatMessageRepository   extends  RepositorySupport
+public  class  MessageRepository   extends  RepositorySupport
 {
-	public  final  static  ChatMessageRepository  DAO = new  ChatMessageRepository();
+	public  void  cache()
+	{
+		
+	}
 	
 	public  int  remove(     ChatRecallPacket  packet )
 	{
-		return  super.update( "DELETE  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  CONTACT_ID = ?",new  Object[]{packet.getChatPacketId(),packet.getContactId()} );
+		return  super.update( "DELETE  FROM  "+MessageRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  CONTACT_ID = ?",new  Object[]{packet.getChatPacketId(),packet.getContactId()} );
 	}
 	
 	public  boolean  attach( SquirrelClient  context,File  cacheDir,List<ChatMessage>  messages )  throws  IOException,IllegalArgumentException,IllegalAccessException
@@ -79,7 +82,7 @@ public  class  ChatMessageRepository   extends  RepositorySupport
 		{
 			Service   service=context.getServiceRouteManager().current(Schema.HTTPS);
 			
-			Long  latestChatMessageSyncId = ObjectUtils.getOrDefaultIfNull( ChatMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),0L );
+			Long  latestChatMessageSyncId = ObjectUtils.getOrDefaultIfNull( MessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+MessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),0L );
 			
 			if( packet.getSyncId() != latestChatMessageSyncId+1 )
 			{
