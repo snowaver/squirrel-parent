@@ -65,7 +65,7 @@ public  class   ChatGroupMessage
 	@JsonProperty( value="LOCAL_DESCRIPTION" )
 	@Column( name="LOCAL_DESCRIPTION"  )
 	private  String    localDescription;
-	@JsonProperty( value="GROUP_ID" )
+	@JsonProperty( value="GROUP_ID"    )
 	@Column( name="GROUP_ID")
 	private  String  groupId;
 }

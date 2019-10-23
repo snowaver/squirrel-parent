@@ -63,13 +63,16 @@ public  class  ChatMessageRepository   extends  MessageRepository
 	{
 		if( transportState == TransportState.RECEIVED )
 		{
-			if( packet.getSyncId() != ObjectUtils.getOrDefaultIfNull(ChatMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),0L)+1 )
+			if( packet.getSyncId() > ObjectUtils.getOrDefaultIfNull(ChatMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),0L)+1 )
 			{
 				OfflineRepository.DAO.attach( context , false, false, true , false );  return  1;
 			}
 			
-			cacheAudioFiles( context,packet.getMd5() );
-
+			if( packet.getContentType()== ChatContentType.AUDIO )
+			{
+				super.cacheAudioFiles( context,packet.getMd5() );
+			}
+			
 			NewsProfileRepository.DAO.insert( new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,IFNULL((SELECT  BADGE_COUNT  FROM  news_profile  WHERE  ID = ?  AND  PACKET_TYPE = ?),0)+1)",new  Object[]{packet.getContactId(),new  Timestamp(packet.getId()),PAIPPacketType.CHAT.getValue(),packet.getContactId(),packet.getContentType() == ChatContentType.WORDS ? new  String(packet.getContent()) : packet.getContentType().getPlaceholder(),packet.getContactId(),PAIPPacketType.CHAT.getValue()} );
 		}
 		else

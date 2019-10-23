@@ -25,6 +25,7 @@ import  java.util.Collection;
 import  java.util.List;
 import  java.util.concurrent.CopyOnWriteArrayList;
 import  java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledFuture;
 import  java.util.concurrent.ScheduledThreadPoolExecutor;
 import  java.util.concurrent.ThreadPoolExecutor;
 import  java.util.concurrent.TimeUnit;
@@ -48,6 +49,7 @@ import  okhttp3.Response;
 import  cc.mashroom.db.ConnectionManager;
 import  cc.mashroom.db.common.Db;
 import  cc.mashroom.db.common.Db.Callback;
+import cc.mashroom.db.connection.Connection;
 import  cc.mashroom.router.Schema;
 import  cc.mashroom.router.Service;
 import  cc.mashroom.router.ServiceListRequestStrategy;
@@ -58,7 +60,9 @@ import  cc.mashroom.squirrel.client.connect.call.CallError;
 import  cc.mashroom.squirrel.client.connect.call.CallEventDispatcher;
 import  cc.mashroom.squirrel.client.connect.call.CallState;
 import  cc.mashroom.squirrel.client.connect.util.HttpUtils;
+import cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.model.user.User;
+import cc.mashroom.squirrel.client.storage.repository.OfflineRepository;
 import  cc.mashroom.squirrel.client.storage.repository.ServiceRepository;
 import  cc.mashroom.squirrel.client.storage.repository.user.UserRepository;
 import  cc.mashroom.squirrel.common.Tracer;
@@ -86,12 +90,15 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	}
 	
 	private  ScheduledThreadPoolExecutor  connectivityGuarantorThreadPool = new  ScheduledThreadPoolExecutor( 1,new  DefaultThreadFactory("CONNECT-THREAD",false,1) );
+	
 	@Setter( value=AccessLevel.PROTECTED )
 	@Accessors(chain=true)
 	private  Object  context;
 	private  UserMetadata    userMetadata;
 	@Accessors(chain=true)
 	private  List<LifecycleListener>  lifecycleListeners  = new   CopyOnWriteArrayList<LifecycleListener>();
+	
+	private  ScheduledFuture<?>  connectivityCheckingFuture;
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
@@ -148,6 +155,8 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	
 	protected  SquirrelClient  setConnectState(   ConnectState  connectState )
 	{
+		if( connectState== ConnectState.CONNECTED )  LifecycleEventDispatcher.onReceivedOfflineData( lifecycleListeners , (OoIData)  Db.tx(String.valueOf(this.userMetadata.getId()),java.sql.Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(Connection  connection)  throws  Throwable{ return  OfflineRepository.DAO.attach(SquirrelClient.this,true,true,true,true); }}) );
+		
 		return  ObjectUtils.cast(     super.setConnectState( connectState ) );
 	}
 	
@@ -159,7 +168,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	
 	public  void removeCall()
 	{
-		if( call.getState() !=   CallState.CLOSED )
+		if( call.getState()!=    CallState.CLOSED )
 		{
 			throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  can't  close  call  in  %s  state", call.getState().name()) );
 		}
@@ -202,9 +211,6 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 				}}
 			);
 		}
-		/*
-		return  this.call != null ? null : ( call = new  Call(this,id >= 1 ? id : Packet.forId( DateTime.now(DateTimeZone.UTC).getMillis() ),contactId,contentType) );
-		*/
 	}
 	
 	public  OkHttpClient  okhttpClient( long  connectTimeoutSeconds,long  writeTimeoutSeconds ,long  readTimeoutSeconds )
@@ -363,7 +369,9 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 				
 				this.reset();
 				
-				this.connectivityGuarantorThreadPool.remove(      this.connectivityChecker );
+				if( this.connectivityCheckingFuture !=null )  this.connectivityCheckingFuture.cancel(true );
+				
+				connectivityGuarantorThreadPool.purge(/**/);
 			}
 		}
 		catch( Throwable  e )
@@ -385,7 +393,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			
 			if( this.connectivityGuarantorThreadPool.getTaskCount() == 0    &&  startupConnectivityChecker )
 			{
-				this.connectivityGuarantorThreadPool.scheduleAtFixedRate( this.connectivityChecker , 10, 10,  TimeUnit.SECONDS );
+				this.connectivityCheckingFuture = this.connectivityGuarantorThreadPool.scheduleAtFixedRate(connectivityChecker,10,10,TimeUnit.SECONDS);
 			}
 		}
 		
@@ -440,10 +448,9 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			{
 				this.reset();
 				
-				if( !this.connectivityGuarantorThreadPool.remove(this.connectivityChecker ) )
-				{
-					System.err.println( "SQUIRREL-CLIENT:  ** SQUIRREL-CLIENT **  failed  to  remove  the  connectivity  checker  from  the  pool."  );
-				}
+				if( this.connectivityCheckingFuture !=null )  this.connectivityCheckingFuture.cancel(true );
+				
+				connectivityGuarantorThreadPool.purge(/**/);
 				
 				this.close();
 			}

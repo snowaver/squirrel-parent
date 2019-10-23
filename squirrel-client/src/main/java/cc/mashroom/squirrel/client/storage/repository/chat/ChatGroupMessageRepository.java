@@ -34,7 +34,7 @@ import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 
 @DataSourceBind(name="*",table="chat_group_message",primaryKeys="ID")
-@NoArgsConstructor( access=AccessLevel.PRIVATE )
+@NoArgsConstructor( access =    AccessLevel.PRIVATE )
 public  class  ChatGroupMessageRepository  extends  MessageRepository
 {
 	public  final  static  ChatGroupMessageRepository  DAO = new  ChatGroupMessageRepository();
@@ -59,13 +59,16 @@ public  class  ChatGroupMessageRepository  extends  MessageRepository
 	{
 		if( transportState==TransportState.RECEIVED )
 		{
-			if( packet.getSyncId() != ObjectUtils.getOrDefaultIfNull(ChatGroupMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),0L)+1 )
+			if( packet.getSyncId() > ObjectUtils.getOrDefaultIfNull(ChatGroupMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),0L)+1 )
 			{
 				OfflineRepository.DAO.attach(context, false,false   ,false,true );          return  1;
 			}
 			
-			cacheAudioFiles(context,packet.getMd5());
-
+			if( packet.getContentType()    == ChatContentType.AUDIO )
+			{
+				super.cacheAudioFiles(     context,packet.getMd5() );
+			}
+			
 			NewsProfileRepository.DAO.insert(new  Reference<Object>(),"MERGE  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,IFNULL((SELECT  BADGE_COUNT  FROM  news_profile  WHERE  ID = ?  AND  PACKET_TYPE = ?),0)+1)",new  Object[]{packet.getGroupId(),new  Timestamp(packet.getId()),PAIPPacketType.GROUP_CHAT.getValue(),packet.getContactId(),packet.getContentType() == ChatContentType.WORDS ? new  String(packet.getContent()) : packet.getContentType().getPlaceholder(),packet.getGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );
 		}
 		else
