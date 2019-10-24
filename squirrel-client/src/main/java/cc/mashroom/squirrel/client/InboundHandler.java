@@ -59,7 +59,7 @@ public  class  InboundHandler
 			{
 				if( ObjectUtils.cast(packet, DisconnectAckPacket.class).getReason()    == DisconnectAckPacket.REASON_REMOTE_SIGNIN )
 				{
-					LifecycleEventDispatcher.onLogout( adapter.getLifecycleListeners() ,  200, 1 );
+				LifecycleEventDispatcher.onLogoutComplete( adapter.getLifecycleListeners(),200,2 );
 				}
 				
 				adapter.reset();

@@ -411,11 +411,15 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 	{
 		super.reset();
 		
+		if(this.connectivityCheckingFuture !=null )  connectivityCheckingFuture.cancel(true);
+		
 		userMetadata =  null;
 		
 		this.setConnectParameters( null );
 		call   = null;
 		this.lifecycleListeners.clear(  );
+		
+		this.connectivityGuarantorThreadPool.purge(/*PUG*/);
 	}
 	/**
 	 *  close  the  client.  send  a  disconnect  packet  to  the  server,  then  close  the  netty  nio  event  loop  group  and  connectiviy  guarantor  thread  pool.  the  client  instance  can  not  be  used  anymore  after  released  since  all  coordinated  thread  are  shutdown.
@@ -442,7 +446,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 		
 		try(Response  response=okhttpClient(5,5,10).newCall( new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("user/logout").build()).post(new  FormBody.Builder().build()).build()).execute() )
 		{
-			LifecycleEventDispatcher.onLogout( this.lifecycleListeners , 200 ,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
+			LifecycleEventDispatcher.onLogoutComplete( lifecycleListeners,200,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
 			
 			if(   response.code() == 200 )
 			{
@@ -461,7 +465,7 @@ public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandle
 			
 			LifecycleEventDispatcher.onError(  this.lifecycleListeners , e  );
 			
-			LifecycleEventDispatcher.onLogout( this.lifecycleListeners , 500 ,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
+			LifecycleEventDispatcher.onLogoutComplete( lifecycleListeners,500,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
 		}
 	}
 	

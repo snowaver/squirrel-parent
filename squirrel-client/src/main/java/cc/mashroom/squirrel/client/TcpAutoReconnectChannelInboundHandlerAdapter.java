@@ -179,7 +179,6 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
         	this.onConnectStateChanged( this.connectState=ConnectState.DISCONNECTED );
 		}
 	}
-		
 	@SneakyThrows
 	public  void     release()
 	{
@@ -187,7 +186,9 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 		
 		multipartsSendPool.shutdown();
 	}
-	
+	/**
+	 *  close  the  channel  if  open.
+	 */
 	protected  synchronized  void  close()
 	{
 		if( channel.isOpen() )  this.channel.close();

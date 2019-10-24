@@ -17,7 +17,7 @@ public  class  LifecycleEventDispatcher
 		for( LifecycleListener  listener : listeners )  listener.onReceivedOfflineData( ooiData );
 	}
 	
-	public  static  void  onLogout( Collection<LifecycleListener>  listeners,int  logoutResponseCode  ,int  reason )
+	public  static  void  onLogoutComplete( Collection<LifecycleListener>  listeners,int  logoutResponseCode,int  reason )
 	{
 		for( LifecycleListener  listener : listeners )  listener.onLogoutComplete(     logoutResponseCode,  reason);
 	}
