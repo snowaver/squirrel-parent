@@ -1,8 +1,14 @@
 package cc.mashroom.squirrel.qstore.service;
 
-public  interface  ChatMessageServiceImpl
+public  class  ChatMessageServiceImpl
 {
-	public  void  add( Object[]  params );
+	public  void  add( Object[]  params )
+	{
+		
+	}
 	
-	public  void  lookup( long  userId,long  syncId );
+	public  void  lookup( long  userId,long  syncId )
+	{
+		
+	}
 }
