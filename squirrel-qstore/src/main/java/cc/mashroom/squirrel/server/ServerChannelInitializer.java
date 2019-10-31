@@ -16,13 +16,10 @@
 package cc.mashroom.squirrel.server;
 
 import  io.netty.channel.socket.SocketChannel;
-import  io.netty.handler.codec.redis.RedisArrayAggregator;
-import  io.netty.handler.codec.redis.RedisBulkStringAggregator;
-import  io.netty.handler.codec.redis.RedisDecoder;
-import  io.netty.handler.codec.redis.RedisEncoder;
 import  lombok.AllArgsConstructor;
-
-import  cc.mashroom.squirrel.server.handler.PAIPPacketHandler;
+import  cc.mashroom.squirrel.paip.codec.PAIPDecoder;
+import  cc.mashroom.squirrel.paip.codec.PAIPEncoder;
+import  cc.mashroom.squirrel.server.handler.RedisPacketHandler;
 
 @AllArgsConstructor
 
@@ -30,6 +27,8 @@ public  class  ServerChannelInitializer  extends  io.netty.channel.ChannelInitia
 {
 	protected  void  initChannel( SocketChannel  channel )  throws  Exception
 	{
-		channel.pipeline().addLast("encoder",new  RedisEncoder()).addLast("decoder",new  RedisDecoder(false)).addLast("bulkstring.aggregator",new  RedisBulkStringAggregator()).addLast("array.aggregator",new  RedisArrayAggregator()).addLast( "handler",new  PAIPPacketHandler() );
+		channel.pipeline().addLast("encoder",new  PAIPEncoder()).addLast("decoder",new  PAIPDecoder()).addLast( "handler",new  RedisPacketHandler() );
+		
+//		channel.pipeline().addLast("encoder",new  RedisEncoder()).addLast("decoder",new  RedisDecoder(false))/*.addLast("bulkstring.aggregator",new  RedisBulkStringAggregator())*/.addLast("array.aggregator",new  RedisArrayAggregator()).addLast( "handler",new  RedisPacketHandler() );
 	}
 }

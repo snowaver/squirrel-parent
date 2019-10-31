@@ -15,26 +15,19 @@
  */
 package cc.mashroom.squirrel.server.handler;
 
-import io.netty.buffer.ByteBuf;
+import  io.netty.buffer.ByteBuf;
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.redis.ArrayRedisMessage;
-import io.netty.handler.codec.redis.FullBulkStringRedisMessage;
-import io.netty.handler.codec.redis.RedisMessage;
-import io.netty.handler.codec.redis.SimpleStringRedisMessage;
+import  io.netty.handler.codec.redis.ArrayRedisMessage;
+import  io.netty.handler.codec.redis.FullBulkStringRedisMessage;
+import  io.netty.handler.codec.redis.SimpleStringRedisMessage;
 
-import java.util.stream.Collectors;
+import  java.util.stream.Collectors;
 
-import  org.joda.time.DateTime;
+import  cc.mashroom.util.ObjectUtils;
 
-public  class    PAIPPacketHandler       extends  ChannelInboundHandlerAdapter
+public  class    RedisPacketHandler       extends  ChannelInboundHandlerAdapter
 {
-	@Override
-	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		// TODO Auto-generated method stub
-		super.channelActive(ctx);
-	}
-	
 	public  void  exceptionCaught( ChannelHandlerContext  context,Throwable  ukerror )  throws  Exception
 	{
 		ukerror.printStackTrace();
@@ -50,22 +43,16 @@ public  class    PAIPPacketHandler       extends  ChannelInboundHandlerAdapter
         return new String(bytesOf(buf));
     }
 	
-	public  void  channelRead( ChannelHandlerContext  context,Object  message )  throws Exception
+	public  void  channelRead( ChannelHandlerContext  context,Object  message )  throws  Exception
 	{
-		if(message instanceof ArrayRedisMessage) {
-			ArrayRedisMessage arm = (ArrayRedisMessage) message;
-			;
-			System.err.println(arm.children().stream().map((a) -> stringOf(((FullBulkStringRedisMessage) a).content())).collect(Collectors.toList()));
+		if( message instanceof ArrayRedisMessage )
+		{
+//			ObjectUtils.cast(message,ArrayRedisMessage.class).children().stream().map((child) -> stringOf(ObjectUtils.cast(child,FullBulkStringRedisMessage.class).content())).collect( Collectors.toList() );
 		
+			ObjectUtils.cast(message,ArrayRedisMessage.class).children().stream().forEach( (child) -> ObjectUtils.cast(child,FullBulkStringRedisMessage.class).content().release() );
+			
 			context.channel().writeAndFlush(new SimpleStringRedisMessage("OK"));
 		}
-		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+message.toString() );
-		
-	}
-	
-	@Override
-	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		// TODO Auto-generated method stub
-		super.channelInactive(ctx);
+//		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+message.toString() );
 	}
 }
