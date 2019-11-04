@@ -15,6 +15,8 @@
  */
 package cc.mashroom.squirrel.transport;
 
+import  java.util.List;
+import  java.util.concurrent.CopyOnWriteArrayList;
 import  java.util.concurrent.CountDownLatch;
 import  java.util.concurrent.ExecutionException;
 import  java.util.concurrent.Future;
@@ -33,18 +35,21 @@ import  lombok.experimental.Accessors;
 
 @RequiredArgsConstructor
 @Accessors( chain=true )
-public  class  TransportFuture<T extends PendingAckPacket<?>>   implements  Future  <T>
+public  class  TransportFuture<T extends PendingAckPacket<?>>      implements  Future<T>
 {
 	private  AtomicBoolean  isSuccess   = new  AtomicBoolean(false );
 	
+	private  List<TransportFutureListener<T>>  transportFutureListeners = new  CopyOnWriteArrayList<TransportFutureListener<T>>();
+	
 	private  AtomicBoolean  isCancelled = new  AtomicBoolean(false );
 
-	private  AtomicBoolean  isDone = new  AtomicBoolean( false );
-	private  CountDownLatch  latch = new  CountDownLatch(1 );
+	private  AtomicBoolean  isDone  = new  AtomicBoolean( false );
+	
+	private  CountDownLatch  latch  = new  CountDownLatch(1);
 	@NonNull
 	private  Packet<?>pacekt;
-	@Setter( value=AccessLevel.PACKAGE )
-	private  PendingAckPacket  <?>pendingAckPacket;
+	@Setter( value =  AccessLevel.PACKAGE  )
+	private  PendingAckPacket  <?>  pendingAckPacket;
 	
 	public  boolean  isCancelled()
 	{
@@ -53,35 +58,47 @@ public  class  TransportFuture<T extends PendingAckPacket<?>>   implements  Futu
 	
 	public  boolean  isDone()
 	{
-		return  isDone.get();
+		return  this.isDone.get();
 	}
 	
-	TransportFuture<T>  done(  boolean  isSuccess )
+	protected  TransportFuture<T>  done( boolean  isSuccess )
 	{
-		this.isDone.set(   true );  this.isSuccess.set(  isSuccess );latch.countDown();
+		if( updateState( false ) )
+		{
+			this.isSuccess.set( isSuccess );  this.latch.countDown();  for(    TransportFutureListener<T>  transportFutureListener : transportFutureListeners )  transportFutureListener.onComplete( this );
+		}
 		
 		return  this ;
 	}
 	
 	public  boolean  cancel( boolean  mayInterruptIfRunning )
 	{
-		if(     isDone.get())
-		{
-		return  false;
-		}
-		if( isCancelled.compareAndSet(false,true) )latch.countDown();
+		if( updateState( true  ) )    this.latch.countDown();
 		
 		return  true ;
 	}
-
+	
 	public  T  get()   throws InterruptedException,ExecutionException
 	{
-		latch.await(); return     ObjectUtils.cast(pendingAckPacket);
-	}
-
-	public  T  get( long  timeout,TimeUnit  timeoutTimeUnit )  throws  InterruptedException,ExecutionException,TimeoutException
-	{
-		this.latch.await( timeout,timeoutTimeUnit);  return  ObjectUtils.cast( this.pendingAckPacket );
+		latch.await(); return  ObjectUtils.cast(   pendingAckPacket);
 	}
 	
+	public  T  get( long  timeout,TimeUnit  timeoutTimeUnit )  throws  InterruptedException  ,ExecutionException ,TimeoutException
+	{
+		this.latch.await( timeout,timeoutTimeUnit  );
+		
+		return  ObjectUtils.cast( pendingAckPacket );
+	}
+	
+	public  TransportFuture<T>  addTransportFutureListener(  @NonNull  TransportFutureListener<T>  transportFutureListener )
+	{
+		this.transportFutureListeners.add( transportFutureListener );    if( this.isCancelled() || this.isDone() )  transportFutureListener.onComplete( this );
+		
+		return  this ;
+	}
+	
+	protected  synchronized  boolean  updateState(  boolean  cancel )
+	{
+		return  cancel ? !this.isDone.get() && this.isCancelled.compareAndSet(false,true) : !this.isCancelled.get() && this.isDone.compareAndSet( false,true );
+	}
 }

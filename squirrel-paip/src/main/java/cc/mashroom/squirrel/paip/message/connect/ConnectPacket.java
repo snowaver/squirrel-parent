@@ -53,18 +53,18 @@ public  class  ConnectPacket  extends  Packet  <ConnectPacket>
 			throw  new  CorruptedFrameException( String.format("SQUIRREL-PAIP:  ** CONNECT  PACKET **  invalid  protocol:  %s",protocolName) );
 		}
         
-		channel.attr(PROTOCOL_VERSION).set( this.protocolVersion = byteBuf.readByte() );
+		channel.attr(PROTOCOL_VERSION).set( this.protocolVersion =byteBuf.readByte() );
 		
         this.keepalive   = byteBuf.readUnsignedShort();
 
-        this.setAccessKey( PAIPCodecUtils.decode(byteBuf) ).setSecretKey( PAIPCodecUtils.decodeBytes(byteBuf) );
+        this.setAccessKey( PAIPCodecUtils.decode(    byteBuf)).setSecretKey( PAIPCodecUtils.decodeBytes( byteBuf ) );
 	}
 	
 	public  ConnectPacket( String  accessKey,byte[]  secretKey,int  keepalive )
 	{
-		super( new  Header( PAIPPacketType.CONNECT ) );
+		super(    new  Header().setPacketType(PAIPPacketType.CONNECT).setAckLevel(1) );
 		
-		this.setAccessKey(accessKey).setSecretKey(secretKey).setKeepalive(  keepalive );
+		this.setAccessKey(accessKey).setSecretKey(secretKey).setKeepalive( keepalive );
 	}
 	
 	@Setter( value = AccessLevel.PROTECTED )

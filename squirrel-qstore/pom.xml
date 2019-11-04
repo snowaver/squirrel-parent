@@ -43,6 +43,10 @@
 		</dependency>
 		
 		<dependency >
+			<groupId>cc.mashroom.squirrel</groupId><artifactId>squirrel-transport</artifactId><version>v1.0.2</version>
+		</dependency>
+		
+		<dependency >
 			<groupId>org.projectlombok</groupId><artifactId>lombok</artifactId><version>1.18.6</version><scope>provided</scope>
 		</dependency>
 		

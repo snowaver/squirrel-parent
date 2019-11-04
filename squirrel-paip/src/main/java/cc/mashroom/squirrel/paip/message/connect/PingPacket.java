@@ -21,12 +21,12 @@ import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  lombok.ToString;
 
-@ToString(    callSuper = true )
+@ToString(     callSuper =true )
 public  class  PingPacket  extends  Packet  <PingPacket>
 {
 	public  PingPacket()
 	{
-		super( new  Header(PAIPPacketType.PING) );
+		super( new  Header().setPacketType(PAIPPacketType.PING).setAckLevel(1) );
 	}
 	
 	public  PingPacket( ByteBuf  byteBuf )

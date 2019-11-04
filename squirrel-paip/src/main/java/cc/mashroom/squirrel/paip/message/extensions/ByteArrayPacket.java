@@ -15,6 +15,7 @@
  */
 package cc.mashroom.squirrel.paip.message.extensions;
 
+import cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.Packet;
@@ -29,6 +30,8 @@ public  class  ByteArrayPacket  extends  Packet       <ByteArrayPacket>
 	public  ByteArrayPacket( ByteBuf  byteBuf )
 	{
 		super(byteBuf,0x00 );
+		
+		setBytes( PAIPCodecUtils.decodeBytes( byteBuf) );
 	}
 	
 	public  ByteArrayPacket(    byte[]  bytes )
@@ -45,7 +48,7 @@ public  class  ByteArrayPacket  extends  Packet       <ByteArrayPacket>
 	
 	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf )
 	{
-		return  variableByteBuf.writeBytes( this.bytes );
+		return  variableByteBuf.writeBytes( PAIPCodecUtils.encodeBytes(this.bytes) );
 	}
 }
 

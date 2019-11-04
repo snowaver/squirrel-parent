@@ -15,7 +15,6 @@
  */
 package cc.mashroom.squirrel.paip.message.connect;
 
-import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
@@ -26,7 +25,7 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
 @ToString(callSuper=true )
-public  class  ConnectAckPacket   extends  Packet  <ConnectAckPacket>
+public  class  ConnectAckPacket    extends  PendingAckPacket<ConnectAckPacket>
 {
     public  final  static  int  CONNECTION_ACCEPTED  = 0x00;
     
@@ -34,44 +33,42 @@ public  class  ConnectAckPacket   extends  Packet  <ConnectAckPacket>
     
     public  final  static  int  IDENTIFIER_REJECTED  = 0x02;
     
-    public  final  static  int  BAD_USERNAME_OR_PASSWORD = 0x04;
+    public  final  static  int  BAD_USERNAME_OR_PASSWORD = 0x03;
     
-    public  final  static  int  SERVER_UNAVAILABLE   = 0x03;
+    public  final  static  int  NOT_AUTHORIZED = 0x04;
     
-    public  final  static  int  NOT_AUTHORIZED  = 0x05;
-    
-    public  ConnectAckPacket(ByteBuf buf )
+    public  ConnectAckPacket(ByteBuf  buf)
     {
-    	super( buf,0x00 );
+    	super( buf );
     	
-    	this.setSessionPresent(    buf.readByte() == 0x01 ).setResponse( buf.readByte() );
+    	this.setSessionPresent(buf.readByte() == 0x01).setResponseCode( buf.readByte() );
     }
-    
-    public  ConnectAckPacket( int  response,boolean  sessionPresent )
-    {
-    	super( new  Header(  PAIPPacketType.CONNECT_ACK ) );
-    	
-    	this.setResponse(response).setSessionPresent(sessionPresent);
-    }
-    
-    @Setter( value=AccessLevel.PROTECTED )
-	@Getter
-	@Accessors(chain=true)
-    private  int response;
-    @Setter( value=AccessLevel.PROTECTED )
-	@Getter
-	@Accessors(chain=true)
-    private  boolean  sessionPresent;
-
+    @Override
     public  ByteBuf  writeToVariableByteBuf(   ByteBuf  variableBuf )
 	{
-		return  variableBuf.writeByte(sessionPresent ? 0x01 : 0x00).writeByte( response );
+		return  variableBuf.writeByte(this.isSessionPresent? 0x01 : 0x00).writeByte( this.responseCode );
 	}
-	
-	public  int      getInitialVariableByteBufferSize()
+    
+    public  ConnectAckPacket( long  connectPacketId, int  responseCode,boolean  isSessionPresent )
+    {
+    	super(    new  Header(PAIPPacketType.CONNECT_ACK),0,connectPacketId );
+    	
+    	setResponseCode(responseCode).setSessionPresent(   isSessionPresent );
+    }
+    @Override
+	public  int     getInitialVariableByteBufferSize()
 	{
-		return  2 +super.getInitialVariableByteBufferSize();
+		return  10+super.getInitialVariableByteBufferSize();
 	}
+    	
+    @Setter( value=AccessLevel.PROTECTED )
+	@Getter
+	@Accessors(chain=true)
+    private  int  responseCode;
+    @Setter( value=AccessLevel.PROTECTED )
+	@Getter
+	@Accessors(chain=true)
+    private  boolean     isSessionPresent;
     /*
 	public  void  writeTo(  ByteBuf  buf )
 	{

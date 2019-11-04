@@ -40,7 +40,7 @@ public  class  GroupChatPacket     extends  Packet    <GroupChatPacket>  impleme
 	
 	public  GroupChatPacket( long  contactId,long  groupId,String  md5,ChatContentType  contentType,byte[]  content )
 	{
-		super( new  Header(PAIPPacketType.GROUP_CHAT));
+		super( new  Header(PAIPPacketType.GROUP_CHAT).setAckLevel(1) );
 		
 		setContactId(contactId).setGroupId(groupId).setMd5(md5 ).setContentType( contentType ).setContent( content );
 	}

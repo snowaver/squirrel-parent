@@ -49,10 +49,10 @@ public  class  ChatRecallPacket  extends  Packet   <ChatRecallPacket>
 	
 	public  ByteBuf  writeToVariableByteBuf(   ByteBuf  variableBuf )
 	{
-		return  variableBuf.writeLongLE(contactId).writeLongLE( chatPacketId );
+		return  variableBuf.writeLongLE(this.contactId).writeLongLE( this.chatPacketId );
 	}
 	
-	public  int  getInitialVariableByteBufferSize()
+	public  int getInitialVariableByteBufferSize()
 	{
 		return  16+super.getInitialVariableByteBufferSize();
 	}

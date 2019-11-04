@@ -23,33 +23,14 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
-import  java.util.concurrent.atomic.AtomicLong;
-
-import  org.joda.time.DateTime;
-import  org.joda.time.DateTimeZone;
-
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 
 @ToString
 public  abstract  class  Packet  <T extends Packet>
 {
-	/*
-	public  Packet()
+	protected  Packet(   Header   header )
 	{
-		this.setHeader( new  Header() ).setId(   Packet.forId( DateTime.now( DateTimeZone.UTC ).getMillis() ) );
-	}
-	*/
-	public  Packet(       Header  header )
-	{
-		this.setHeader( header.setId(Packet.forId(DateTime.now(DateTimeZone.UTC).getMillis()) ) );
-	}
-	/*
-	public  abstract  void  writeTo(ByteBuf  buf );
-	*/
-	//  the  id  should  be  greater  than  previous  id,  else  a  new  id  ( the  old  id  plus  one )  will  be  generated.
-	public  static  long  forId(long  id )
-	{
-		return  ID_GENERATOR.get() >= id ? ID_GENERATOR.incrementAndGet() : ID_GENERATOR.addAndGet( (id-ID_GENERATOR.get()) );
+		this.setHeader(header.setId(ID.create()) );
 	}
 	@Getter
 	@Accessors(  chain = true )
@@ -64,28 +45,26 @@ public  abstract  class  Packet  <T extends Packet>
 		return  header.getId();
 	}
 	
-	protected  final  static  AtomicLong  ID_GENERATOR  = new  AtomicLong( 0x00 );
-	
-	public  T  setAckLevel( int  ackLevel,  long   contactId )
+	public  Packet( ByteBuf  byteBuf,Integer  expectFlags )
 	{
-		if(    contactId <  0 )
-		{
-			throw  new  IllegalArgumentException("SQUIRREL-PAIP:  ** PACKET **  contact  id  is  invalidate." );
-		}
-		
-		this.setContactId(contactId).getHeader().setAckLevel( ackLevel );
-		
-		return       (T)  this;
+		this.setHeader( new  Header( byteBuf.resetReaderIndex() , expectFlags ) );
 	}
 	
 	public  T  setContactId(      long  contactId )
 	{
-		this.contactId        = contactId;  return  (T)  this;
+		this.contactId        = contactId;return(T)   this;
 	}
-		
+	
 	public  int  getInitialVariableByteBufferSize()
 	{
 		return  0;
+	}
+	
+	public  T  setAckLevel( int  ackLevel,long  contactId )
+	{
+		this.setContactId(contactId).getHeader().setAckLevel( ackLevel );
+		
+		return       (T)  this;
 	}
 	
 	public  abstract  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf );
@@ -102,10 +81,5 @@ public  abstract  class  Packet  <T extends Packet>
 		{
 			decodeRemainingLengthByteBuf.release();     variableByteBuf.release();
 		}
-	}
-	
-	public  Packet( ByteBuf  byteBuf, Integer  expectedFlags )
-	{
-		this.setHeader(   new  Header(byteBuf.resetReaderIndex(),expectedFlags) );
 	}
 }

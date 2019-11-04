@@ -29,43 +29,42 @@ import  lombok.experimental.Accessors;
 
 @ToString(callSuper=true )
 public  class  PendingAckPacket<T extends PendingAckPacket<?>>  extends  Packet<T>
-{
-	public  PendingAckPacket( long  contactId,long  packetId )
+{	
+	protected  PendingAckPacket( Header  header,  long contactId,long  packetId  )
 	{
-		super(new  Header(PAIPPacketType.PENDING_ACK));
+		super(header    );
 		
-		super.setContactId(contactId).setPacketId( packetId );
+		super.setContactId(contactId).setPendingPacketId( packetId );
 	}
 	
-	public  PendingAckPacket(ByteBuf  buf )
+	public  PendingAckPacket( long  contactId,long  pendingPacketId )
+	{
+		this( new  Header(PAIPPacketType.PENDING_ACK),contactId,pendingPacketId );
+	}
+	
+	public  PendingAckPacket( ByteBuf  buf)
 	{
 		super(buf, 0x00 );
 		
-		this.setContactId(buf.readLongLE()).setPacketId(buf.readLongLE()).setAttatchments( PAIPCodecUtils.decode(buf) );
+		this.setContactId(buf.readLongLE()).setPendingPacketId(buf.readLongLE()).setAttatchments( PAIPCodecUtils.decode(buf) );
 	}
 	
 	@Setter( value= AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	protected  long   packetId;
+	protected  long  pendingPacketId;
 	@Setter( value= AccessLevel.PUBLIC    )
 	@Getter
 	@Accessors(chain=true)
-	protected  String  attatchments = "{}";
-
-	public  ByteBuf  writeToVariableByteBuf(ByteBuf  byteBuf )
+	protected  String   attatchments= "{}";
+	
+	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variablebyteBuf)
 	{
-		return  byteBuf.writeLongLE(this.contactId).writeLongLE(this.packetId).writeBytes( PAIPCodecUtils.encode(this.attatchments) );
+		return  variablebyteBuf.writeLongLE(this.contactId).writeLongLE(this.pendingPacketId).writeBytes( PAIPCodecUtils.encode(this.attatchments) );
 	}
 	
 	public  int      getInitialVariableByteBufferSize()
 	{
-		return  16 + super.getInitialVariableByteBufferSize();
+		return  16+super.getInitialVariableByteBufferSize();
 	}
-	/*
-	public  void  writeTo(   ByteBuf  buf )
-	{
-		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.QOS_RECEIPT );
-	}
-	*/
 }

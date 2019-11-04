@@ -21,7 +21,7 @@
 	<properties >
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.26</slf4j.version><h2.version>1.4.198</h2.version><lombok.version>1.18.6</lombok.version>
-		<netty.version>4.1.42.Final</netty.version><mashroom.parent.version>v1.0.1</mashroom.parent.version><libjingle.peerconnection.version>6896</libjingle.peerconnection.version>
+		<netty.version>4.1.33.Final</netty.version><mashroom.parent.version>v1.0.1</mashroom.parent.version><libjingle.peerconnection.version>6896</libjingle.peerconnection.version>
 	</properties>
 	
 	<modules >

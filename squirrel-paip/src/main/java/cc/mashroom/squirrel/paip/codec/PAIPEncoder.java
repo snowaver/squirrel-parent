@@ -28,11 +28,11 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 
 public  class  PAIPEncoder  extends  MessageToByteEncoder  <Packet<?>>
 {
-	protected  void  encode( ChannelHandlerContext  channel,Packet<?>  packet,ByteBuf  byteBuf )  throws  Exception
+	protected  void  encode( ChannelHandlerContext  channel,Packet<? >  packet,   ByteBuf  byteBuf )  throws  Exception
 	{
 		ByteBuf  contentByteBuf=channel.alloc().buffer();
 		
-		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.SENT:\t"+packet.toString() );
+//		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.SENT:\t"+packet.toString() );
 		
 		try
 		{

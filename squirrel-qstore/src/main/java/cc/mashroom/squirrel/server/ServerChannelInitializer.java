@@ -16,10 +16,18 @@
 package cc.mashroom.squirrel.server;
 
 import  io.netty.channel.socket.SocketChannel;
+import  io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import  io.netty.handler.ssl.SslHandler;
 import  lombok.AllArgsConstructor;
+
+import  javax.net.ssl.SSLEngine;
+
+import  cc.mashroom.config.Config;
 import  cc.mashroom.squirrel.paip.codec.PAIPDecoder;
 import  cc.mashroom.squirrel.paip.codec.PAIPEncoder;
-import  cc.mashroom.squirrel.server.handler.RedisPacketHandler;
+import  cc.mashroom.squirrel.server.handler.PAIPPacketHandler;
+import  cc.mashroom.squirrel.transport.ChannelDuplexIdleTimeoutHandler;
+import  cc.mashroom.util.SecureUtils;
 
 @AllArgsConstructor
 
@@ -27,8 +35,12 @@ public  class  ServerChannelInitializer  extends  io.netty.channel.ChannelInitia
 {
 	protected  void  initChannel( SocketChannel  channel )  throws  Exception
 	{
-		channel.pipeline().addLast("encoder",new  PAIPEncoder()).addLast("decoder",new  PAIPDecoder()).addLast( "handler",new  RedisPacketHandler() );
+		SSLEngine  sslEngine = SecureUtils.getSSLContext(Config.server.getProperty("server.ssl.key-store-password"),Config.server.getProperty("server.ssl.key-store").replace("classpath:","/")).createSSLEngine();
 		
-//		channel.pipeline().addLast("encoder",new  RedisEncoder()).addLast("decoder",new  RedisDecoder(false))/*.addLast("bulkstring.aggregator",new  RedisBulkStringAggregator())*/.addLast("array.aggregator",new  RedisArrayAggregator()).addLast( "handler",new  RedisPacketHandler() );
+		sslEngine.setUseClientMode( false );
+		/*
+		sslEngine.setNeedClientAuth( true );
+		*/
+		channel.pipeline().addLast("handler.ssl",new  SslHandler(sslEngine)).addLast("handler.idle.timeout",new  ChannelDuplexIdleTimeoutHandler()).addLast("length.based.decoder",new  LengthFieldBasedFrameDecoder(2*1024*1024,0,4,0,4)).addLast("decoder",new  PAIPDecoder()).addLast("encoder",new  PAIPEncoder()).addLast( "handler",new  PAIPPacketHandler() );		
 	}
 }

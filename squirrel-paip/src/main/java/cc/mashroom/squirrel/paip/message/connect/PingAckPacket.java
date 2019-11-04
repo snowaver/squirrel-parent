@@ -15,33 +15,26 @@
  */
 package cc.mashroom.squirrel.paip.message.connect;
 
-import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  lombok.ToString;
 
 @ToString(    callSuper = true )
-public  class  PingAckPacket  extends  Packet  <PingAckPacket>
-{
-	public  PingAckPacket()
+public  class PingAckPacket  extends  PendingAckPacket  <PingAckPacket>
+{	
+	public  PingAckPacket( ByteBuf    byteBuf )
 	{
-		super( new  Header(PAIPPacketType.PING_ACK) );
-	}
-	
-	public  PingAckPacket( ByteBuf  byteBuf )
-	{
-		super( byteBuf , 0x00 );
+		super( byteBuf );
 	}
 	
 	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf )
 	{
 		return  variableByteBuf;
 	}
-	/*
-	public  void  writeTo( ByteBuf  byteBuf )
+	
+	public  PingAckPacket( long  pingPacketId )
 	{
-		write( byteBuf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.PING_ACK );
+		super( new  Header(PAIPPacketType.PING_ACK),0,  pingPacketId );
 	}
-	*/
 }
