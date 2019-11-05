@@ -25,8 +25,8 @@ import  lombok.AllArgsConstructor;
 import  javax.net.ssl.SSLContext;
 import  javax.net.ssl.SSLEngine;
 
-import  cc.mashroom.squirrel.paip.codec.PAIPDecoder;
-import  cc.mashroom.squirrel.paip.codec.PAIPEncoder;
+import  cc.mashroom.squirrel.paip.codec.PAIPDecoderHandlerAdapter;
+import  cc.mashroom.squirrel.paip.codec.PAIPEncoderHandlerAdapter;
 
 @AllArgsConstructor
 
@@ -40,10 +40,13 @@ public  class  ChannelInitailizer  extends  ChannelInitializer<SocketChannel>
 	
 	protected  void  initChannel(SocketChannel  channel )   throws  Exception
 	{
-		SSLEngine  sslEngine  = sslContext.createSSLEngine();
+		if( this.sslContext!= null )
+		{
+			SSLEngine  sslEngine = this.sslContext.createSSLEngine();
+			
+			sslEngine.setUseClientMode(true );  channel.pipeline().addLast( "handler.ssl",new  SslHandler(sslEngine) );
+		}
 		
-		sslEngine.setUseClientMode(   true  );
-		
-		channel.pipeline().addLast("handler.ssl",new  SslHandler(sslEngine)).addLast("handler.idle.state",new  IdleStateHandler((int)  (keepaliveSeconds*1.5),keepaliveSeconds,0)).addLast("handler.idle.timeout",new  ChannelDuplexIdleTimeoutHandler()).addLast("length-based.decoder",new  LengthFieldBasedFrameDecoder(2*1024*1024,0,4,0,4)).addLast("decoder",new  PAIPDecoder()).addLast("encoder",new  PAIPEncoder())/*.addLast("qos.handler",QosHandler.INSTANCE)*/.addLast( "squirrel.client",context );
+		channel.pipeline().addLast("handler.idle.state",new  IdleStateHandler((int)  (keepaliveSeconds*1.5),keepaliveSeconds,0)).addLast("handler.idle.timeout",new  ChannelDuplexIdleTimeoutHandler()).addLast("length-based.decoder",new  LengthFieldBasedFrameDecoder(2*1024*1024,0,4,0,4)).addLast("decoder",new  PAIPDecoderHandlerAdapter()).addLast("encoder",new  PAIPEncoderHandlerAdapter()).addLast( "squirrel.client",context );
 	}
 }

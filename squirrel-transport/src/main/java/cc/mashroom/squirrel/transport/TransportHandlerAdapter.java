@@ -15,14 +15,13 @@
  */
 package cc.mashroom.squirrel.transport;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.connect.PendingAckPacket;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.collection.map.ConcurrentHashMap;
 import  cc.mashroom.util.collection.map.Map;
 import  io.netty.bootstrap.Bootstrap;
+import  io.netty.buffer.PooledByteBufAllocator;
 import  io.netty.channel.Channel;
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.channel.ChannelInboundHandlerAdapter;
@@ -39,18 +38,16 @@ import  lombok.experimental.Accessors;
 @Accessors( chain=true )
 public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 {
-	protected  EventLoopGroup  eventLooperGroup = new  NioEventLoopGroup( Integer.parseInt( System.getProperty( "netty.eventloopergroup.thread.count", "2")) );
-	
 	protected  ConnectState  connectState =ConnectState.NONE;
 	@Setter( value= AccessLevel.PRIVATE )
 	private  Channel  channel;
 	@Setter( value= AccessLevel.PRIVATE )
 	private  Bootstrap  bootstrap;
+	protected  EventLoopGroup  eventLoopGroup= new  NioEventLoopGroup();
 	@Setter( value= AccessLevel.PRIVATE )
 	protected  TransportConfig  transportConfig;
 	
 	protected  Map<Long,TransportFuture<PendingAckPacket<?>>>  transportFutures=   new  ConcurrentHashMap<Long,TransportFuture<PendingAckPacket<?>>>();
-	AtomicLong readCount = new AtomicLong();
 	@Override
 	public  void  channelRead( ChannelHandlerContext  context  ,Object  packet )
 	{
@@ -66,9 +63,9 @@ public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 	{
 		TransportFuture<PendingAckPacket<?>>  transportFuture = new  TransportFuture<PendingAckPacket<?>>( packet );
 		
-		if( this.channel != null && this.channel.isActive() && this.channel.isWritable() && (packet.getHeader().getAckLevel() == 0 || packet.getHeader().getAckLevel() == 1 && this.transportFutures.put(packet.getId(),transportFuture) == null) )
+		if( this.channel != null&& this.channel.isOpen()  && this.channel.isActive() && (packet.getHeader().getAckLevel() == 0 || packet.getHeader().getAckLevel() == 1 && this.transportFutures.put(packet.getId(),transportFuture) == null) )
 		{
-			this.eventLooperGroup.submit(new  Runnable()  {@SneakyThrows(value={InterruptedException.class})  public  void  run(){ channel.writeAndFlush(packet).sync().isSuccess(); }} );  return  transportFuture;
+			this.eventLoopGroup.submit(  new  Runnable()  {@SneakyThrows(value={InterruptedException.class})  public  void  run(){ channel.writeAndFlush(packet).sync().isSuccess(); }} );  return  transportFuture;
 		}
 		
 		throw  new  IllegalStateException( "SQUIRREL-TRANSPORT:  ** TRANSPORT  HANDLER  ADAPTER **  the  channel  is  not  avaialble." );
@@ -80,19 +77,29 @@ public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 		
 		this.onConnectStateChanged( connectState  = ConnectState.DISCONNECTED );
 	}
+	@SneakyThrows( value= {InterruptedException.class} )
+	public  void     release()
+	{
+		this.eventLoopGroup.shutdownGracefully().sync();
+	}
 	protected  void  onConnectStateChanged( ConnectState  connectState )
 	{
 		
 	}
-	@SneakyThrows( value= {InterruptedException.class} )
-	public  void     release()
+	@Override
+	public  void  exceptionCaught( ChannelHandlerContext  context,Throwable  t )
 	{
-		this.eventLooperGroup.shutdownGracefully().sync().await();
+		t.printStackTrace(  );
+	}
+	@Override
+	public  void  channelInactive( ChannelHandlerContext  context      )
+	{
+		this.onConnectStateChanged( connectState  = ConnectState.DISCONNECTED );
 	}
 	@SneakyThrows( value= {InterruptedException.class} )
-	public  void  connect(          @NonNull  TransportConfig  transportConfig )
+	public  void  connect(  @NonNull  TransportConfig  transportConfig )
 	{
-		this.setTransportConfig(transportConfig).setBootstrap(this.bootstrap != null ? this.bootstrap : new  Bootstrap().group(this.eventLooperGroup).channel(NioSocketChannel.class).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,transportConfig.getConnectTimeoutMillis()).handler(new  ChannelInitailizer(this,transportConfig.getSslContext(),transportConfig.getKeepaliveSeconds()))).onConnectStateChanged( this.connectState = ConnectState.CONNECTING );
+		this.setTransportConfig(transportConfig).setBootstrap(this.bootstrap != null ? this.bootstrap : new  Bootstrap().group(this.eventLoopGroup).channel(NioSocketChannel.class).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,transportConfig.getConnectTimeoutMillis()).option(ChannelOption.SO_KEEPALIVE,true).option(ChannelOption.ALLOCATOR,PooledByteBufAllocator.DEFAULT).option(ChannelOption.TCP_NODELAY,true).handler(new  ChannelInitailizer(this,transportConfig.getSslContext(),transportConfig.getKeepaliveSeconds()))).onConnectStateChanged( this.connectState = ConnectState.CONNECTING );
 		
 		this.setChannel(this.bootstrap.connect(transportConfig.getHost(),transportConfig.getPort()).sync().channel()).onConnectStateChanged( this.connectState = ConnectState.CONNECTED );
 	}

@@ -19,37 +19,28 @@ import  org.joda.time.DateTime;
 
 import  io.netty.buffer.ByteBuf;
 import  io.netty.channel.ChannelHandlerContext;
-import  io.netty.handler.codec.CorruptedFrameException;
+import  io.netty.channel.ChannelHandler.Sharable;
 import  io.netty.handler.codec.MessageToByteEncoder;
 import  lombok.extern.slf4j.Slf4j;
 import  cc.mashroom.squirrel.paip.message.Packet;
 
 @Slf4j
-
-public  class  PAIPEncoder  extends  MessageToByteEncoder  <Packet<?>>
+@Sharable
+public  class  PAIPEncoderHandlerAdapter  extends  MessageToByteEncoder<Packet<?>>
 {
-	protected  void  encode( ChannelHandlerContext  channel,Packet<? >  packet,   ByteBuf  byteBuf )  throws  Exception
+	protected  void  encode( ChannelHandlerContext  channel,Packet<?>  packet,ByteBuf  byteBuf )  throws  Exception
 	{
-		ByteBuf  contentByteBuf=channel.alloc().buffer();
+		ByteBuf  contentByteBuf= channel.alloc().directBuffer();
 		
-//		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.SENT:\t"+packet.toString() );
-		
+		log.debug( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.SENT:\t"+packet.toString() );
+
 		try
 		{
-			packet.write( contentByteBuf );
-			
-			if(     contentByteBuf.readableBytes() > Short.MAX_VALUE )
-			{
-				throw  new  CorruptedFrameException( String.format("SQUIRREL-PAIP:  ** PAIP  ENCODER **  content  length  (%d)  excceeds  %d",contentByteBuf.readableBytes(),Short.MAX_VALUE) );
-			}
-			
-			byteBuf.writeInt(contentByteBuf.readableBytes()).writeBytes( contentByteBuf );
+			packet.write( contentByteBuf );  byteBuf.writeInt(contentByteBuf.readableBytes()).writeBytes( contentByteBuf );
 		}
-		catch( Throwable  e )
+		catch(    Throwable  e )
 		{
-			e.printStackTrace();
-			
-			log.error(  e.getMessage(),e );
+			e.printStackTrace();  log.error( e.getMessage(),e );
 		}
 		finally
 		{

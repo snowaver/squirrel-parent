@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cc.mashroom.squirrel.client;
+package cc.mashroom.squirrel.paip.codec;
 
-import  cc.mashroom.squirrel.paip.message.connect.PendingAckPacket;
-import  cc.mashroom.squirrel.transport.TransportAndConnectivityGuarantorHandlerAdapter;
-import  cc.mashroom.squirrel.transport.TransportFuture;
-import  cc.mashroom.squirrel.transport.TransportFutureListener;
+import  java.util.List;
 
-import  io.netty.channel.ChannelHandler.Sharable;
+import  io.netty.buffer.ByteBuf;
+import  io.netty.channel.ChannelHandlerContext;
+import  io.netty.handler.codec.ByteToMessageDecoder;
 
-@Sharable
-public  class  QstoreSubmitter  extends  TransportAndConnectivityGuarantorHandlerAdapter  implements  TransportFutureListener<PendingAckPacket<?>>
+public  class  PAIPDecoderHandlerAdapter  extends  ByteToMessageDecoder
 {
-	public  void  onComplete( TransportFuture<PendingAckPacket<?>>  transportFuture )
+	protected  PAIPDecoderChain  chain =  new  PAIPDecoderChain();
+	
+	protected  void  decode( ChannelHandlerContext  context,ByteBuf  byteBuf,List<Object>  objectList )
 	{
-		
+		objectList.add( chain.decode(context.channel(),byteBuf.markReaderIndex().resetReaderIndex()) );
 	}
 }

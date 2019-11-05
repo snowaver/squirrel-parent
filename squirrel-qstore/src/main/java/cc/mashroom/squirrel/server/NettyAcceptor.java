@@ -16,6 +16,7 @@
 package cc.mashroom.squirrel.server;
 
 import  io.netty.bootstrap.ServerBootstrap;
+import  io.netty.buffer.PooledByteBufAllocator;
 import  io.netty.channel.ChannelOption;
 import  io.netty.channel.EventLoopGroup;
 import  io.netty.channel.epoll.EpollEventLoopGroup;
@@ -42,7 +43,7 @@ public  class  NettyAcceptor
 		
 		try
 		{
-			ServerBootstrap  bootstrap = new  ServerBootstrap().group(acceptEventGroup = isLinuxSystem ? new  EpollEventLoopGroup() : new  NioEventLoopGroup(),handleEventGroup = isLinuxSystem ? new  EpollEventLoopGroup() : new  NioEventLoopGroup()).channel(isLinuxSystem ? EpollServerSocketChannel.class : NioServerSocketChannel.class)/*.option(ChannelOption.SO_TIMEOUT,120)*/.option(ChannelOption.SO_BACKLOG,1024*1024).option(ChannelOption.SO_REUSEADDR,true).childHandler( new  ServerChannelInitializer() );
+			ServerBootstrap  bootstrap = new  ServerBootstrap().group(acceptEventGroup = isLinuxSystem ? new  EpollEventLoopGroup(1) : new  NioEventLoopGroup(1),handleEventGroup = isLinuxSystem ? new  EpollEventLoopGroup() : new  NioEventLoopGroup()).channel(isLinuxSystem ? EpollServerSocketChannel.class : NioServerSocketChannel.class).option(ChannelOption.ALLOCATOR,PooledByteBufAllocator.DEFAULT).option(ChannelOption.TCP_NODELAY,true).childOption(ChannelOption.TCP_NODELAY,true).childHandler( new  ServerChannelInitializer() );
 			
 			bootstrap.bind(host, port).sync();
 		}

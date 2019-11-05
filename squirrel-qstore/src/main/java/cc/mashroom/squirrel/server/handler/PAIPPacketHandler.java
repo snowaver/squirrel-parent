@@ -17,6 +17,7 @@ package cc.mashroom.squirrel.server.handler;
 
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.channel.ChannelInboundHandlerAdapter;
+import  lombok.extern.slf4j.Slf4j;
 
 import  org.joda.time.DateTime;
 
@@ -24,7 +25,8 @@ import  cc.mashroom.squirrel.paip.message.connect.PendingAckPacket;
 import  cc.mashroom.squirrel.paip.message.extensions.ByteArrayPacket;
 import  cc.mashroom.util.ObjectUtils;
 
-public  class    PAIPPacketHandler  extends  ChannelInboundHandlerAdapter
+@Slf4j
+public  class  PAIPPacketHandler  extends  ChannelInboundHandlerAdapter
 {
 	public  void  exceptionCaught( ChannelHandlerContext  context,Throwable  err )  throws  Exception
 	{
@@ -33,11 +35,11 @@ public  class    PAIPPacketHandler  extends  ChannelInboundHandlerAdapter
 	
 	public  void  channelRead(     ChannelHandlerContext  context,Object  packet )  throws  Exception
 	{
-//		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+packet.toString() );
+		log.debug( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+packet.toString() );
 		
-		if( packet instanceof ByteArrayPacket && ObjectUtils.cast(packet,ByteArrayPacket.class).getHeader().getAckLevel()  == 1 )
+		if( packet instanceof ByteArrayPacket && ObjectUtils.cast(packet,ByteArrayPacket.class).getHeader().getAckLevel() == 1 )
 		{
-			context.channel().writeAndFlush( new  PendingAckPacket<>(0,ObjectUtils.cast(packet,ByteArrayPacket.class).getId()) );
+			context.writeAndFlush( new  PendingAckPacket<>(0,ObjectUtils.cast(packet,ByteArrayPacket.class).getId()) );
 		}
 	}
 }

@@ -35,7 +35,7 @@ import  cc.mashroom.router.Service;
 import  cc.mashroom.squirrel.client.connect.ConnectState;
 import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.common.Tracer;
-import  cc.mashroom.squirrel.paip.codec.PAIPDecoder;
+import  cc.mashroom.squirrel.paip.codec.PAIPDecoderHandlerAdapter;
 import  cc.mashroom.squirrel.paip.codec.PAIPExternalDecoder;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
@@ -162,7 +162,7 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
         			
         			for( PAIPExternalDecoder  externalDecoder : this.externalDecoders.values()  )
         			{
-        				ObjectUtils.cast(   this.channel.pipeline().get("decoder"),PAIPDecoder.class).addExternalDecoder( externalDecoder );
+        				ObjectUtils.cast(   this.channel.pipeline().get("decoder"),PAIPDecoderHandlerAdapter.class).addExternalDecoder( externalDecoder );
         			}
         		}
         	}
@@ -239,7 +239,7 @@ public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoRec
 	{
 		this.externalDecoders.put(      externalDecoder.getClass().getName() , externalDecoder );
 		
-		if(  channel != null )  ObjectUtils.cast(channel.pipeline().get("decoder"),PAIPDecoder.class).addExternalDecoder( externalDecoder );
+		if(  channel != null )  ObjectUtils.cast(channel.pipeline().get("decoder"),PAIPDecoderHandlerAdapter.class).addExternalDecoder( externalDecoder );
 	}
 	/**
 	 *  multipart  uploading  is  a  heavily  time-consuming  io  operation,  so  seperate  it  from  other  data  packet  by  a  new  pool  named  MULTIPART-PACKET-SEND-THREAD  to  avoid  blocking  data  interaction  by  multipart  uploading  operations.

@@ -15,13 +15,26 @@
  */
 package cc.mashroom.squirrel.paip.codec;
 
+import  java.util.List;
+import  java.util.concurrent.CopyOnWriteArrayList;
+
+import  com.google.common.collect.Lists;
+
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  io.netty.buffer.ByteBuf;
+import  io.netty.channel.Channel;
 
-public  interface  PAIPExternalDecoder
+public  class   PAIPDecoderChain
 {
-	/**
-	 *  return  null  if  can  not  decode  the  packet  for  packet  type.  NOTE:  do  not  move  the  reader  index  if  can  not  recognise  the  packet.
-	 */
-	public  Packet<? extends Packet<?>>  decode( int  packetTypeShortValue,ByteBuf  byteBuf );
+	private List<PAIPDecoder>  decoders = new  CopyOnWriteArrayList<PAIPDecoder>( Lists.newArrayList(new  PAIPCoresDecoder()) );
+	
+	public  Packet<?>  decode( Channel  channel,ByteBuf  byteBuf )
+	{
+		for( PAIPDecoder  decoder : this.decoders )
+		{
+			Packet<?>  packet  =decoder.decode( channel,byteBuf );  if( packet != null )  return   packet;
+		}
+		
+		throw  new  IllegalArgumentException( "SQUIRREL-PAIP:  ** PAIP  DECODER  CHAIN **  no  decoder  can  not  decode  the  packet." );
+	}
 }
