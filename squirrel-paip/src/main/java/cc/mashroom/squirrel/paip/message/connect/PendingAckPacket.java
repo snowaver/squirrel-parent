@@ -18,7 +18,6 @@ package cc.mashroom.squirrel.paip.message.connect;
 import  cc.mashroom.squirrel.paip.message.Packet;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  lombok.AccessLevel;
@@ -30,16 +29,16 @@ import  lombok.experimental.Accessors;
 @ToString(callSuper=true )
 public  class  PendingAckPacket<T extends PendingAckPacket<?>>  extends  Packet<T>
 {	
-	protected  PendingAckPacket( Header  header,  long contactId,long  packetId  )
+	protected  PendingAckPacket( PAIPPacketType  packetType,  long  contactId,long  packetId  )
 	{
-		super(header    );
+		super( packetType , 0, contactId );
 		
-		super.setContactId(contactId).setPendingPacketId( packetId );
+		this.setPendingPacketId(packetId );
 	}
 	
-	public  PendingAckPacket( long  contactId,long  pendingPacketId )
+	public  PendingAckPacket(   long  contactId,long  pendingPacketId )
 	{
-		this( new  Header(PAIPPacketType.PENDING_ACK),contactId,pendingPacketId );
+		this( PAIPPacketType.PENDING_ACK  ,contactId,pendingPacketId );
 	}
 	
 	public  PendingAckPacket( ByteBuf  buf)
@@ -58,13 +57,13 @@ public  class  PendingAckPacket<T extends PendingAckPacket<?>>  extends  Packet<
 	@Accessors(chain=true)
 	protected  String   attatchments= "{}";
 	
-	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variablebyteBuf)
-	{
-		return  variablebyteBuf.writeLongLE(this.contactId).writeLongLE(this.pendingPacketId).writeBytes( PAIPCodecUtils.encode(this.attatchments) );
-	}
-	
 	public  int      getInitialVariableByteBufferSize()
 	{
 		return  16+super.getInitialVariableByteBufferSize();
+	}
+	
+	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variablebyteBuf )
+	{
+		ByteBuf  attatchmentsBuf = PAIPCodecUtils.encode(     this.attatchments );  variablebyteBuf.writeLongLE(this.contactId).writeLongLE(this.pendingPacketId).writeBytes(attatchmentsBuf);  attatchmentsBuf.release();  return  variablebyteBuf;
 	}
 }

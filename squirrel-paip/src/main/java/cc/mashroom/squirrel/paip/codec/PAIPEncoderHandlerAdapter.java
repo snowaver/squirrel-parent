@@ -18,6 +18,7 @@ package cc.mashroom.squirrel.paip.codec;
 import  org.joda.time.DateTime;
 
 import  io.netty.buffer.ByteBuf;
+import  io.netty.buffer.Unpooled;
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.channel.ChannelHandler.Sharable;
 import  io.netty.handler.codec.MessageToByteEncoder;
@@ -28,23 +29,15 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 @Sharable
 public  class  PAIPEncoderHandlerAdapter  extends  MessageToByteEncoder<Packet<?>>
 {
-	protected  void  encode( ChannelHandlerContext  channel,Packet<?>  packet,ByteBuf  byteBuf )  throws  Exception
+	protected  void  encode( ChannelHandlerContext  channel,Packet<?>  packet,ByteBuf  byteBuf ) throws  Exception
 	{
-		ByteBuf  contentByteBuf= channel.alloc().directBuffer();
+		if( log.isDebugEnabled() )
+		{
+			log.debug( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.SENT:\t"+packet.toString() );
+		}
 		
-		log.debug( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.SENT:\t"+packet.toString() );
-
-		try
-		{
-			packet.write( contentByteBuf );  byteBuf.writeInt(contentByteBuf.readableBytes()).writeBytes( contentByteBuf );
-		}
-		catch(    Throwable  e )
-		{
-			e.printStackTrace();  log.error( e.getMessage(),e );
-		}
-		finally
-		{
-			contentByteBuf.release();
-		}
+		ByteBuf  contentBuf = Unpooled.buffer();
+		
+		packet.write( contentBuf);  byteBuf.writeInt(contentBuf.readableBytes()).writeBytes( contentBuf );  contentBuf.release();
 	}
 }

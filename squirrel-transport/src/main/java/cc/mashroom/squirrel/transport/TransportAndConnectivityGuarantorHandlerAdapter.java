@@ -34,13 +34,19 @@ public  class    TransportAndConnectivityGuarantorHandlerAdapter  extends  Trans
 	@Setter( value=AccessLevel.PRIVATE )
 	private  long  checkIntervalSeconds;
 	@Override
-	public  void  release()
+	public  void  disconnect()
+	{
+		super.disconnect(   );
+		
+		if(    this.connectivityCheckingFuture != null )  this.connectivityCheckingFuture.cancel(true);
+	}
+	@Override
+	public  void     release()
 	{
 		super.release();
 		
 		this.connectivityGuarantorThreadPool.shutdown();
 	}
-	
 	public  void  checkConnectivity( long  checkIntervalSeconds)
 	{
 		this.setCheckIntervalSeconds(checkIntervalSeconds).setConnectivityCheckingFuture( this.connectivityGuarantorThreadPool.submit(this) );

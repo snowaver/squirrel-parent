@@ -23,7 +23,6 @@ import  cc.mashroom.util.collection.map.Map;
 import  com.fasterxml.jackson.core.type.TypeReference;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  lombok.AccessLevel;
@@ -43,7 +42,7 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	
 	public  SubscribeAckPacket( long  contactId,int  responseCode,Map<String,?>  subscribeeProfile )
 	{
-		super( new  Header(PAIPPacketType.SUBSCRIBE_ACK) );
+		super( PAIPPacketType.SUBSCRIBE_ACK,0  ,contactId );
 		
 		if( responseCode   != ACK_ACCEPT )
 		{
@@ -67,7 +66,7 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  Map<String,?>  subscribeeProfile      = new  HashMap<>();
+	private  Map<String,?>  subscribeeProfile     =  new  HashMap<>();
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors( chain= true )
@@ -80,7 +79,7 @@ public  class  SubscribeAckPacket  extends  Packet<SubscribeAckPacket>
 	
 	public  int  getInitialVariableByteBufferSize()
 	{
-		return  9+super.getInitialVariableByteBufferSize();
+		return   9+super.getInitialVariableByteBufferSize();
 	}
 	/*
 	public  void  writeTo(  ByteBuf  buf )

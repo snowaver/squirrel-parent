@@ -19,40 +19,54 @@ import  io.netty.buffer.ByteBuf;
 import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
 import  lombok.Getter;
+import  lombok.NoArgsConstructor;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
+import  cc.mashroom.util.ObjectUtils;
 
 @ToString
+@NoArgsConstructor
 public  abstract  class  Packet  <T extends Packet>
 {
-	protected  Packet(   Header   header )
-	{
-		this.setHeader(header.setId(ID.create()) );
-	}
+	@Setter( value= AccessLevel.PUBLIC )
 	@Getter
-	@Accessors(  chain = true )
-	protected  long  contactId;
-	@Setter( value=AccessLevel.PROTECTED )
+	@Accessors( chain=true )
+	private  PAIPPacketType  packetType;
+	@Setter( value= AccessLevel.PUBLIC )
 	@Getter
-	@Accessors(  chain = true )
-	protected  Header   header;
+	@Accessors( chain=true )
+	private  long  id    = ID.create();
+	//  0,  no  pending  ack  packet,  1,  require  pending  ack  packet,  which  may  be  lost  on  the  network,  but  assume  transport  failure  if  connection  error  or  timeout  without  pending  ack  packet,  you  can  resend  the  packet  again.
+	@Setter( value= AccessLevel.PUBLIC )
+	@Getter
+	@Accessors( chain=true )
+	private  int   ackLevel;
+	@Setter( value= AccessLevel.PUBLIC )
+	@Getter
+	@Accessors( chain=true )
+	private  int   remainingLength;
+	@Getter
+	@Accessors( chain=true )
+	protected  long      contactId;
 	
-	public  long  getId()
+	protected  Packet( PAIPPacketType  packetType ,int  ackLevel,long  contactId )
 	{
-		return  header.getId();
+		setAckLevel(ackLevel).setPacketType(packetType).setContactId(  contactId);
 	}
 	
-	public  Packet( ByteBuf  byteBuf,Integer  expectFlags )
+	protected  Packet( ByteBuf  byteBuf,int  expectedFlags )
 	{
-		this.setHeader( new  Header( byteBuf.resetReaderIndex() , expectFlags ) );
+		byte  headerByte   =    byteBuf.readByte();
+		
+        this.setAckLevel((headerByte & 0x03)).setPacketType(PAIPPacketType.valueOf(byteBuf.skipBytes(1).readShortLE())).setId(byteBuf.readLongLE()).setRemainingLength( PAIPCodecUtils.decodeRemainingLength(byteBuf) );
 	}
 	
 	public  T  setContactId(      long  contactId )
 	{
-		this.contactId        = contactId;return(T)   this;
+		this.contactId     = contactId;return  ObjectUtils.cast( this );
 	}
 	
 	public  int  getInitialVariableByteBufferSize()
@@ -60,26 +74,17 @@ public  abstract  class  Packet  <T extends Packet>
 		return  0;
 	}
 	
-	public  T  setAckLevel( int  ackLevel,long  contactId )
-	{
-		this.setContactId(contactId).getHeader().setAckLevel( ackLevel );
-		
-		return       (T)  this;
-	}
-	
 	public  abstract  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf );
-		
+	
+	public  T  setAckLevel( int  ackLevel, long  contactId )
+	{
+		return  ObjectUtils.cast( setContactId(contactId).setAckLevel(ackLevel) );
+	}
+			
 	public  void  write( ByteBuf  writableByteBuf )
 	{
 		ByteBuf  variableByteBuf= writeToVariableByteBuf( Unpooled.buffer(getInitialVariableByteBufferSize()) );  ByteBuf  decodeRemainingLengthByteBuf = PAIPCodecUtils.encodeRemainingLength( variableByteBuf.readableBytes() );
 		
-		try
-		{
-			writableByteBuf.writeByte(header.getAckLevel()).writeByte(0).writeShortLE(header.getPacketType().getValue()).writeLongLE(getId()).writeBytes(decodeRemainingLengthByteBuf).writeBytes( variableByteBuf );
-		}
-		finally
-		{
-			decodeRemainingLengthByteBuf.release();     variableByteBuf.release();
-		}
+		writableByteBuf.writeByte(ackLevel).writeByte(0).writeShortLE(packetType.getValue()).writeLongLE(getId()).writeBytes(decodeRemainingLengthByteBuf).writeBytes( variableByteBuf );  decodeRemainingLengthByteBuf.release();  variableByteBuf.release();
 	}
 }

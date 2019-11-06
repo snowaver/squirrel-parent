@@ -4,6 +4,7 @@ import  java.lang.reflect.Constructor;
 
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.Packet;
+import cc.mashroom.squirrel.paip.message.extensions.ByteArrayPacket;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.collection.map.ConcurrentHashMap;
 import  cc.mashroom.util.collection.map.Map;
@@ -21,13 +22,23 @@ public  class  PAIPCoresDecoder  implements  PAIPDecoder,Computer<PAIPPacketType
 		return  ObjectUtils.cast( packetType.getPacketClass().getConstructor(packetType == PAIPPacketType.CONNECT ? new  Class[]{Channel.class,ByteBuf.class} : new  Class[]{ByteBuf.class}) );
 	}
 	
-	public  Packet<?>  decode( Channel  channel,ByteBuf  byteBuf )
+	public  Packet<?>  decode( Channel  channel, ByteBuf  byteBuf )
 	{
 		byteBuf.skipBytes( 2 );
 		
 		try
 		{
-			PAIPPacketType  packetType  =  PAIPPacketType.valueOf( byteBuf.readShortLE() );
+			switch( PAIPPacketType.valueOf(byteBuf.readShortLE()) )
+			{
+				case  PAIPPacketType.CONNECT:
+				{
+					
+				}
+			}
+			if( packetType == PAIPPacketType.BYTE_ARRAY )
+			{
+				return  new  ByteArrayPacket(  byteBuf );
+			}
 			
 			return  this.constructors.computeIfLackof(packetType,this).newInstance( packetType == PAIPPacketType.CONNECT ? new  Object[]{channel,byteBuf} : new  Object[]{byteBuf} );
 		}

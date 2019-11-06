@@ -24,12 +24,10 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
-import  cc.mashroom.util.ObjectUtils;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  GroupChatPacket     extends  Packet    <GroupChatPacket>  implements  Cloneable
+public  class  GroupChatPacket     extends  Packet<GroupChatPacket>  implements  Cloneable
 {	
 	public  GroupChatPacket(ByteBuf  buf )
 	{
@@ -40,9 +38,9 @@ public  class  GroupChatPacket     extends  Packet    <GroupChatPacket>  impleme
 	
 	public  GroupChatPacket( long  contactId,long  groupId,String  md5,ChatContentType  contentType,byte[]  content )
 	{
-		super( new  Header(PAIPPacketType.GROUP_CHAT).setAckLevel(1) );
+		super( PAIPPacketType.GROUP_CHAT,1,contactId );
 		
-		setContactId(contactId).setGroupId(groupId).setMd5(md5 ).setContentType( contentType ).setContent( content );
+		setGroupId(groupId).setMd5(md5).setContentType(contentType).setContent( content );
 	}
 	
 	@Setter
@@ -56,7 +54,7 @@ public  class  GroupChatPacket     extends  Packet    <GroupChatPacket>  impleme
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  String  md5 = "";
+	private  String  md5 ="";
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
@@ -64,22 +62,22 @@ public  class  GroupChatPacket     extends  Packet    <GroupChatPacket>  impleme
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  byte[]   content;
-	@SneakyThrows
+	private  byte[]  content;
+	@SneakyThrows( value= {CloneNotSupportedException.class} )
 	@Override
 	public  GroupChatPacket  clone()
 	{
-		return  ObjectUtils.cast(super.clone(),GroupChatPacket.class );
+		return  (GroupChatPacket)  super.clone();
 	}
 	
 	public  int      getInitialVariableByteBufferSize()
 	{
-		return  25+super.getInitialVariableByteBufferSize();
+		return  25 + super.getInitialVariableByteBufferSize();
 	}
 	
-	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variableBuf )
+	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableBuf )
 	{
-		ByteBuf  contentByteBuf= PAIPCodecUtils.encodeBytes( content );  ByteBuf  md5ByteBuf = PAIPCodecUtils.encode( md5 );  variableBuf.writeLongLE(contactId).writeLongLE(syncId).writeLongLE(groupId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableBuf;
+		ByteBuf  contentByteBuf= PAIPCodecUtils.encodeBytes( this.content );  ByteBuf  md5ByteBuf = PAIPCodecUtils.encode(this.md5 );  variableBuf.writeLongLE(contactId).writeLongLE(syncId).writeLongLE(groupId).writeByte(contentType.getValue()).writeBytes(md5ByteBuf).writeBytes(contentByteBuf);  md5ByteBuf.release();  contentByteBuf.release();  return  variableBuf;
 	}
 	/*
 	public  void  writeTo(  ByteBuf  buf )

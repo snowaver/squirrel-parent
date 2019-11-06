@@ -24,7 +24,6 @@ import  lombok.experimental.Accessors;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(  callSuper = true )
@@ -37,11 +36,11 @@ public  class  ChatPacket  extends  Packet<ChatPacket>
 		super.setContactId(byteBuf.readLongLE()).setContactSyncId(byteBuf.readLongLE()).setSyncId(byteBuf.readLongLE()).setContentType(ChatContentType.valueOf(byteBuf.readByte())).setMd5(PAIPCodecUtils.decode(byteBuf)).setContent( PAIPCodecUtils.decodeBytes(byteBuf) );
 	}
 	
-	public  ChatPacket( long  contactId,String  md5, ChatContentType  contentType , byte[]  content )
+	public  ChatPacket( long   contactId,String  md5 , ChatContentType  contentType,byte[]  content )
 	{
-		super( new  Header(   PAIPPacketType.CHAT ) );
+		super( PAIPPacketType.CHAT   , 1 ,contactId );
 		
-		super.setAckLevel(1,contactId).setMd5(md5).setContentType(contentType).setContent( content );
+		setMd5(md5).setContentType(contentType).setContent( content );
 	}
 	
 	@Setter

@@ -29,33 +29,32 @@ import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
-@ToString( callSuper = true )
+@ToString( callSuper= true )
 public  class  SubscribePacket  extends  Packet<SubscribePacket>
 {
 	public  SubscribePacket( long  subscriberId,Map<String,?>  subscriberProfile )
 	{
-		super( new  Header(PAIPPacketType.SUBSCRIBE) );
+		super(PAIPPacketType.SUBSCRIBE,0,subscriberId);
 		
 		super.setContactId(subscriberId).setSubscriberProfile( subscriberProfile);
 	}
 	
 	public  SubscribePacket(ByteBuf  buf )
 	{
-		super( buf ,  0x00 );
+		super(buf ,  0x00 );
 		
 		super.setContactId(buf.readLongLE()).setSubscriberProfileOriginal(PAIPCodecUtils.decode(buf)).setSubscriberProfile( new  HashMap<String,Object>().addEntries(JsonUtils.fromJson(this.subscriberProfileOriginal,new  TypeReference<Map<String,Object>>(){})) );
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
-	@Accessors( chain= true )
-	private  Map<String,?>  subscriberProfile= new  HashMap<>();
+	@Accessors( chain=true )
+	private  Map<String,?>  subscriberProfile =new  HashMap<>();
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
-	@Accessors( chain= true )
+	@Accessors( chain=true )
 	private  String  subscriberProfileOriginal;
 	
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )

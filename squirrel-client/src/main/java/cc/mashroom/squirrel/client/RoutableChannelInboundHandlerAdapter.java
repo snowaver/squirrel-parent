@@ -48,7 +48,7 @@ public  class  RoutableChannelInboundHandlerAdapter  extends  AbstractChannelInb
 		
 		if( serviceRouteManager.tryNext(Schema.TCP)  != null && serviceRouteManager.tryNext(Schema.HTTPS) != null )
 		{
-//			System.err.println( "SQUIRREL-CLIENT:  ** ROUTABLE  CHANNEL  INBOUND  HANDLER  ADAPTER **  service  route  successfully." );
+
 		}
 		
 		return  this;

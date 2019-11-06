@@ -15,7 +15,6 @@
  */
 package cc.mashroom.squirrel.paip.message.connect;
 
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  lombok.ToString;
@@ -23,7 +22,7 @@ import  lombok.ToString;
 @ToString(    callSuper = true )
 public  class PingAckPacket  extends  PendingAckPacket  <PingAckPacket>
 {	
-	public  PingAckPacket( ByteBuf    byteBuf )
+	public  PingAckPacket(   ByteBuf  byteBuf )
 	{
 		super( byteBuf );
 	}
@@ -35,6 +34,6 @@ public  class PingAckPacket  extends  PendingAckPacket  <PingAckPacket>
 	
 	public  PingAckPacket( long  pingPacketId )
 	{
-		super( new  Header(PAIPPacketType.PING_ACK),0,  pingPacketId );
+		super( PAIPPacketType.PING_ACK,0,pingPacketId );
 	}
 }

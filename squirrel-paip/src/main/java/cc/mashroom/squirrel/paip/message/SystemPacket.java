@@ -21,22 +21,21 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.Packet;
 
 @ToString(callSuper=true )
 public  abstract  class  SystemPacket<T extends SystemPacket<?>>  extends  Packet<T>
 {	
-	public  SystemPacket( Header  header,String  clusterNodeId )
+	public  SystemPacket( PAIPPacketType  packetType,int  ackLevel,long  contactId ,String  clusterNodeId )
 	{
-		super(   header );
+		super( packetType,ackLevel,    contactId );
 		
 		this.setClusterNodeId(    clusterNodeId  );
 	}
 	
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
 	{
-		return  byteBuf.writeBytes(PAIPCodecUtils.encode(clusterNodeId));
+		ByteBuf  clusterNodeIdBuf = PAIPCodecUtils.encode(     this.clusterNodeId );  byteBuf.writeBytes(clusterNodeIdBuf);  clusterNodeIdBuf.release();  return  byteBuf;
 	}
 	@Setter
 	@Getter

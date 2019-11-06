@@ -16,7 +16,6 @@
 package cc.mashroom.squirrel.paip.message.connect;
 
 import  cc.mashroom.squirrel.paip.message.Packet;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  lombok.AccessLevel;
@@ -36,7 +35,7 @@ public  class  DisconnectAckPacket  extends  Packet<DisconnectAckPacket>
 		
 	public  DisconnectAckPacket(int reason )
 	{
-		super( new  Header(PAIPPacketType.DISCONNECT_ACK) );
+		super( PAIPPacketType.DISCONNECT_ACK,0,0 );
 		
 		this.setReason( reason );
 	}

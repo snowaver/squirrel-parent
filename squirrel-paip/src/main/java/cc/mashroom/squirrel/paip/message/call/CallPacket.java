@@ -22,7 +22,6 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
@@ -32,9 +31,14 @@ public  class  CallPacket  extends   RoomPacket<CallPacket>
 	
 	public  CallPacket( long  contactId,long  roomId,CallContentType  contentType )
 	{
-		super( new  Header(PAIPPacketType.CALL),  roomId );
+		super( PAIPPacketType.CALL, 0, contactId, roomId );
 		
-		super.setContactId(contactId).setContentType( contentType );
+		this.setContentType( contentType);
+	}
+	@Override
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return  9+super.getInitialVariableByteBufferSize();
 	}
 	
 	public  CallPacket( ByteBuf  byteBuf )
@@ -48,20 +52,9 @@ public  class  CallPacket  extends   RoomPacket<CallPacket>
 	@Getter
 	@Accessors(chain=true)
 	private  CallContentType  contentType;
-
-	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableBuf )
+	@Override
+	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variableByteBuf )
 	{
-		return  super.writeToVariableByteBuf(variableBuf).writeLongLE(this.contactId).writeByte( this.contentType.getValue() );
+		return  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(this.contactId).writeByte( this.contentType.getValue() );
 	}
-	
-	public  int  getInitialVariableByteBufferSize()
-	{
-		return  9+super.getInitialVariableByteBufferSize();
-	}
-	/*
-	public  void  writeTo(  ByteBuf  buf )
-	{
-		write( buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CALL );
-	}
-	*/
 }

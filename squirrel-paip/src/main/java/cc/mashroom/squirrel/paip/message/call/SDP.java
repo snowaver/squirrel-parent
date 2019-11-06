@@ -1,8 +1,5 @@
 package cc.mashroom.squirrel.paip.message.call;
 
-import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
-import  io.netty.buffer.ByteBuf;
-import  io.netty.buffer.Unpooled;
 import  lombok.AccessLevel;
 import  lombok.AllArgsConstructor;
 import  lombok.Getter;
@@ -22,9 +19,4 @@ public   class  SDP
 	@Getter
 	@Accessors(chain=true)
 	private  String  description;
-
-	public   ByteBuf  toByteBuf()
-	{
-		return  Unpooled.buffer().writeBytes(PAIPCodecUtils.encode(type)).writeBytes( PAIPCodecUtils.encode(description) );
-	}
 }

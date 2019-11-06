@@ -24,7 +24,6 @@ import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.message.SystemPacket;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
@@ -51,14 +50,19 @@ public  class  ChatGroupEventPacket     extends  SystemPacket<ChatGroupEventPack
 	
 	public  ChatGroupEventPacket( long  groupId,int  event,String  clusterNodeId,String  attatchments )
 	{
-		super(new  Header(PAIPPacketType.GROUP_CHAT_EVENT),clusterNodeId);
+		super( PAIPPacketType.GROUP_CHAT_EVENT,0, 0,      clusterNodeId );
 		
 		this.setEvent(event).setGroupId(groupId).setAttatchments(   attatchments );
 	}
 	
-	public  ByteBuf    writeToVariableByteBuf(  ByteBuf  variableByteBuf )
+	public   int  getInitialVariableByteBufferSize()
 	{
-		return  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(groupId).writeByte(event).writeBytes( PAIPCodecUtils.encode(this.attatchments) );
+		return  9 + super.getInitialVariableByteBufferSize();
+	}
+	
+	public  ByteBuf    writeToVariableByteBuf(   ByteBuf  variableByteBuf)
+	{
+		ByteBuf  attatchmentsBuf = PAIPCodecUtils.encode(      this.attatchments );  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(groupId).writeByte(event).writeBytes(attatchmentsBuf);  attatchmentsBuf.release();  return  variableByteBuf;
 	}
 	
 	@Setter( value=AccessLevel.PROTECTED )
@@ -73,11 +77,6 @@ public  class  ChatGroupEventPacket     extends  SystemPacket<ChatGroupEventPack
 	@Getter
 	@Accessors( chain = true )
 	private  String  attatchments;
-
-	public   int  getInitialVariableByteBufferSize()
-	{
-		return  9 + super.getInitialVariableByteBufferSize();
-	}
 	/*
 	public  void  writeTo(  ByteBuf  buf )
 	{

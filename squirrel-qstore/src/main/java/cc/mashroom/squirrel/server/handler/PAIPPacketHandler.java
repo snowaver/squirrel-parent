@@ -27,19 +27,24 @@ import  cc.mashroom.util.ObjectUtils;
 
 @Slf4j
 public  class  PAIPPacketHandler  extends  ChannelInboundHandlerAdapter
-{
-	public  void  exceptionCaught( ChannelHandlerContext  context,Throwable  err )  throws  Exception
-	{
-		err.printStackTrace();
-	}
-	
+{	
 	public  void  channelRead(     ChannelHandlerContext  context,Object  packet )  throws  Exception
 	{
-		log.debug( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+packet.toString() );
+		if( log.isDebugEnabled() )
+		{
+			log.debug( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+packet.toString() );
+		}
 		
-		if( packet instanceof ByteArrayPacket && ObjectUtils.cast(packet,ByteArrayPacket.class).getHeader().getAckLevel() == 1 )
+		if( packet instanceof ByteArrayPacket && ObjectUtils.cast(packet,ByteArrayPacket.class).getAckLevel() == 1 )
 		{
 			context.writeAndFlush( new  PendingAckPacket<>(0,ObjectUtils.cast(packet,ByteArrayPacket.class).getId()) );
+		}
+	}
+	
+	public  void  exceptionCaught( ChannelHandlerContext  context,Throwable  err )  throws  Exception
+	{
+		{
+			err.printStackTrace();
 		}
 	}
 }

@@ -16,7 +16,6 @@
 package cc.mashroom.squirrel.paip.message.connect;
 
 import  cc.mashroom.squirrel.paip.message.Packet;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  lombok.ToString;
@@ -26,7 +25,7 @@ public  class  PingPacket  extends  Packet  <PingPacket>
 {
 	public  PingPacket()
 	{
-		super( new  Header().setPacketType(PAIPPacketType.PING).setAckLevel(1) );
+		super( PAIPPacketType.PING,1, 0 );
 	}
 	
 	public  PingPacket( ByteBuf  byteBuf )

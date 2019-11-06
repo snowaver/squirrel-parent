@@ -22,24 +22,28 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  CandidatePacket  extends   RoomPacket<CandidatePacket>
+public  class  CandidatePacket  extends  RoomPacket  <CandidatePacket>
 {
+	public  CandidatePacket( long  contactId,long  roomId,Candidate  candidate )
+	{
+		super(PAIPPacketType.CALL_CANDIDATE,0,contactId,roomId);
+		
+		setCandidate( candidate );
+	}
+	
 	public  CandidatePacket( ByteBuf  buf )
 	{
 		super(  buf, 0x00 );
 		
-		this.setContactId(buf.readLongLE()).setCandidate( new  Candidate(PAIPCodecUtils.decode(buf),buf.readIntLE(),PAIPCodecUtils.decode(buf)) );
+		this.setContactId(buf.readLongLE()).setCandidate( new  Candidate(PAIPCodecUtils.decode(buf), buf.readIntLE(),PAIPCodecUtils.decode(buf)) );
 	}
 	
-	public  CandidatePacket( long  contactId,long  roomId,Candidate  candidate )
+	public  int  getInitialVariableByteBufferSize()
 	{
-		super( new  Header(PAIPPacketType.CALL_CANDIDATE),roomId   );
-		
-		super.setContactId(contactId).setCandidate( candidate );
+		return   12  + super.getInitialVariableByteBufferSize();
 	}
 	
 	@Setter(  value=AccessLevel.PROTECTED )
@@ -47,19 +51,8 @@ public  class  CandidatePacket  extends   RoomPacket<CandidatePacket>
 	@Accessors( chain=true )
 	private  Candidate  candidate;
 	
-	public  int  getInitialVariableByteBufferSize()
-	{
-		return   12  + super.getInitialVariableByteBufferSize();
-	}
-	
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  byteBuf )
 	{
-		ByteBuf  candidateByteBuf = PAIPCodecUtils.encode(this.candidate.getCandidate() );  ByteBuf  idBuf= PAIPCodecUtils.encode( candidate.getId() );  super.writeToVariableByteBuf(byteBuf).writeLongLE(contactId).writeBytes(idBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateByteBuf);  idBuf.release();  candidateByteBuf.release();  return  byteBuf;
+		ByteBuf  candidateBuf = PAIPCodecUtils.encode(candidate.getCandidate());  ByteBuf  idBuf = PAIPCodecUtils.encode( this.candidate.getId() );  super.writeToVariableByteBuf(byteBuf).writeLongLE(contactId).writeBytes(idBuf).writeIntLE(candidate.getLineIndex()).writeBytes(candidateBuf);  idBuf.release();  candidateBuf.release();  return  byteBuf;
 	}
-	/*
-	public  void  writeTo(      ByteBuf  buf )
-	{
-		write(buf,this.writeToVariableByteBuf(Unpooled.buffer(this.getInitialVariableByteBufferSize())),PAIPPacketType.CALL_CANDIDATE );
-	}
-	*/
 }

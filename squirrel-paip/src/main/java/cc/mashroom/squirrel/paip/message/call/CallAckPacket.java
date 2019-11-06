@@ -21,7 +21,6 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
@@ -33,9 +32,14 @@ public  class  CallAckPacket    extends  RoomPacket      <CallAckPacket>
 	
 	public  CallAckPacket( long  contactId,long  roomId, int  response )
 	{
-		super( new  Header(PAIPPacketType.CALL_ACK),roomId );
+		super( PAIPPacketType.CALL_ACK,0,contactId,  roomId );
 		
-		setContactId(contactId).setResponseCode(  response );
+		this.setResponseCode(  response );
+	}
+	@Override
+	public  int  getInitialVariableByteBufferSize()
+	{
+		return   9 + super.getInitialVariableByteBufferSize();
 	}
 	
 	public  CallAckPacket(  ByteBuf  buf )
@@ -48,16 +52,11 @@ public  class  CallAckPacket    extends  RoomPacket      <CallAckPacket>
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
-	private  int  responseCode;
-	
+	private int  responseCode;
+	@Override
 	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableByteBuf )
 	{
-		return  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(contactId).writeByte( responseCode );
-	}
-	
-	public  int  getInitialVariableByteBufferSize()
-	{
-		return  9 + super.getInitialVariableByteBufferSize();
+		return   super.writeToVariableByteBuf(variableByteBuf).writeLongLE(contactId).writeByte( responseCode );
 	}
 	/*
 	public  void  writeTo(  ByteBuf  buf )

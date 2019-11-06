@@ -23,7 +23,6 @@ import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(  callSuper = true )
@@ -31,9 +30,9 @@ public  class  SDPPacket  extends  RoomPacket<SDPPacket>
 {
 	public  SDPPacket( long  contactId,long roomId,SDP  sdp )
 	{
-		super(new  Header(PAIPPacketType.CALL_SDP),roomId  );
+		super( PAIPPacketType.CALL_SDP,0,contactId,roomId  );
 		
-		this.setContactId(contactId).setSdp( sdp );
+		setSdp( sdp );
 	}
 	
 	public  SDPPacket(  ByteBuf  byteBuf )
@@ -48,9 +47,9 @@ public  class  SDPPacket  extends  RoomPacket<SDPPacket>
 	@Accessors( chain = true )
 	private  SDP  sdp;
 
-	public  ByteBuf  writeToVariableByteBuf(   ByteBuf  variableByteBuf )
+	public  ByteBuf  writeToVariableByteBuf(ByteBuf  variableByteBuf )
 	{
-		ByteBuf  sdpBuf = sdp.toByteBuf();  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(contactId).writeBytes( sdpBuf );  sdpBuf.release();  return  variableByteBuf;
+		ByteBuf  typeBuf = PAIPCodecUtils.encode(this.sdp.getType() );  ByteBuf  descriptionBuf = PAIPCodecUtils.encode( this.sdp.getDescription() );  super.writeToVariableByteBuf(variableByteBuf).writeLongLE(contactId).writeBytes(typeBuf).writeBytes(descriptionBuf);  typeBuf.release();  descriptionBuf.release();  return  variableByteBuf;
 	}
 	
 	public  int  getInitialVariableByteBufferSize()

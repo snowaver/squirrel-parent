@@ -15,8 +15,7 @@
  */
 package cc.mashroom.squirrel.paip.message.extensions;
 
-import cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
-import  cc.mashroom.squirrel.paip.message.Header;
+import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  io.netty.buffer.ByteBuf;
@@ -36,30 +35,18 @@ public  class  ByteArrayPacket  extends  Packet       <ByteArrayPacket>
 	
 	public  ByteArrayPacket(    byte[]  bytes )
 	{
-		super( new  Header(PAIPPacketType.BYTE_ARRAY ) );
+		super( PAIPPacketType.BYTE_ARRAY,0,0 );
 		
-		setBytes(    bytes );
+		setBytes(     bytes);
 	}
 	
 	@Setter( value    = AccessLevel.PROTECTED )
 	@Getter
-	@Accessors(chain=true)
+	@Accessors( chain =true )
 	protected  byte[]  bytes;
 	
 	public  ByteBuf  writeToVariableByteBuf( ByteBuf  variableByteBuf )
 	{
-		return  variableByteBuf.writeBytes( PAIPCodecUtils.encodeBytes(this.bytes) );
+		ByteBuf  bytesByteBuf = PAIPCodecUtils.encodeBytes(this.bytes);  variableByteBuf.writeBytes(bytesByteBuf);  bytesByteBuf.release();  return  variableByteBuf;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-

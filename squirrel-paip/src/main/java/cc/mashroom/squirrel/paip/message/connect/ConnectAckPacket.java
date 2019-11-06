@@ -15,7 +15,6 @@
  */
 package cc.mashroom.squirrel.paip.message.connect;
 
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  io.netty.buffer.ByteBuf;
 import  lombok.AccessLevel;
@@ -39,7 +38,7 @@ public  class  ConnectAckPacket    extends  PendingAckPacket<ConnectAckPacket>
     
     public  ConnectAckPacket(ByteBuf  buf)
     {
-    	super( buf );
+    	super(buf);
     	
     	this.setSessionPresent(buf.readByte() == 0x01).setResponseCode( buf.readByte() );
     }
@@ -51,7 +50,7 @@ public  class  ConnectAckPacket    extends  PendingAckPacket<ConnectAckPacket>
     
     public  ConnectAckPacket( long  connectPacketId, int  responseCode,boolean  isSessionPresent )
     {
-    	super(    new  Header(PAIPPacketType.CONNECT_ACK),0,connectPacketId );
+    	super(PAIPPacketType.CONNECT_ACK,0,connectPacketId);
     	
     	setResponseCode(responseCode).setSessionPresent(   isSessionPresent );
     }

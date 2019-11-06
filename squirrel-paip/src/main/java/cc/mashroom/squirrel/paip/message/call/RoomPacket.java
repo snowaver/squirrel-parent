@@ -21,15 +21,15 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
-import cc.mashroom.squirrel.paip.message.Header;
+import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 import  cc.mashroom.squirrel.paip.message.Packet;
 
 @ToString(callSuper=true )
 public  abstract  class  RoomPacket   <T extends RoomPacket<?>>  extends  Packet<T>
 {	
-	public  RoomPacket(Header  header,long roomId )
+	public  RoomPacket( PAIPPacketType  packetType,int  ackLevel,long  contactId,long  roomId )
 	{
-		super(   header );
+		super(  packetType , ackLevel, contactId );
 		
 		this.setRoomId(roomId);
 	}
@@ -41,14 +41,14 @@ public  abstract  class  RoomPacket   <T extends RoomPacket<?>>  extends  Packet
 	
 	public  RoomPacket( ByteBuf   byteBuf,int   expectedFlags )
 	{
-		super( byteBuf, 0x00 );
+		super(  byteBuf,0x00 );
 		
 		this.setRoomId(byteBuf.readLongLE());
 	}
 	
 	public  int  getInitialVariableByteBufferSize()
 	{
-		return  8 +   super.getInitialVariableByteBufferSize();
+		return   8 +  super.getInitialVariableByteBufferSize();
 	}
 	
 	@Setter( value  = AccessLevel.PROTECTED )

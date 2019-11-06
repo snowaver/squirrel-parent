@@ -15,7 +15,7 @@
  */
 package cc.mashroom.squirrel.paip.codec;
 
-import java.io.UnsupportedEncodingException;
+import  java.io.UnsupportedEncodingException;
 
 import  cc.mashroom.util.StringUtils;
 import  io.netty.buffer.ByteBuf;
@@ -61,9 +61,7 @@ public  class  PAIPCodecUtils
         
         for( Byte  remainingLengthByte = null;;counter = counter+1 )
         {
-        	remainingLength = remainingLength+( ((remainingLengthByte = buf.readByte()) & 0x7F) << (7 * counter) );
-        	
-        	if( (remainingLengthByte   & 0x80)  == 0 )
+        	if(((remainingLength = remainingLength+(((remainingLengthByte = buf.readByte()) & 0x7F) << (7*counter))) & 0x80) == 0 )
         	{
         		break  ;
         	}
@@ -71,15 +69,19 @@ public  class  PAIPCodecUtils
         
         return  remainingLength;
     }
-    @SneakyThrows
+    public  static  ByteBuf  encode( String  string,String  encode )  throws  UnsupportedEncodingException
+    {
+    	return  encodeBytes( StringUtils.isBlank(encode) ? string.getBytes() : string.getBytes(encode ) );
+    }
+    @SneakyThrows(value={UnsupportedEncodingException.class})
     public  static  ByteBuf  encode( String  string  )
     {
     	return  encode(      string,"UTF-8" );
     }
-    
-    public  static  ByteBuf  encode( String  string,String  encode )  throws  UnsupportedEncodingException
+    @SneakyThrows(value={UnsupportedEncodingException.class})
+    public  static  String  decode(ByteBuf  byteBuf  )
     {
-    	return  encodeBytes( StringUtils.isBlank(encode) ? string.getBytes() : string.getBytes(encode ) );
+    	return  decode(     byteBuf,"UTF-8" );
     }
     
     public  static  byte[]  decodeBytes(   ByteBuf  byteBuf )
@@ -90,14 +92,9 @@ public  class  PAIPCodecUtils
         
         byteBuf.readBytes(bytes);return bytes;
     }
-    @SneakyThrows
-    public  static  String  decode(ByteBuf  byteBuf  )
-    {
-    	return  decode(     byteBuf,"UTF-8" );
-    }
-    
+        
 	public  static  String  decode(ByteBuf  byteBuf,String  encode )  throws  UnsupportedEncodingException
 	{
-		return  StringUtils.isBlank(encode) ? new  String(decodeBytes(byteBuf)) : new  String( decodeBytes(byteBuf),encode );
+		return  StringUtils.isBlank(encode) ? new  String(decodeBytes(byteBuf)) :       new  String( decodeBytes(byteBuf),encode );
 	}
 }

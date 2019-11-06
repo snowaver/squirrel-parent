@@ -21,19 +21,18 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  CloseCallPacket  extends  RoomPacket  <CloseCallPacket>
+public  class  CloseCallPacket  extends  RoomPacket<CloseCallPacket>
 {
 	public  CloseCallPacket( long  contactId,long  roomId,CloseCallReason  reason )
 	{
-		super( new  Header(PAIPPacketType.CLOSE_CALL),roomId );
+		super( PAIPPacketType.CLOSE_CALL,0,contactId, roomId );
 		
-		setContactId(contactId).setReason(reason );
+		setReason(reason);
 	}
-	
+	@Override
 	public  ByteBuf  writeToVariableByteBuf( ByteBuf  byteBuf )
 	{
 		return  super.writeToVariableByteBuf(byteBuf).writeLongLE(contactId).writeShortLE( reason.getValue() );
@@ -45,16 +44,15 @@ public  class  CloseCallPacket  extends  RoomPacket  <CloseCallPacket>
 		
 		this.setContactId(buf.readLongLE()).setReason( CloseCallReason.valueOf(buf.readShortLE()) );
 	}
-	
-	@Setter( value=   AccessLevel.PUBLIC )
-	@Getter
-	@Accessors(chain=true)
-	private  CloseCallReason  reason;
-		
+	@Override
 	public  int  getInitialVariableByteBufferSize()
 	{
 		return  10 +  super.getInitialVariableByteBufferSize();
 	}
+	@Setter( value=   AccessLevel.PUBLIC )
+	@Getter
+	@Accessors(chain=true)
+	private  CloseCallReason  reason;
 	/*
 	public  void  writeTo(  ByteBuf  buf )
 	{

@@ -22,23 +22,17 @@ import  lombok.Setter;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 import  cc.mashroom.squirrel.paip.message.Packet;
-import  cc.mashroom.squirrel.paip.message.Header;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(callSuper=true )
-public  class  ChatRecallPacket  extends  Packet   <ChatRecallPacket>
+public  class  ChatRecallPacket    extends  Packet<ChatRecallPacket>
 {
-	public  ChatRecallPacket( long  contactId ,  long  chatPacketId )
+	public  ChatRecallPacket( long  contactId , long  chatPacketId )
 	{
-		super( new  Header(  PAIPPacketType.CHAT_RECALL ) );
+		super( PAIPPacketType.CHAT_RECALL,  1 , contactId );
 		
-		super.setAckLevel(1,contactId).setChatPacketId(chatPacketId);
+		setChatPacketId(   chatPacketId );
 	}
-	
-	@Setter( value=AccessLevel.PROTECTED )
-	@Getter
-	@Accessors(chain=true)
-	private  long  chatPacketId;
 	
 	public  ChatRecallPacket(   ByteBuf  byteBuf )
 	{
@@ -47,14 +41,19 @@ public  class  ChatRecallPacket  extends  Packet   <ChatRecallPacket>
 		super.setContactId(byteBuf.readLongLE()).setChatPacketId( byteBuf.readLongLE() );
 	}
 	
-	public  ByteBuf  writeToVariableByteBuf(   ByteBuf  variableBuf )
-	{
-		return  variableBuf.writeLongLE(this.contactId).writeLongLE( this.chatPacketId );
-	}
+	@Setter( value=AccessLevel.PROTECTED )
+	@Getter
+	@Accessors(chain=true)
+	private  long  chatPacketId;
 	
 	public  int getInitialVariableByteBufferSize()
 	{
 		return  16+super.getInitialVariableByteBufferSize();
+	}
+	
+	public  ByteBuf  writeToVariableByteBuf(  ByteBuf  variableBuf )
+	{
+		return  variableBuf.writeLongLE(this.contactId).writeLongLE( this.chatPacketId );
 	}
 	/*
 	public  void  writeTo(  ByteBuf  buf )
