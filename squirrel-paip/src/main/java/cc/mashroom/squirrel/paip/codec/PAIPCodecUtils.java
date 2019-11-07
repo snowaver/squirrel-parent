@@ -59,7 +59,7 @@ public  class  PAIPCodecUtils
         
         if(  buf.readableBytes()       <=  0 )     return  0;
         
-        for( Byte  remainingLengthByte = null;;counter = counter+1 )
+        for( @SuppressWarnings("unused")Byte  remainingLengthByte;;counter= counter+1 )
         {
         	if(((remainingLength = remainingLength+(((remainingLengthByte = buf.readByte()) & 0x7F) << (7*counter))) & 0x80) == 0 )
         	{

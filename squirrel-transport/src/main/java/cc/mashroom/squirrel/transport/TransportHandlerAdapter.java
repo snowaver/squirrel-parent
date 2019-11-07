@@ -63,7 +63,7 @@ public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 	{
 		final  TransportFuture<PendingAckPacket<?>>  transportFuture = new  TransportFuture<PendingAckPacket<?>>(  packet );
 		
-		if( this.channel != null&& this.channel.isOpen()  && this.channel.isActive() && (packet.getHeader().getAckLevel() == 0 || packet.getHeader().getAckLevel() == 1 && this.transportFutures.put(packet.getId(),transportFuture) == null) )
+		if( this.channel != null&& this.channel.isOpen()  && this.channel.isActive() && (packet.getAckLevel()== 0 || packet.getAckLevel() == 1 && this.transportFutures.put(packet.getId(),transportFuture) == null) )
 		{
 			this.eventLoopGroup.submit(  new  Runnable()  {public  void  run(){ write(packet,transportFuture); }} );  return  transportFuture;
 		}
@@ -71,14 +71,14 @@ public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 		throw  new  IllegalStateException( "SQUIRREL-TRANSPORT:  ** TRANSPORT  HANDLER  ADAPTER **  the  channel  is  not  avaialble." );
 	}
 	@SneakyThrows( value= {InterruptedException.class} )
-	private void  write(Packet <?>packet,TransportFuture  <PendingAckPacket <?>>     transportFuture )
+	private void  write(Packet <?>packet,TransportFuture  <PendingAckPacket<?>>  transportFuture )
 	{
-		if( packet.getHeader().getAckLevel()==1 && !channel.writeAndFlush(packet).sync().isSuccess() )
+		if( packet.getAckLevel()  == 1 && !this.channel.writeAndFlush(packet).sync().isSuccess() )
 		{
 			transportFuture.done( false);
 		}
 		else
-		if( packet.getHeader().getAckLevel()==0)
+		if( packet.getAckLevel()  == 0  )
 		{
 			transportFuture.done( this.channel.writeAndFlush(packet).sync().isSuccess() );
 		}
