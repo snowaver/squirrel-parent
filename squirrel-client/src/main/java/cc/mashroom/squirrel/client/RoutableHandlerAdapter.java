@@ -29,7 +29,7 @@ import  cc.mashroom.db.common.Db;
 import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.router.Schema;
 
-public  class  RoutableChannelInboundHandlerAdapter  extends  AbstractChannelInboundHandlerAdapter
+public  class  RoutableHandlerAdapter  extends  AbstractChannelInboundHandlerAdapter
 {
 	@Accessors( chain= true )
 	@Getter
@@ -37,7 +37,7 @@ public  class  RoutableChannelInboundHandlerAdapter  extends  AbstractChannelInb
 	/**
 	 *  use  previous  cached  services  by  default.  merge  all  requested  services  to  cached  services  if  request  successfully,  then  cache  all  merged  services  and  point  to  a  HTTPS  and  a  TCP  service.
 	 */
-	protected  RoutableChannelInboundHandlerAdapter  route()
+	protected  RoutableHandlerAdapter  route()
 	{
 		this.serviceRouteManager.request();
 		

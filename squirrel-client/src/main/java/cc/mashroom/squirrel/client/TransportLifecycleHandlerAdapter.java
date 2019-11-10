@@ -62,7 +62,7 @@ import  lombok.Setter;
 import  lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 
-public  class  TcpAutoReconnectChannelInboundHandlerAdapter<T extends TcpAutoReconnectChannelInboundHandlerAdapter<?>>  extends  RoutableChannelInboundHandlerAdapter
+public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHandlerAdapter<?>>  extends  RoutableHandlerAdapter
 {
 	public  final  static  SSLContext  SSL_CONTEXT= SecureUtils.getSSLContext( "/squirrel.cer" );
 	

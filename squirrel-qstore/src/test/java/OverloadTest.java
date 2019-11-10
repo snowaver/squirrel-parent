@@ -41,7 +41,7 @@ public class OverloadTest implements TransportFutureListener<PendingAckPacket<?>
 	static List<QstoreSubmitter> submitters = Lists.newArrayList(
 			new  QstoreSubmitter(),new  QstoreSubmitter(),new  QstoreSubmitter(),new  QstoreSubmitter());
 	private static  AtomicLong  counter = new  AtomicLong(  0 );
-	static int  total = 800000;
+	static int  total = 100000;
 	static CountDownLatch cdl = new CountDownLatch(1);
 	static DateTime startTime;
 	static DateTime endTime;

@@ -27,7 +27,7 @@ import  lombok.AllArgsConstructor;
 
 public class DefaultGenericFutureListener<F extends Future<?>>  implements  GenericFutureListener<F>
 {
-	private       TcpAutoReconnectChannelInboundHandlerAdapter  arcontext;
+	private       TransportLifecycleHandlerAdapter  arcontext;
 	
 	private  InboundHandler  handler;
 	

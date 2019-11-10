@@ -123,7 +123,7 @@ public  class  InboundHandler
 		PacketEventDispatcher.onReceived( adapter.getPacketListeners(),packet );
 	}
 	
-	public  Packet  unpend( TcpAutoReconnectChannelInboundHandlerAdapter<?>  context,PendingAckPacket<?>  pendingAckPacket,TransportState  transportState )
+	public  Packet  unpend( TransportLifecycleHandlerAdapter<?>  context,PendingAckPacket<?>  pendingAckPacket,TransportState  transportState )
 	{
 		Packet  packet = this.pendings.remove( pendingAckPacket.getPacketId() );
 		
@@ -145,7 +145,7 @@ public  class  InboundHandler
 		PacketEventDispatcher.onSent(    context.getPacketListeners() , packet ,  transportState );  return  packet;
 	}
 	
-	public  void  pend(final  TcpAutoReconnectChannelInboundHandlerAdapter<?> context,final  Packet  pendingPacket,final  long  writeTimeout,final  TimeUnit  timeunit )
+	public  void  pend(final  TransportLifecycleHandlerAdapter<?> context,final  Packet  pendingPacket,final  long  writeTimeout,final  TimeUnit  timeunit )
 	{
 		pendings.addEntry( pendingPacket.getId(), ObjectUtils.cast( pendingPacket,Packet.class ) );
 		

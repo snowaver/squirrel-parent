@@ -33,6 +33,7 @@ import  lombok.AccessLevel;
 import  lombok.NonNull;
 import  lombok.Setter;
 import  lombok.SneakyThrows;
+import lombok.Synchronized;
 import  lombok.experimental.Accessors;
 
 @Accessors( chain=true )
@@ -73,24 +74,26 @@ public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 	@SneakyThrows( value= {InterruptedException.class} )
 	private void  write(Packet <?>packet,TransportFuture  <PendingAckPacket<?>>  transportFuture )
 	{
-		if( packet.getAckLevel()  == 1 && !this.channel.writeAndFlush(packet).sync().isSuccess() )
+		if( 1  == packet.getAckLevel() && !this.channel.writeAndFlush(packet).sync().isSuccess() )
 		{
 			transportFuture.done( false);
 		}
 		else
-		if( packet.getAckLevel()  == 0  )
+		if( 0  == packet.getAckLevel()  )
 		{
 			transportFuture.done( this.channel.writeAndFlush(packet).sync().isSuccess() );
 		}
 	}
 	@SneakyThrows( value= {InterruptedException.class} )
+	@Synchronized
 	public  void  disconnect()
 	{
 		this.channel.disconnect().sync();
 		
-		this.onConnectStateChanged( connectState  = ConnectState.DISCONNECTED );
+		onConnectStateChanged( this.connectState  = ConnectState.DISCONNECTED );
 	}
 	@SneakyThrows( value= {InterruptedException.class} )
+	@Synchronized
 	public  void     release()
 	{
 		this.eventLoopGroup.shutdownGracefully().sync();
@@ -107,10 +110,11 @@ public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 	@Override
 	public  void  channelInactive( ChannelHandlerContext  context      )
 	{
-		this.onConnectStateChanged( connectState  = ConnectState.DISCONNECTED );
+		onConnectStateChanged( this.connectState  = ConnectState.DISCONNECTED );
 	}
 	@SneakyThrows( value= {InterruptedException.class} )
-	public  void  connect(  @NonNull  TransportConfig  transportConfig )
+	@Synchronized
+	public  void  connect(@NonNull  TransportConfig    transportConfig )
 	{
 		this.setTransportConfig(transportConfig).setBootstrap(this.bootstrap != null ? this.bootstrap : new  Bootstrap().group(this.eventLoopGroup).channel(NioSocketChannel.class).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,transportConfig.getConnectTimeoutMillis()).option(ChannelOption.SO_KEEPALIVE,true).option(ChannelOption.ALLOCATOR,PooledByteBufAllocator.DEFAULT).option(ChannelOption.TCP_NODELAY,true).handler(new  ChannelInitailizer(this,transportConfig.getSslContext(),transportConfig.getKeepaliveSeconds()))).onConnectStateChanged( this.connectState = ConnectState.CONNECTING );
 		

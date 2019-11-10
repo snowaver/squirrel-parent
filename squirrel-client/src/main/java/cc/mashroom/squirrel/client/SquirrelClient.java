@@ -82,7 +82,7 @@ import  cc.mashroom.util.ObjectUtils;
 
 @Sharable
 
-public  class  SquirrelClient      extends  TcpAutoReconnectChannelInboundHandlerAdapter    <SquirrelClient>  implements   Interceptor
+public  class  SquirrelClient      extends  TransportLifecycleHandlerAdapter    <SquirrelClient>  implements   Interceptor
 {
 	public  SquirrelClient( Object  context,File  cacheDir )
 	{
