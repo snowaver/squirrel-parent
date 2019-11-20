@@ -81,10 +81,10 @@ public  abstract  class  Packet  <T extends Packet>
 		return  ObjectUtils.cast( setContactId(contactId).setAckLevel(ackLevel) );
 	}
 			
-	public  void  write( ByteBuf  writableByteBuf )
+	public  ByteBuf  write( ByteBuf   writableBuf )
 	{
 		ByteBuf  variableByteBuf= writeToVariableByteBuf( Unpooled.buffer(getInitialVariableByteBufferSize()) );  ByteBuf  decodeRemainingLengthByteBuf = PAIPCodecUtils.encodeRemainingLength( variableByteBuf.readableBytes() );
 		
-		writableByteBuf.writeByte(ackLevel).writeByte(0).writeShortLE(packetType.getValue()).writeLongLE(getId()).writeBytes(decodeRemainingLengthByteBuf).writeBytes( variableByteBuf );  decodeRemainingLengthByteBuf.release();  variableByteBuf.release();
+		writableBuf.writeByte(ackLevel).writeByte(0).writeShortLE(packetType.getValue()).writeLongLE(getId()).writeBytes(decodeRemainingLengthByteBuf).writeBytes( variableByteBuf );  decodeRemainingLengthByteBuf.release();  variableByteBuf.release();  return  writableBuf;
 	}
 }

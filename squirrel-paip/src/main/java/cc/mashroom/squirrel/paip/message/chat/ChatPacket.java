@@ -19,30 +19,29 @@ import  io.netty.buffer.ByteBuf;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.Setter;
+import lombok.SneakyThrows;
 import  lombok.ToString;
 import  lombok.experimental.Accessors;
 
 import  cc.mashroom.squirrel.paip.codec.PAIPCodecUtils;
 import  cc.mashroom.squirrel.paip.message.Packet;
+import cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
 
 @ToString(  callSuper = true )
-public  class  ChatPacket  extends  Packet<ChatPacket>
-{	
-	public  ChatPacket( ByteBuf  byteBuf )
-	{
-		super( byteBuf,0x00 );
-		
-		super.setContactId(byteBuf.readLongLE()).setContactSyncId(byteBuf.readLongLE()).setSyncId(byteBuf.readLongLE()).setContentType(ChatContentType.valueOf(byteBuf.readByte())).setMd5(PAIPCodecUtils.decode(byteBuf)).setContent( PAIPCodecUtils.decodeBytes(byteBuf) );
-	}
-	
-	public  ChatPacket( long   contactId,String  md5 , ChatContentType  contentType,byte[]  content )
+public  class  ChatPacket  extends  Packet<ChatPacket>      implements  Cloneable
+{
+	public  ChatPacket( long   contactId, String  md5, ChatContentType  contentType, byte[]  content )
 	{
 		super( PAIPPacketType.CHAT   , 1 ,contactId );
 		
 		setMd5(md5).setContentType(contentType).setContent( content );
 	}
 	
+	public  ChatPacket( ByteBuf  byteBuf )
+	{
+		super( byteBuf,0x00 );  super.setContactId(byteBuf.readLongLE()).setContactSyncId(byteBuf.readLongLE()).setSyncId(byteBuf.readLongLE()).setContentType(ChatContentType.valueOf(byteBuf.readByte())).setMd5(PAIPCodecUtils.decode(byteBuf)).setContent( PAIPCodecUtils.decodeBytes(byteBuf) );
+	}
 	@Setter
 	@Getter
 	@Accessors(chain=true)
@@ -50,7 +49,7 @@ public  class  ChatPacket  extends  Packet<ChatPacket>
 	@Setter
 	@Getter
 	@Accessors(chain=true)
-	private  long  contactSyncId;
+	private  long     contactSyncId;
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
@@ -63,6 +62,12 @@ public  class  ChatPacket  extends  Packet<ChatPacket>
 	@Getter
 	@Accessors(chain=true)
 	private  byte[]   content;
+	@SneakyThrows( value={CloneNotSupportedException.class} )
+	@Override
+	public  ChatPacket clone()
+	{
+		return      ObjectUtils.cast( super.clone() );
+	}
 	
 	public  ByteBuf writeToVariableByteBuf( ByteBuf  variableByteBuf )
 	{

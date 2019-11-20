@@ -24,20 +24,30 @@ import  io.netty.channel.ChannelHandler.Sharable;
 import  io.netty.handler.codec.MessageToByteEncoder;
 import  lombok.extern.slf4j.Slf4j;
 import  cc.mashroom.squirrel.paip.message.Packet;
+import  cc.mashroom.squirrel.paip.message.call.CallPacket;
+import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
+import  cc.mashroom.util.ObjectUtils;
 
 @Slf4j
 @Sharable
 public  class  PAIPEncoderHandlerAdapter  extends  MessageToByteEncoder<Packet<?>>
 {
-	protected  void  encode( ChannelHandlerContext  channel,Packet<?>  packet,ByteBuf  byteBuf ) throws  Exception
+	protected  void  encode( ChannelHandlerContext  context,Packet<?>  packet,ByteBuf  byteBuf )throws  Exception
 	{
+		if( packet instanceof CloseCallPacket )
+		{
+			context.channel().attr(CallPacket.CALL_ROOM_ID).set( null  );
+		}
+		else
+		if( packet instanceof CallPacket )
+		{
+			context.channel().attr(CallPacket.CALL_ROOM_ID).set( ObjectUtils.cast(packet,CallPacket.class).getRoomId() );
+		}
 		if( log.isDebugEnabled() )
 		{
-			log.debug( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.SENT:\t"+packet.toString() );
+			log.debug(DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.SENT:\t"+packet.toString() );
 		}
 		
-		ByteBuf  contentBuf = Unpooled.buffer();
-		
-		packet.write( contentBuf);  byteBuf.writeInt(contentBuf.readableBytes()).writeBytes( contentBuf );  contentBuf.release();
+		ByteBuf  contentBuf= Unpooled.buffer(); packet.write(contentBuf);  byteBuf.writeInt(contentBuf.readableBytes()).writeBytes( contentBuf );  contentBuf.release();
 	}
 }
