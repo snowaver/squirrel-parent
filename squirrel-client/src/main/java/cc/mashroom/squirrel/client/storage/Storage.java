@@ -26,10 +26,10 @@ import  cc.mashroom.db.GenericRepository;
 import  cc.mashroom.db.annotation.DataSourceBind;
 import  cc.mashroom.db.common.Db;
 import  cc.mashroom.db.common.Db.Callback;
-import  cc.mashroom.squirrel.client.LifecycleListener;
-import  cc.mashroom.squirrel.client.PacketListener;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.connect.UserMetadata;
+import cc.mashroom.squirrel.client.event.LifecycleEventListener;
+import cc.mashroom.squirrel.client.event.PacketEventListener;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.model.user.Contact;
 import  cc.mashroom.squirrel.client.storage.model.user.User;
@@ -57,9 +57,9 @@ import  lombok.Getter;
 import  lombok.Setter;
 import  lombok.experimental.Accessors;
 
-public  class  Storage    implements  PacketListener  //  ,  cc.mashroom.squirrel.client.LifecycleListener
+public  class  Storage    implements  PacketEventListener  //  ,  cc.mashroom.squirrel.client.LifecycleListener
 {
-	public  void  initialize(  final  SquirrelClient  context,boolean  isConnectDataSourceOnly,final  Collection<LifecycleListener>  lifecycleListeners,     File  cacheDir,final  UserMetadata  metadata,final  String  encryptPassword )  throws  Exception
+	public  void  initialize(  final  SquirrelClient  context,boolean  isConnectDataSourceOnly,final  Collection<LifecycleEventListener>  lifecycleListeners,     File  cacheDir,final  UserMetadata  metadata,final  String  encryptPassword )  throws  Exception
 	{
 		setContext(context).setCacheDir(cacheDir).setId( metadata.getId() );
 		

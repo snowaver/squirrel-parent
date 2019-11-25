@@ -21,6 +21,8 @@ import  java.util.concurrent.TimeUnit;
 import  org.joda.time.DateTime;
 
 import  cc.mashroom.squirrel.client.connect.ConnectState;
+import cc.mashroom.squirrel.client.event.LifecycleEventDispatcher;
+import cc.mashroom.squirrel.client.event.PacketEventDispatcher;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.call.CallPacket;

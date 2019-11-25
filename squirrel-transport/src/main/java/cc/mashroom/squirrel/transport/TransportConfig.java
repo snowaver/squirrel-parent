@@ -33,4 +33,5 @@ public  class  TransportConfig
 	private  int  port;
 	private  int  connectTimeoutMillis;
 	private  int  keepaliveSeconds;
+	private  Object  []  authenticateObjects;
 }

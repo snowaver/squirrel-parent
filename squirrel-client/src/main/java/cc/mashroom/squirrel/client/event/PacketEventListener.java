@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cc.mashroom.squirrel.client;
+package cc.mashroom.squirrel.client.event;
 
-import  cc.mashroom.squirrel.client.connect.ConnectState;
-import  cc.mashroom.squirrel.client.storage.model.OoIData;
+import  cc.mashroom.squirrel.paip.message.Packet;
+import  cc.mashroom.squirrel.paip.message.TransportState;
 
-public  interface  LifecycleListener
+public  interface  PacketEventListener
 {
-	public  void  onError( Throwable  error );
+	public  boolean  onBeforeSend(   Packet  packet )  throws  Throwable;
 	
-	public  void  onLogoutComplete( int  logoutResponseCode,int  reason );
+	public  void  onSent( Packet  packet,TransportState  tranportState );
 	
-	public  void  onReceivedOfflineData( OoIData  ooiData );
-	
-	public  void  onConnectStateChanged( ConnectState  connectState );
-	
-	public  void  onAuthenticateComplete( int  authenticateResponseCode );
-	
+	public  void  onReceived( Packet  packet );
 }

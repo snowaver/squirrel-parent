@@ -20,9 +20,11 @@ import java.net.SocketTimeoutException;
 import  java.util.ArrayList;
 import  java.util.List;
 import  java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
 import  java.util.concurrent.ExecutorService;
 import  java.util.concurrent.Executors;
 import  java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import  javax.net.ssl.SSLContext;
 
@@ -30,19 +32,21 @@ import  org.joda.time.DateTime;
 
 import  com.google.common.collect.Lists;
 
-import  cc.mashroom.router.Schema;
 import  cc.mashroom.router.Service;
-import  cc.mashroom.squirrel.client.connect.ConnectState;
+import cc.mashroom.squirrel.client.event.PacketEventDispatcher;
+import cc.mashroom.squirrel.client.event.PacketEventListener;
 import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.codec.PAIPDecoderHandlerAdapter;
-import  cc.mashroom.squirrel.paip.codec.PAIPExternalDecoder;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.chat.ChatContentType;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
+import cc.mashroom.squirrel.paip.message.connect.ConnectAckPacket;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
+import cc.mashroom.squirrel.transport.ConnectState;
+import cc.mashroom.squirrel.transport.TransportConfig;
 import  cc.mashroom.util.CollectionUtils;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.SecureUtils;
@@ -62,7 +66,7 @@ import  lombok.Setter;
 import  lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 
-public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHandlerAdapter<?>>  extends  RoutableHandlerAdapter
+public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHandlerAdapter<?>>  extends  NetworkHandlerAdapter
 {
 	public  final  static  SSLContext  SSL_CONTEXT= SecureUtils.getSSLContext( "/squirrel.cer" );
 	
@@ -82,39 +86,14 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 	@Accessors(chain=true)
 	private  Channel   channel;
 	@Setter( value=AccessLevel.PROTECTED )
-	@Accessors(chain=true)
-	@Getter
-	private  boolean  authenticated=false;
 	private  EventLoopGroup  eventLooperGroup     = new  NioEventLoopGroup( Integer.parseInt(System.getProperty("eventlopper.size","2") ) );
 	private  InboundHandler  qosHandler  =new     InboundHandler();
-	private  LinkedMap<String  , PAIPExternalDecoder>     externalDecoders = new  LinkedMap<String,PAIPExternalDecoder>();
 	@Setter( value=AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
 	private  ConnectState  connectState  =ConnectState.NONE;
 	
 	protected  Storage     storage =   new Storage();
-	
-	private  List<PacketListener>  packetListeners  = new  CopyOnWriteArrayList<PacketListener>(       Lists.newArrayList( this.storage ) );
-		
-	public  T  removePacketListener(     @NonNull   PacketListener  listener )
-	{
-		CollectionUtils.remove( this.packetListeners,   listener );
-		
-		return  (T)  this;
-	}
-	
-	public  List<PacketListener> getPacketListeners()
-	{
-		return  new  ArrayList<PacketListener>(  packetListeners );
-	}
-	
-	public  T  addPacketListener(        @NonNull   PacketListener  listener )
-	{
-		CollectionUtils.addIfAbsent( packetListeners,   listener );
-		
-		return  (T)  this;
-	}
 	
 	public  void  channelInactive(  ChannelHandlerContext  context)  throws  Exception
 	{
@@ -129,71 +108,32 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 		this.eventLooperGroup.execute(new  Runnable()   {  public  void  run()  {connect(); }} );
 	}
 	
-	protected  void  onConnectStateChanged(     ConnectState   connectState  )
-	{
-		
-	}
-	
-	protected  void  connect( String  id,String  accessKey )
-	{
-		setId(id).setAccessKey( accessKey).setAuthenticated( true ).connect();
-	}
-	
 	public  void  channelRead(ChannelHandlerContext  context,Object   object )  throws  Exception
 	{
 		this.qosHandler.channelRead(context,object );
 	}
 	
-	private  synchronized  void  connect()
+	
+	
+	protected  synchronized  void  connect(String id,String  secretKey )
 	{
 		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.CONN:\tCONNECT.STATE="+connectState.name()+",AUTHENTICATED="+authenticated+",BOOTSTRAP="+bootstrap+",CHANNEL="+channel );
 		
-        try
-        {
-        	if( connectState != ConnectState.CONNECTING && connectState != ConnectState.CONNECTED && authenticated && (this.channel == null || !channel.isActive()) )
-        	{
-        		this.onConnectStateChanged( connectState =  ConnectState.CONNECTING );
-        		{
-        			bootstrap = bootstrap != null ?   bootstrap : new  Bootstrap().group(eventLooperGroup).channel( NioSocketChannel.class).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,5*1000).handler( new  ClientChannelInitailizer(this) );
-        			
-        			Service  service = this.serviceRouteManager.current( Schema.TCP );
-        			
-        			setChannel(bootstrap.connect(service.getHost(),service.getPort()).sync().channel()).send( new  ConnectPacket(id,accessKey.getBytes(),keepalive),10,TimeUnit.SECONDS );
-        			
-        			for( PAIPExternalDecoder  externalDecoder : this.externalDecoders.values()  )
-        			{
-        				ObjectUtils.cast(   this.channel.pipeline().get("decoder"),PAIPDecoderHandlerAdapter.class).addExternalDecoder( externalDecoder );
-        			}
-        		}
-        	}
-        }
-        catch(  Throwable  e )
-        {
-        	if( e instanceof SocketTimeoutException || e instanceof ConnectException )
-			{
-				serviceRouteManager.tryNext(   Schema.TCP );
-			}
-        	
-        	Tracer.trace( e );
-        	
-        	this.onConnectStateChanged( this.connectState=ConnectState.DISCONNECTED );
-		}
+		super.connect(new  TransportConfig(SSL_CONTEXT,super.serviceRouteManager.service().getHost(),8012,5*1000,keepalive,new  Object[]{id,secretKey}) );
+			
+		super.checkConnectivity( 10 );
 	}
-	@SneakyThrows
-	public  void     release()
+	@Override
+	protected  void  onConnectStateChanged( ConnectState  connectState )
 	{
-		eventLooperGroup.shutdownGracefully().sync();
-		
-		multipartsSendPool.shutdown();
+		super.onConnectStateChanged(  connectState );
 	}
-	/**
-	 *  close  the  channel  if  open.
-	 */
-	protected  synchronized  void  close()
+	@SneakyThrows( value={InterruptedException.class,ExecutionException.class,TimeoutException.class} )
+	@Override
+	protected  boolean  authenticate( Object...  objects  )
 	{
-		if( channel.isOpen() )  this.channel.close();
+		return  ObjectUtils.cast(super.write(new  ConnectPacket(objects[0].toString(),this.accessKey.getBytes(),this.keepalive)).get(5,TimeUnit.SECONDS),ConnectAckPacket.class).getResponseCode() == ConnectAckPacket.CONNECTION_ACCEPTED;
 	}
-	
 	public  void  send(Packet  packet)
 	{
 		this.send(  packet , 10 , TimeUnit.SECONDS );

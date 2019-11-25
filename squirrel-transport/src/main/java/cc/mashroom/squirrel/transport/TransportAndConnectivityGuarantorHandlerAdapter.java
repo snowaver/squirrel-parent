@@ -49,7 +49,7 @@ public  class    TransportAndConnectivityGuarantorHandlerAdapter  extends  Trans
 	}
 	public  void  checkConnectivity( long  checkIntervalSeconds)
 	{
-		this.setCheckIntervalSeconds(checkIntervalSeconds).setConnectivityCheckingFuture( this.connectivityGuarantorThreadPool.submit(this) );
+		if( this.connectivityGuarantorThreadPool.getTaskCount( )   == 0 )  this.setCheckIntervalSeconds(checkIntervalSeconds).setConnectivityCheckingFuture( this.connectivityGuarantorThreadPool.submit(this) );
 	}
 	@SneakyThrows( value= {InterruptedException.class} )
 	public  void   run()

@@ -30,16 +30,18 @@ import  io.netty.channel.EventLoopGroup;
 import  io.netty.channel.nio.NioEventLoopGroup;
 import  io.netty.channel.socket.nio.NioSocketChannel;
 import  lombok.AccessLevel;
+import  lombok.Getter;
 import  lombok.NonNull;
 import  lombok.Setter;
 import  lombok.SneakyThrows;
-import lombok.Synchronized;
+import  lombok.Synchronized;
 import  lombok.experimental.Accessors;
 
 @Accessors( chain=true )
 public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 {
-	protected  ConnectState  connectState =ConnectState.NONE;
+	@Getter
+	protected  ConnectState  connectState  =  ConnectState.NONE;
 	@Setter( value= AccessLevel.PRIVATE )
 	private  Channel  channel;
 	@Setter( value= AccessLevel.PRIVATE )
@@ -47,7 +49,13 @@ public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 	protected  EventLoopGroup  eventLoopGroup= new  NioEventLoopGroup();
 	@Setter( value= AccessLevel.PRIVATE )
 	protected  TransportConfig  transportConfig;
-	
+	/*
+	protected  boolean     authenticated;
+	*/
+	protected  TransportHandlerAdapter  setConnectState(  ConnectState  cstate )
+	{
+		onConnectStateChanged( connectState =  cstate );  return   this;
+	}
 	protected  Map<Long,TransportFuture<PendingAckPacket<?>>>  transportFutures=   new  ConcurrentHashMap<Long,TransportFuture<PendingAckPacket<?>>>();
 	@Override
 	public  void  channelRead( ChannelHandlerContext  context  ,Object  packet )
@@ -84,13 +92,22 @@ public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 			transportFuture.done( this.channel.writeAndFlush(packet).sync().isSuccess() );
 		}
 	}
+	@Override
+	public  void  exceptionCaught( ChannelHandlerContext  context,Throwable  t )
+	{
+		t.printStackTrace(  );
+	}
+	protected  void  onConnectStateChanged( ConnectState  connectState )
+	{
+		
+	}
 	@SneakyThrows( value= {InterruptedException.class} )
 	@Synchronized
 	public  void  disconnect()
 	{
 		this.channel.disconnect().sync();
 		
-		onConnectStateChanged( this.connectState  = ConnectState.DISCONNECTED );
+		setConnectState(    ConnectState.DISCONNECTED );
 	}
 	@SneakyThrows( value= {InterruptedException.class} )
 	@Synchronized
@@ -98,26 +115,23 @@ public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 	{
 		this.eventLoopGroup.shutdownGracefully().sync();
 	}
-	protected  void  onConnectStateChanged( ConnectState  connectState )
+	protected  boolean  authenticate( Object...objects )
 	{
-		
-	}
-	@Override
-	public  void  exceptionCaught( ChannelHandlerContext  context,Throwable  t )
-	{
-		t.printStackTrace(  );
+		return  true;
 	}
 	@Override
 	public  void  channelInactive( ChannelHandlerContext  context      )
 	{
-		onConnectStateChanged( this.connectState  = ConnectState.DISCONNECTED );
+		setConnectState(    ConnectState.DISCONNECTED );
 	}
 	@SneakyThrows( value= {InterruptedException.class} )
 	@Synchronized
-	public  void  connect(@NonNull  TransportConfig    transportConfig )
+	public  void  connect(  @NonNull  TransportConfig  transportConfig )
 	{
-		this.setTransportConfig(transportConfig).setBootstrap(this.bootstrap != null ? this.bootstrap : new  Bootstrap().group(this.eventLoopGroup).channel(NioSocketChannel.class).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,transportConfig.getConnectTimeoutMillis()).option(ChannelOption.SO_KEEPALIVE,true).option(ChannelOption.ALLOCATOR,PooledByteBufAllocator.DEFAULT).option(ChannelOption.TCP_NODELAY,true).handler(new  ChannelInitailizer(this,transportConfig.getSslContext(),transportConfig.getKeepaliveSeconds()))).onConnectStateChanged( this.connectState = ConnectState.CONNECTING );
+		this.setTransportConfig(transportConfig).setBootstrap(this.bootstrap != null ? this.bootstrap : new  Bootstrap().group(this.eventLoopGroup).channel(NioSocketChannel.class).option(ChannelOption.CONNECT_TIMEOUT_MILLIS,transportConfig.getConnectTimeoutMillis()).option(ChannelOption.SO_KEEPALIVE,true).option(ChannelOption.ALLOCATOR,PooledByteBufAllocator.DEFAULT).option(ChannelOption.TCP_NODELAY,true).handler(new  ChannelInitailizer(this,transportConfig.getSslContext(),transportConfig.getKeepaliveSeconds()))).setConnectState( ConnectState.CONNECTING );
 		
-		this.setChannel(this.bootstrap.connect(transportConfig.getHost(),transportConfig.getPort()).sync().channel()).onConnectStateChanged( this.connectState = ConnectState.CONNECTED );
+		this.setChannel(this.bootstrap.connect(transportConfig.getHost(),transportConfig.getPort()).sync().channel()).setConnectState( this.connectState = ConnectState.CONNECTED );
+		
+		if( setConnectState(ConnectState.AUTHENTICATING).setConnectState(authenticate(transportConfig.getAuthenticateObjects()) ? ConnectState.AUTHENTICATED : ConnectState.DISCONNECTED).getConnectState() == ConnectState.DISCONNECTED )  disconnect();
 	}
 }

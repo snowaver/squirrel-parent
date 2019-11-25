@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cc.mashroom.squirrel.client;
+package cc.mashroom.squirrel.client.event;
 
 import  java.util.Collection;
 
@@ -22,25 +22,25 @@ import  cc.mashroom.squirrel.paip.message.TransportState;
 
 public  class  PacketEventDispatcher
 {
-	public  static  void  onReceived( Collection<PacketListener>  listeners,Packet  packet )
+	public  static  void  onReceived( Collection<PacketEventListener>  listeners,Packet  packet )
 	{
-		for( PacketListener  listener : listeners )
+		for( PacketEventListener  listener : listeners )
 		{
 			listener.onReceived( packet );
 		}
 	}
 	
-	public  static  void  onSent(Collection<PacketListener> listeners,Packet  packet,TransportState  transportState  )
+	public  static  void  onSent(Collection<PacketEventListener> listeners,Packet  packet,TransportState  transportState  )
 	{
-		for( PacketListener  listener : listeners )
+		for( PacketEventListener  listener : listeners )
 		{
 			listener.onSent(packet,transportState);
 		}
 	}
 	
-	public  static  boolean  onBeforeSend(   Collection<PacketListener>  listeners,Packet  packet )  throws  Throwable
+	public  static  boolean  onBeforeSend(   Collection<PacketEventListener>  listeners,Packet  packet )  throws  Throwable
 	{
-		for( PacketListener  listener : listeners )
+		for( PacketEventListener  listener : listeners )
 		{
 			if( ! listener.onBeforeSend( packet ) )
 			{
