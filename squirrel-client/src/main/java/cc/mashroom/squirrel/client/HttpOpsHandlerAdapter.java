@@ -83,20 +83,21 @@ public  class  HttpOpsHandlerAdapter   extends  TransportAndConnectivityGuaranto
 	@Getter
 	@Accessors(chain=true)
 	private  Call    call;
-	
+	public  void    delCall()
+	{
+		if( call.getState()==    CallState.CLOSED )
+		{
+			this.call = null;
+		}
+		else
+		{
+			throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  can't  close  call  in  %s  state", call.getState().name()) );
+		}
+	}
 	@SneakyThrows
 	public  UserMetadata getUserMetadata()
 	{
 		return  this.userMetadata  == null ? null :userMetadata.clone();
-	}
-	
-	public  void removeCall()
-	{
-		if( call.getState()!=    CallState.CLOSED )
-		{
-			throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  can't  close  call  in  %s  state", call.getState().name()) );
-		}
-		this.call     = null;
 	}
 	
 	synchronized  void  addCall(final long  roomId, final  long  contactId,@NonNull final  CallContentType  contentType )
