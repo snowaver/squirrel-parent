@@ -15,39 +15,26 @@
  */
 package cc.mashroom.squirrel.client.event;
 
-import  java.util.Collection;
+import  java.io.IOException;
 
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
+import  cc.mashroom.util.event.EventDispather;
 
-public  class  PacketEventDispatcher
+public  class  PacketEventDispatcher  extends  EventDispather  <PacketEventListener>
 {
-	public  static  void  onReceived( Collection<PacketEventListener>  listeners,Packet  packet )
+	public  void  onReceived(   Packet  packet )
 	{
-		for( PacketEventListener  listener : listeners )
-		{
-			listener.onReceived( packet );
-		}
+		for( PacketEventListener  listener : this.listeners )  listener.onReceived(   packet );
 	}
 	
-	public  static  void  onSent(Collection<PacketEventListener> listeners,Packet  packet,TransportState  transportState  )
+	public  void  onSent(  Packet  packet,TransportState  transportState )
 	{
-		for( PacketEventListener  listener : listeners )
-		{
-			listener.onSent(packet,transportState);
-		}
+		for( PacketEventListener  listener : this.listeners )  listener.onSent(  packet,transportState );
 	}
 	
-	public  static  boolean  onBeforeSend(   Collection<PacketEventListener>  listeners,Packet  packet )  throws  Throwable
+	public  void  onBeforeSend( Packet  packet )       throws  IOException
 	{
-		for( PacketEventListener  listener : listeners )
-		{
-			if( ! listener.onBeforeSend( packet ) )
-			{
-				return  false;
-			}
-		}
-		
-		return  true;
+		for( PacketEventListener  listener : this.listeners )  listener.onBeforeSend( packet );
 	}
 }

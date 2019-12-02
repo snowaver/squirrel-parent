@@ -62,12 +62,13 @@ import  lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 import  okhttp3.FormBody;
 import  okhttp3.HttpUrl;
+import okhttp3.Interceptor;
 import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 import  okhttp3.Response;
 import  okhttp3.Interceptor.Chain;
 
-public  class  HttpOpsHandlerAdapter   extends  TransportAndConnectivityGuarantorHandlerAdapter
+public  class  HttpOpsHandlerAdapter   extends  TransportLifecycleHandlerAdapter<HttpOpsHandlerAdapter>
 {
 	@Setter( value=AccessLevel.PROTECTED )
 	@Accessors(chain=true)
@@ -129,9 +130,9 @@ public  class  HttpOpsHandlerAdapter   extends  TransportAndConnectivityGuaranto
 	@Override
 	protected  void  onConnectStateChanged( ConnectState  connectState )
 	{
-		if( connectState==ConnectState.CONNECTED )  LifecycleEventDispatcher.onReceivedOfflineData( lifecycleListeners , (OoIData)  Db.tx(String.valueOf(this.userMetadata.getId()),java.sql.Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(Connection  connection)  throws  Throwable{ return  OfflineRepository.DAO.attach(SquirrelClient.this,true,true,true,true); }}) );
+		if( connectState==ConnectState.CONNECTED )  lifecycleEventDispatcher.onReceivedOfflineData( (OoIData)  Db.tx(String.valueOf(this.userMetadata.getId()),java.sql.Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(Connection  connection)  throws  Throwable{ return  OfflineRepository.DAO.attach(SquirrelClient.this,true,true,true,true); }}) );
 		
-		LifecycleEventDispatcher.onConnectStateChanged( this.lifecycleListeners,connectState );
+		lifecycleEventDispatcher.onConnectStateChanged(   connectState);
 	}
 	/**
 	 *  clear  all  states,  include  user  metadata,  connect  parameters,  call,  lifecycle  listener  and  super  class  states  ( id,  authenticate  state  and  connect  state ).
@@ -151,57 +152,57 @@ public  class  HttpOpsHandlerAdapter   extends  TransportAndConnectivityGuaranto
 		{
 		if(   response.code()  == 200  )
 			{
-			LifecycleEventDispatcher.onLogoutComplete( lifecycleListeners,200,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
+			this.lifecycleEventDispatcher.onLogoutComplete( 200,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
 			
 				this.reset();  super.disconnect();
 			}
 			else
 			{
-			LifecycleEventDispatcher.onLogoutComplete( lifecycleListeners,500,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
+			this.lifecycleEventDispatcher.onLogoutComplete( 500,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
 			}
 		}
 		catch( Throwable  e )
 		{
-			LifecycleEventDispatcher.onLogoutComplete( lifecycleListeners,500,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
+			this.lifecycleEventDispatcher.onLogoutComplete( 500,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
 		}
+	}
+	
+	public  Response  intercept( Chain  reschain )   throws  IOException
+	{
+		return  reschain.proceed( reschain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata == null || this.userMetadata.getSecretKey() == null ? "" : this.userMetadata.getSecretKey()).build() );
 	}
 	/**
 	 *  connect  the  server.  throws  illegal  state  exception  if  not  routed. use  latest  connect  parameters  if  the  username  is  not  blank.  http  request  ( include  username,  password  encrypted,  longitude,  latitude  and  mac.  connect  and  read  timeout  are  5  seconds )  will  be  used  to  retrieve  the  secret  key.  initialize  user  metadata  and  offline  datas,  connect  to  paip  protocol  server  after  successful  authentication.  authenticate  complete  method  on  lifecycle  listener  will  be  called  no  matter  authentication  error  or  not.  connectivity  guarantor  will  be  scheduled  at  fixed  rate  (5  seconds)  after  connecting  by  id  or  authenticated  successfully.
 	 */
-	protected  SquirrelClient  connect(String  username,boolean  isPasswordEncrypted,String  password,Double  longitude,Double  latitude, String  mac )
+	protected  HttpOpsHandlerAdapter  connect( String  username,boolean  isPasswordEncrypted,String  password,Double  longitude,Double  latitude,String  mac )
 	{
 		try( Response  response = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(System.getProperty("squirrel.dt.server.schema","https")).host(super.getServiceRouteManager().service().getHost()).port(Integer.parseInt(System.getProperty("squirrel.dt.server.port","8012"))).addPathSegments("user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isPasswordEncrypted ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
 		{
 		if(   response.code()  == 200  )
 			{
-				this.setUserMetadata(JsonUtils.mapper.readValue(response.body().string(),UserMetadata.class)).checkConnectivity( 10 );
+				setUserMetadata(JsonUtils.mapper.readValue(response.body().string(),UserMetadata.class)).checkConnectivity( 10 );
 				//  connecting  to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
-				super.storage.initialize( this, false, lifecycleListeners,this.cacheDir ,this.userMetadata  ,connectParameters.getString("password") );
+				super.storage.initialize( this, false,lifecycleEventDispatcher,this.cacheDir,this.userMetadata,this.connectParameters.getString("password") );
 			
-				LifecycleEventDispatcher.onAuthenticateComplete(  this.lifecycleListeners, response.code() );
+				this.lifecycleEventDispatcher.onAuthenticateComplete( response.code() );
 				
-				this.connect( String.valueOf( this.userMetadata.getId() ),this.userMetadata.getSecretKey() );
+				this.connect( String.valueOf(this.userMetadata.getId()),this.userMetadata.getSecretKey() );
 			}
 			else
 			{
-				LifecycleEventDispatcher.onAuthenticateComplete(  this.lifecycleListeners, response.code() );
+				this.lifecycleEventDispatcher.onAuthenticateComplete( response.code() );
 			}
 		}
 		catch( Throwable  e )
 		{
-			LifecycleEventDispatcher.onAuthenticateComplete(this.lifecycleListeners,(e instanceof SocketTimeoutException) ? 501:500 );
+		lifecycleEventDispatcher.onAuthenticateComplete( e instanceof SocketTimeoutException ? 501 : 500 );
 		}
 		
 		return   this;
 	}
-	@SneakyThrows( value = { IOException.class } )
-	public  Response  intercept(   Chain   chain )
-	{
-		return  chain.proceed( chain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata == null || this.userMetadata.getSecretKey() == null ? "" : this.userMetadata.getSecretKey()).build() );
-	}
 
-	public  OkHttpClient  okhttpClient( long  connectTimeoutSeconds,long  writeTimeoutSeconds, long  readTimeoutSeconds )
+	public  OkHttpClient  okhttpClient(          long  connectTimeoutSeconds,long  writeTimeoutSeconds,long  readTimeoutSeconds )
 	{
-		return  new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).addInterceptor(this).connectTimeout(connectTimeoutSeconds,TimeUnit.SECONDS).writeTimeout(writeTimeoutSeconds,TimeUnit.SECONDS).readTimeout(readTimeoutSeconds,TimeUnit.SECONDS).build();
+		return  new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).addInterceptor((Interceptor) this).connectTimeout(connectTimeoutSeconds,TimeUnit.SECONDS).writeTimeout(writeTimeoutSeconds,TimeUnit.SECONDS).readTimeout(readTimeoutSeconds,TimeUnit.SECONDS).build();
 	}
 }

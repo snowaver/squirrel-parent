@@ -47,48 +47,14 @@ public  class  InboundHandler
 	
 	private  Map<Long,Packet>  pendings =new  ConcurrentHashMap<Long,Packet>();
 	
-	public  void  channelRead( ChannelHandlerContext  context,Object  object )    throws  Exception
+	public  void  channelRead( ChannelHandlerContext  context,Object  object )//  throws  Exception
 	{
-		Packet  packet = ObjectUtils.cast( object );
+		Packet  packet = ObjectUtils.cast( object,Packet.class );
 		
 		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+ packet.toString() );
 		
 		SquirrelClient  adapter  = ObjectUtils.cast( context.pipeline().get( "squirrel.client" ) );
 		
-		if( packet instanceof DisconnectAckPacket  )
-		{
-			if( ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason()==DisconnectAckPacket.REASON_CLIENT_LOGOUT || ObjectUtils.cast(packet,DisconnectAckPacket.class).getReason() == DisconnectAckPacket.REASON_REMOTE_SIGNIN )
-			{
-				if( ObjectUtils.cast(packet, DisconnectAckPacket.class).getReason()    == DisconnectAckPacket.REASON_REMOTE_SIGNIN )
-				{
-				LifecycleEventDispatcher.onLogoutComplete( adapter.getLifecycleListeners(),200,2 );
-				}
-				
-				adapter.reset();
-				
-				adapter.close();
-			}
-		}
-		else
-		if( packet instanceof     ConnectAckPacket )
-		{
-			if( ObjectUtils.cast(packet, ConnectAckPacket.class).getResponse() == ConnectAckPacket.CONNECTION_ACCEPTED )
-			{
-				adapter.onConnectStateChanged(    adapter.setConnectState( ConnectState.CONNECTED ).getConnectState() );
-			}
-			else
-			{
-				adapter.close();
-				
-				if( adapter.isAuthenticated() )
-				{
-					System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.CONN:\tstill  authenticated,  disconnection  may  orignate  in  authentication  error  (secret  key  unavailable  now),  so  retrive  a  new  secret  key.");
-					
-					adapter.setConnectivityError(2);  //  access  key  expired,  so  switch  connectivity  error  and  call  the  check  method  to  reconnect  by  a  new  access  key.
-				}
-			}
-		}
-		else
 		if( packet instanceof GroupChatPacket )
 		{
 			
@@ -109,7 +75,7 @@ public  class  InboundHandler
 			adapter.addCall(ObjectUtils.cast(packet,CallPacket.class).getRoomId(),ObjectUtils.cast(packet,CallPacket.class).getContactId(),ObjectUtils.cast(packet,CallPacket.class).getContentType() );
 		}
 		else
-		if( packet.getHeader().getAckLevel() ==  1 )
+		if( packet.getAckLevel()   ==  1 )
 		{
 			adapter.send(          new  PendingAckPacket( packet.getContactId(),packet.getId() ) );
 		}

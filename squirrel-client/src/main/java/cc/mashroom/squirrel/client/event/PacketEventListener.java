@@ -15,14 +15,16 @@
  */
 package cc.mashroom.squirrel.client.event;
 
+import  java.io.IOException;
+
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 
 public  interface  PacketEventListener
 {
-	public  boolean  onBeforeSend(   Packet  packet )  throws  Throwable;
+	public  void  onBeforeSend( Packet  packet )  throws  IOException;
 	
-	public  void  onSent( Packet  packet,TransportState  tranportState );
+	public  void  onSent( Packet  packet, TransportState  tranportState );
 	
-	public  void  onReceived( Packet  packet );
+	public  void  onReceived(   Packet  packet );
 }

@@ -122,7 +122,7 @@ public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 	@Override
 	public  void  channelInactive( ChannelHandlerContext  context      )
 	{
-		setConnectState(    ConnectState.DISCONNECTED );
+		setConnectState(    ConnectState.DISCONNECTED );context.close();
 	}
 	@SneakyThrows( value= {InterruptedException.class} )
 	@Synchronized
