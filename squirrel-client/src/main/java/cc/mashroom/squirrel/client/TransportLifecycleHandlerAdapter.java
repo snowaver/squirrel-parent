@@ -46,7 +46,7 @@ import  lombok.experimental.Accessors;
 
 public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHandlerAdapter<?>>  extends  NetworkHandlerAdapter
 {
-	public  final  static  SSLContext  SSL_CONTEXT = SecureUtils.getSSLContext( "/squirrel.cer" );
+	public  final  static  SSLContext      SSL_CONTEXT  = SecureUtils.getSSLContext( "/squirrel.cer" );
 	
 	@Getter( value = AccessLevel.PUBLIC    )
 	private  int  keepalive = 600;
@@ -62,7 +62,7 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 	@Setter( value = AccessLevel.PROTECTED )
 	private  InboundHandler  handler = new  InboundHandler();
 
-	private  LifecycleEventDispatcher  lifecycleEventDispatcher = new  LifecycleEventDispatcher();
+	protected  LifecycleEventDispatcher  lifecycleEventDispatcher     =new  LifecycleEventDispatcher();
 	
 	public  void  channelRead( ChannelHandlerContext  context,Object  packet )
 	{
@@ -101,7 +101,7 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 	{
 		setId(null).setAccessKey(null);
 	}
-	@SneakyThrows( {InterruptedException.class, ExecutionException.class,TimeoutException.class} )
+	@SneakyThrows( value={InterruptedException.class,ExecutionException.class,TimeoutException.class} )
 	@Override
 	protected  boolean  authenticate( Object  ...  objects  )
 	{

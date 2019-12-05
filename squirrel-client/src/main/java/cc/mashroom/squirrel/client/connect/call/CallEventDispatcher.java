@@ -15,42 +15,28 @@
  */
 package cc.mashroom.squirrel.client.connect.call;
 
-import  java.util.List;
-import  java.util.concurrent.CopyOnWriteArrayList;
-
 import  cc.mashroom.squirrel.paip.message.call.CloseCallReason;
+import  cc.mashroom.util.event.EventDispather;
 
-public  class  CallEventDispatcher
+public  class  CallEventDispatcher  extends  EventDispather<CallListener>
 {
-	private  static  List<CallListener>  LISTENERS = new  CopyOnWriteArrayList<CallListener>();
-	
-	public  static  void  addListener(    CallListener  listener )
+	public  void  onStart( Call  call )
 	{
-		if( listener != null )  LISTENERS.add(    listener );
+		for( CallListener  listener : super.listeners )  listener.onStart( call );
 	}
 	
-	public  static  void  onClose( Call  call, boolean  proactively , CloseCallReason  reason )
+	public  void  onClose( Call  call, boolean  proactively , CloseCallReason  reason )
 	{
-		for( CallListener  listener : LISTENERS )  listener.onClose( call,proactively,reason );
+		for( CallListener  listener : super.listeners )  listener.onClose( call,proactively,reason );
 	}
 	
-	public  static  void  onRoomCreated( Call  call )
+	public  void  onError( Call  call,CallError  error,Throwable  cause )
 	{
-		for( CallListener  listener : LISTENERS )  listener.onRoomCreated(     call );
+		for( CallListener  listener : super.listeners )  listener.onError( call,error,cause );
 	}
 	
-	public  static  void  removeListener( CallListener  listener )
+	public  void  onRoomCreated( Call  call )
 	{
-		if( listener != null )  LISTENERS.remove( listener );
-	}
-		
-	public  static  void  onStart( Call  call   )
-	{
-		for( CallListener  listener : LISTENERS )  listener.onStart( call );
-	}
-	
-	public  static  void  onError( Call  call,CallError  error,Throwable  stacktrace )
-	{
-		for( CallListener  listener : LISTENERS )  listener.onError( call, error, stacktrace );
+		for( CallListener  listener : super.listeners )  listener.onRoomCreated( call);
 	}
 }

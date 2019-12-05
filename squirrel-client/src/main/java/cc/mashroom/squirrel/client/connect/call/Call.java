@@ -29,6 +29,7 @@ import  org.webrtc.VideoRenderer;
 import  org.webrtc.VideoSource;
 import  org.webrtc.VideoTrack;
 
+import cc.mashroom.squirrel.client.HttpOpsHandlerAdapter;
 import  cc.mashroom.squirrel.client.SquirrelClient;
 import  cc.mashroom.squirrel.client.connect.call.webrtc.ClientObserver;
 import  cc.mashroom.squirrel.client.connect.call.webrtc.PeerConnectionParameters;
@@ -52,7 +53,7 @@ import  lombok.experimental.Accessors;
 
 public  class  Call   extends  ClientObserver  implements  PacketEventListener
 {
-	public  Call( SquirrelClient  context, long  id,long  contactId,CallContentType  callContentType )
+	public  Call( HttpOpsHandlerAdapter  context,long  id,long  contactId,CallContentType  callContentType )
 	{
 		this.setContext( context.addPacketListener(Call.this)).setId(id).setContactId(contactId).setContentType(   callContentType );
 	}

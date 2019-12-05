@@ -68,69 +68,35 @@ import  okhttp3.Request;
 import  okhttp3.Response;
 import  okhttp3.Interceptor.Chain;
 
-public  class  HttpOpsHandlerAdapter   extends  TransportLifecycleHandlerAdapter<HttpOpsHandlerAdapter>
+public  class  HttpOpsHandlerAdapter   extends  TransportLifecycleHandlerAdapter      <HttpOpsHandlerAdapter>
 {
-	@Setter( value=AccessLevel.PROTECTED )
+	@Setter(value=AccessLevel.PROTECTED)
 	@Accessors(chain=true)
-	private  UserMetadata    userMetadata;
-	private  LifecycleEventDispatcher lifecycleEventDispatcher=new  LifecycleEventDispatcher();
-	@Setter( value=AccessLevel.PROTECTED )
+	private  Map  <String,Object>connectParameters;
+	@Setter(value=AccessLevel.PROTECTED)
 	@Getter
 	@Accessors(chain=true)
 	private  File   cacheDir;
-	@Setter( value=AccessLevel.PROTECTED )
+	@Setter(value=AccessLevel.PROTECTED)
 	@Accessors(chain=true)
-	private  Map  <String,Object>connectParameters;
+	private  UserMetadata  userMetadata;
 	@Getter
 	@Accessors(chain=true)
 	private  Call    call;
-	public  void    delCall()
-	{
-		if( call.getState()==    CallState.CLOSED )
-		{
-			this.call = null;
-		}
-		else
-		{
-			throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** SQUIRREL  CLIENT **  can't  close  call  in  %s  state", call.getState().name()) );
-		}
-	}
 	@SneakyThrows
-	public  UserMetadata getUserMetadata()
+	public  UserMetadata  userMetadata()
 	{
 		return  this.userMetadata  == null ? null :userMetadata.clone();
 	}
 	
-	synchronized  void  addCall(final long  roomId, final  long  contactId,@NonNull final  CallContentType  contentType )
+	synchronized  void  addCall(   long  roomId,long  contactId,@NonNull  CallContentType  callContentType)
 	{
-		this.call = new  Call( this, roomId , contactId , contentType );
+		this.call = new  Call( this,roomId,contactId ,callContentType );
 	}
-	
-	protected  void  newCall( long  contactId,@NonNull  CallContentType contentType )
-	{
-		try( Response  response = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(System.getProperty("squirrel.dt.server.schema","https")).host(super.getServiceRouteManager().service().getHost()).port(Integer.parseInt(System.getProperty("squirrel.dt.server.port","8012"))).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(contentType.getValue())).build()).build()).execute() )
-		{
-		if(   response.code()  == 200  )
-			{
-				CallEventDispatcher.onError(null/* CALL  ERROR */,CallError.CREATE_ROOM,null );
-			}
-			else
-			{
-				CallEventDispatcher.onRoomCreated( call = new  Call(this,Long.parseLong(response.body().string()),contactId,contentType) );
-			}
-		}
-		catch( Throwable  e )
-		{
-			{
-				CallEventDispatcher.onError(null/* CALL  ERROR */,CallError.CREATE_ROOM,   e );
-			}
-		}
-	}
-	
 	@Override
 	protected  void  onConnectStateChanged( ConnectState  connectState )
 	{
-		if( connectState==ConnectState.CONNECTED )  lifecycleEventDispatcher.onReceivedOfflineData( (OoIData)  Db.tx(String.valueOf(this.userMetadata.getId()),java.sql.Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(Connection  connection)  throws  Throwable{ return  OfflineRepository.DAO.attach(SquirrelClient.this,true,true,true,true); }}) );
+		if( connectState==ConnectState.CONNECTED )  super.lifecycleEventDispatcher.onReceivedOfflineData( (OoIData)  Db.tx(String.valueOf(this.userMetadata.getId()),java.sql.Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(Connection  connection)  throws  Throwable{ return  OfflineRepository.DAO.attach(HttpOpsHandlerAdapter.this,true,true,true,true); }}) );
 		
 		lifecycleEventDispatcher.onConnectStateChanged(   connectState);
 	}
@@ -144,6 +110,11 @@ public  class  HttpOpsHandlerAdapter   extends  TransportLifecycleHandlerAdapter
 		this.setConnectParameters(null);
 		call   = null;
 		this.lifecycleListeners.clear();
+	}
+	
+	public  Response  intercept( Chain  reschain )   throws  IOException
+	{
+		return  reschain.proceed( reschain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata == null || this.userMetadata.getSecretKey() == null ? "" : this.userMetadata.getSecretKey()).build() );
 	}
 	
 	public  void disconnect()
@@ -165,11 +136,6 @@ public  class  HttpOpsHandlerAdapter   extends  TransportLifecycleHandlerAdapter
 		{
 			this.lifecycleEventDispatcher.onLogoutComplete( 500,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
 		}
-	}
-	
-	public  Response  intercept( Chain  reschain )   throws  IOException
-	{
-		return  reschain.proceed( reschain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata == null || this.userMetadata.getSecretKey() == null ? "" : this.userMetadata.getSecretKey()).build() );
 	}
 	/**
 	 *  connect  the  server.  throws  illegal  state  exception  if  not  routed. use  latest  connect  parameters  if  the  username  is  not  blank.  http  request  ( include  username,  password  encrypted,  longitude,  latitude  and  mac.  connect  and  read  timeout  are  5  seconds )  will  be  used  to  retrieve  the  secret  key.  initialize  user  metadata  and  offline  datas,  connect  to  paip  protocol  server  after  successful  authentication.  authenticate  complete  method  on  lifecycle  listener  will  be  called  no  matter  authentication  error  or  not.  connectivity  guarantor  will  be  scheduled  at  fixed  rate  (5  seconds)  after  connecting  by  id  or  authenticated  successfully.
