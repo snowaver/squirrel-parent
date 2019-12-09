@@ -20,9 +20,8 @@ import  java.util.concurrent.TimeUnit;
 
 import  org.joda.time.DateTime;
 
-import  cc.mashroom.squirrel.client.connect.ConnectState;
-import cc.mashroom.squirrel.client.event.LifecycleEventDispatcher;
-import cc.mashroom.squirrel.client.event.PacketEventDispatcher;
+import  cc.mashroom.squirrel.client.event.LifecycleEventDispatcher;
+import  cc.mashroom.squirrel.client.event.PacketEventDispatcher;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.call.CallPacket;
@@ -72,7 +71,7 @@ public  class  InboundHandler
 		else
 		if( packet instanceof CallPacket )
 		{
-			adapter.addCall(ObjectUtils.cast(packet,CallPacket.class).getRoomId(),ObjectUtils.cast(packet,CallPacket.class).getContactId(),ObjectUtils.cast(packet,CallPacket.class).getContentType() );
+			adapter.setCall(ObjectUtils.cast(packet,CallPacket.class).getRoomId(),ObjectUtils.cast(packet,CallPacket.class).getContactId(),ObjectUtils.cast(packet,CallPacket.class).getContentType() );
 		}
 		else
 		if( packet.getAckLevel()   ==  1 )

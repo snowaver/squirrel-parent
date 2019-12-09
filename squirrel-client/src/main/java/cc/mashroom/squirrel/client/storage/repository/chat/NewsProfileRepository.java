@@ -23,7 +23,7 @@ import  org.joda.time.DateTime;
 import  org.joda.time.DateTimeZone;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
-import  cc.mashroom.squirrel.client.SquirrelClient;
+import  cc.mashroom.squirrel.client.HttpOpsHandlerAdapter;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.client.storage.model.chat.NewsProfile;
 import  cc.mashroom.squirrel.client.storage.model.chat.group.ChatGroup;
@@ -37,18 +37,23 @@ import  lombok.NoArgsConstructor;
 @NoArgsConstructor( access=AccessLevel.PRIVATE )
 public  class  NewsProfileRepository  extends  RepositorySupport
 {
-	public  final  static  NewsProfileRepository  DAO = new  NewsProfileRepository();
+	public  int  clearBadgeCount(     long  id,int  packetType )
+	{
+		return  super.update( "UPDATE  "+super.getDataSourceBind().table()+"  SET  BADGE_COUNT = 0  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{id,packetType} );
+	}
 	
-	public  void   upsert(  SquirrelClient  context,Collection<ChatGroupUser>  chatGroupUsers )
+	public  void   upsert( HttpOpsHandlerAdapter  context,Collection  <ChatGroupUser>  chatGroupUsers )
 	{
 		for(    ChatGroupUser  chatGroupUser :  chatGroupUsers )
 		{
-			if( context.getUserMetadata().getId() == chatGroupUser.getContactId() && chatGroupUser.getIsDeleted() )
+			if( context.userMetadata().getId() == chatGroupUser.getContactId() && chatGroupUser.getIsDeleted() )
 			{
 				NewsProfileRepository.DAO.update( "DELETE  FROM  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{chatGroupUser.getChatGroupId(),PAIPPacketType.GROUP_CHAT.getValue()} );
 			}
 		}
 	}
+	
+	public  final  static  NewsProfileRepository  DAO = new  NewsProfileRepository();
 	
 	public  void   upsert( Collection<ChatGroup>    chatGroups )
 	{
@@ -68,10 +73,5 @@ public  class  NewsProfileRepository  extends  RepositorySupport
 				NewsProfileRepository.DAO.insert( new  LinkedList<Reference<Object>>(),"INSERT  INTO  "+NewsProfileRepository.DAO.getDataSourceBind().table()+"  (ID,CREATE_TIME,PACKET_TYPE,CONTACT_ID,CONTENT,BADGE_COUNT)  VALUES  (?,?,?,?,?,?)",new  Object[]{chatGroup.getId(),new  Timestamp(nowMillis = nowMillis+1),PAIPPacketType.GROUP_CHAT.getValue(),null,null,0} );
 			}
 		}
-	}
-		
-	public  int  clearBadgeCount(     long  id,int  packetType )
-	{
-		return  super.update( "UPDATE  "+super.getDataSourceBind().table()+"  SET  BADGE_COUNT = 0  WHERE  ID = ?  AND  PACKET_TYPE = ?",new  Object[]{id,packetType} );
 	}
 }

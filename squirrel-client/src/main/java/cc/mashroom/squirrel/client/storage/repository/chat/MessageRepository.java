@@ -17,9 +17,7 @@ package cc.mashroom.squirrel.client.storage.repository.chat;
 
 import  java.io.File;
 
-import  cc.mashroom.router.Schema;
-import  cc.mashroom.router.Service;
-import  cc.mashroom.squirrel.client.SquirrelClient;
+import  cc.mashroom.squirrel.client.HttpOpsHandlerAdapter;
 import  cc.mashroom.squirrel.client.storage.RepositorySupport;
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatGroupMessage;
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
@@ -30,37 +28,35 @@ import  okhttp3.Request;
 
 public  class  MessageRepository  extends  RepositorySupport
 {
-	protected  void  cacheAudioFiles(SquirrelClient  context ,ChatMessage     ...  messages )
+	protected  void  cacheAudioFiles(  HttpOpsHandlerAdapter  context,ChatMessage...  messages )
 	{
 		for( ChatMessage       message : messages )
 		{
-			if( ChatContentType.valueOf(message.getContentType())  == ChatContentType.AUDIO )
+			if( ChatContentType.valueOf(message.getContentType())     == ChatContentType.AUDIO )
 			{
 				cacheAudioFiles( context,message.getMd5() );
 			}
 		}
 	}
 	
-	protected  void  cacheAudioFiles(SquirrelClient  context ,ChatGroupMessage...  messages )
+	protected  void  cacheAudioFiles(  HttpOpsHandlerAdapter  context,ChatGroupMessage...  messages )
 	{
 		for( ChatGroupMessage  message : messages )
 		{
-			if( ChatContentType.valueOf(message.getContentType())  == ChatContentType.AUDIO )
+			if( ChatContentType.valueOf(message.getContentType())     == ChatContentType.AUDIO )
 			{
 				cacheAudioFiles( context,message.getMd5() );
 			}
 		}
 	}
 	
-	protected  void  cacheAudioFiles(SquirrelClient  context ,String...  md5s )
+	protected  void  cacheAudioFiles(  HttpOpsHandlerAdapter  context,String...md5s )
 	{
-		Service  service = context.getServiceRouteManager().current( Schema.HTTPS );
-		
 		for( String  md5 : md5s )
 		{
 			try
 			{
-				FileUtils.createFileIfAbsent( new  File(context.getCacheDir(),"file/"+md5),context.okhttpClient(5,5,1200).newCall(new  Request.Builder().get().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("file/"+md5).build()).build()).execute().body().bytes() );
+				FileUtils.createFileIfAbsent( new  File(context.getCacheDir(),"file/"+md5),context.okhttpClient(5,5,1200).newCall(new  Request.Builder().get().url(new  HttpUrl.Builder().scheme(System.getProperty("squirrel.dt.server.schema","https")).host(context.getServiceRouteManager().service().getHost()).port(Integer.parseInt(System.getProperty("squirrel.dt.server.port","8011"))).addPathSegments("file/"+md5).build()).build()).execute().body().bytes() );
 			}
 			catch( Throwable  e )
 			{

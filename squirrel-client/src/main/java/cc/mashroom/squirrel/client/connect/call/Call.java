@@ -55,7 +55,7 @@ public  class  Call   extends  ClientObserver  implements  PacketEventListener
 {
 	public  Call( HttpOpsHandlerAdapter  context,long  id,long  contactId,CallContentType  callContentType )
 	{
-		this.setContext( context.addPacketListener(Call.this)).setId(id).setContactId(contactId).setContentType(   callContentType );
+		this.setContext( context.addListener(Call.this)).setId(id).setContactId(contactId).setContentType(   callContentType );
 	}
 	
 	public  Call  initialize(    Object  platform,PeerConnectionParameters  parameters )
@@ -226,7 +226,7 @@ public  class  Call   extends  ClientObserver  implements  PacketEventListener
 		
 		if( this.peerConnectionFactory!= null )    this.peerConnectionFactory.dispose();
 		
-		CallEventDispatcher.onClose(this,proactively,reason);
+		callEventDispatcher.onClose(this,proactively,reason);
 		
 		this.state.set(     CallState.CLOSED );
 		
@@ -273,7 +273,7 @@ public  class  Call   extends  ClientObserver  implements  PacketEventListener
 	{
 		super.onAddStream(  addedMediaStream );
 		
-		CallEventDispatcher.onStart(    this );
+		callEventDispatcher.onStart(    this );
 		
 		if( peerConnectionParameters.videoEnabled   )
 		{

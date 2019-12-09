@@ -21,7 +21,7 @@ import  java.sql.Timestamp;
 import  java.util.List;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
-import  cc.mashroom.squirrel.client.SquirrelClient;
+import  cc.mashroom.squirrel.client.HttpOpsHandlerAdapter;
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatGroupMessage;
 import  cc.mashroom.squirrel.client.storage.repository.OfflineRepository;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
@@ -37,9 +37,7 @@ import  lombok.NoArgsConstructor;
 @NoArgsConstructor( access =    AccessLevel.PRIVATE )
 public  class  ChatGroupMessageRepository  extends  MessageRepository
 {
-	public  final  static  ChatGroupMessageRepository  DAO = new  ChatGroupMessageRepository();
-	
-	public  boolean  attach( SquirrelClient  context,File  cacheDir,List<ChatGroupMessage>  messages )  throws  IOException,IllegalArgumentException,IllegalAccessException
+	public  boolean  attach( HttpOpsHandlerAdapter  context,File  cacheDir,List<ChatGroupMessage>  messages )  throws  IOException,IllegalArgumentException,IllegalAccessException
 	{
 		if( !messages.isEmpty() )
 		{
@@ -55,13 +53,15 @@ public  class  ChatGroupMessageRepository  extends  MessageRepository
 		return  true;
 	}
 	
-	public  int  upsert( SquirrelClient  context,File  cacheDir,GroupChatPacket  packet,TransportState  transportState )  throws  IOException
+	public  final  static  ChatGroupMessageRepository  DAO      = new    ChatGroupMessageRepository();
+	
+	public  int  upsert( HttpOpsHandlerAdapter  context,File  cacheDir,GroupChatPacket  packet,TransportState  transportState )  throws  IOException
 	{
 		if( transportState==TransportState.RECEIVED )
 		{
 			if( packet.getSyncId() > ObjectUtils.getOrDefaultIfNull(ChatGroupMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),0L)+1 )
 			{
-				OfflineRepository.DAO.attach(context, false,false   ,false,true );          return  1;
+				OfflineRepository.DAO.attach(context, false,false   ,false,true );return  1;
 			}
 			
 			if( packet.getContentType()    == ChatContentType.AUDIO )

@@ -82,7 +82,7 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 	{
 		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.CONN:\tCONNECT.STATE = "+ connectState.name() );
 		
-		super.connect( new  TransportConfig(SSL_CONTEXT,super.serviceRouteManager.service().getHost(),8012,5* 1000,this.keepalive,new  Object[]{id,secretKey}) );
+		super.connect( new  TransportConfig(SSL_CONTEXT,super.serviceRouteManager.service().getHost(),Integer.parseInt(System.getProperty("squirrel.im.server.port","8012")),5* 1000,this.keepalive,new  Object[]{id,secretKey}) );
 			
 		super.checkConnectivity(  10 );
 	}
@@ -90,6 +90,13 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 	protected  void  onConnectStateChanged( ConnectState  connectState )
 	{
 		super.onConnectStateChanged( connectState );
+	}
+	@Override
+	public  void    release()
+	{
+		super.release();
+		
+		packetWritingPool.shutdown(  );
 	}
 	
 	public  void  send(Packet  packet )

@@ -21,7 +21,7 @@ import  java.sql.Timestamp;
 import  java.util.List;
 
 import  cc.mashroom.db.annotation.DataSourceBind;
-import  cc.mashroom.squirrel.client.SquirrelClient;
+import  cc.mashroom.squirrel.client.HttpOpsHandlerAdapter;
 import  cc.mashroom.squirrel.client.storage.model.chat.ChatMessage;
 import  cc.mashroom.squirrel.client.storage.repository.OfflineRepository;
 import  cc.mashroom.squirrel.paip.message.PAIPPacketType;
@@ -45,7 +45,7 @@ public  class  ChatMessageRepository   extends  MessageRepository
 		return  super.update( "DELETE  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table()+"  WHERE  ID = ?  AND  CONTACT_ID = ?",new  Object[]{packet.getChatPacketId(),packet.getContactId()} );
 	}
 	
-	public  boolean  attach( SquirrelClient  context,File  cacheDir,List<ChatMessage>  messages )  throws  IOException,IllegalArgumentException,IllegalAccessException
+	public  boolean  attach( HttpOpsHandlerAdapter  context, File  cacheDir, List<ChatMessage>  messages )  throws  IOException,IllegalArgumentException,IllegalAccessException
 	{
 		if( !messages.isEmpty() )
 		{
@@ -59,7 +59,7 @@ public  class  ChatMessageRepository   extends  MessageRepository
 		return  true;
 	}
 		
-	public  int  upsert( SquirrelClient  context,File  cacheDir,ChatPacket  packet,TransportState  transportState )  throws  IOException
+	public  int  upsert( HttpOpsHandlerAdapter  context,File  cacheDir,ChatPacket  packet,TransportState  transportState )  throws  IOException
 	{
 		if( transportState == TransportState.RECEIVED )
 		{

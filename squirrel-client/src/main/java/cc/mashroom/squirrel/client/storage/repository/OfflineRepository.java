@@ -19,9 +19,7 @@ import  java.sql.Timestamp;
 
 import  cc.mashroom.db.GenericRepository;
 import  cc.mashroom.db.annotation.DataSourceBind;
-import  cc.mashroom.router.Schema;
-import  cc.mashroom.router.Service;
-import  cc.mashroom.squirrel.client.SquirrelClient;
+import  cc.mashroom.squirrel.client.HttpOpsHandlerAdapter;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.repository.chat.ChatMessageRepository;
 import  cc.mashroom.squirrel.client.storage.repository.chat.ChatGroupMessageRepository;
@@ -29,7 +27,7 @@ import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupRepos
 import  cc.mashroom.squirrel.client.storage.repository.chat.group.ChatGroupSyncRepository;
 import  cc.mashroom.squirrel.client.storage.repository.user.ContactRepository;
 import  cc.mashroom.util.JsonUtils;
-import cc.mashroom.util.ObjectUtils;
+import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.collection.map.HashMap;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
@@ -41,27 +39,13 @@ import  okhttp3.Response;
 @NoArgsConstructor( access=AccessLevel.PRIVATE )
 public  class  OfflineRepository  extends  GenericRepository
 {
-	public  final  static OfflineRepository  DAO    =  new  OfflineRepository();
-	
-	public  OoIData  attach( SquirrelClient  context,boolean  includeContacts,boolean  includeChatGroups,boolean  includeChatMessages,boolean  includeChatGroupMessages )
+	public  OoIData  attach( HttpOpsHandlerAdapter  context,boolean  includeContacts,boolean  includeChatGroups,boolean  includeChatMessages,boolean  includeChatGroupMessages )
 	{
-		Timestamp  contactLatestModifyTime = ObjectUtils.getOrDefaultIfNull(ContactRepository.DAO.lookupOne(Timestamp.class,"SELECT  MAX(LAST_MODIFY_TIME)  AS  LATEST_MODIFY_TIME  FROM  "+ContactRepository.DAO.getDataSourceBind().table(),new  Object[]{}),!includeContacts ? null : new  Timestamp(0) );
+		Timestamp  contactLatestModifyTime = ObjectUtils.getOrDefaultIfNull(ContactRepository.DAO.lookupOne(Timestamp.class,"SELECT  MAX(LAST_MODIFY_TIME)  AS  LATEST_MODIFY_TIME  FROM  "+ContactRepository.DAO.getDataSourceBind().table(),new  Object[]{}),!includeContacts ? null : new  Timestamp(0));
 		
-		Long  latestChatGroupSyncId = ObjectUtils.getOrDefaultIfNull( ChatGroupSyncRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupSyncRepository.DAO.getDataSourceBind().table()),!includeChatGroups ? null : 0L );
-		
-		Long  latestChatMessageSyncId = ObjectUtils.getOrDefaultIfNull( ChatMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),!includeChatMessages ? null : 0L );
-		
-		Long  latestChatGroupMessageSyncId = ObjectUtils.getOrDefaultIfNull(ChatGroupMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),!includeChatGroupMessages ? null : 0L );
-		
-		Service  service=context.getServiceRouteManager().current(Schema.HTTPS);
-		
-		try(Response  response = context.okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(service.getSchema()).host(service.getHost()).port(service.getPort()).addPathSegments("offline/lookup").addQueryParameter("checkpoints",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CHAT_MESSAGE_CHECK_POINT",latestChatMessageSyncId).addEntry("GROUP_CHAT_MESSAGE_CHECK_POINT",latestChatGroupMessageSyncId).addEntry("CONTACT_CHECK_POINT",contactLatestModifyTime == null ? null : contactLatestModifyTime.getTime()).addEntry("CHAT_GROUP_CHECK_POINT",latestChatGroupSyncId))).build()).build()).execute() )
+		try(Response  response = context.okhttpClient(5,5,10).newCall(new  Request.Builder().url(new   HttpUrl.Builder().scheme(System.getProperty("squirrel.dt.server.schema","https")).host(context.getServiceRouteManager().service().getHost()).port(Integer.parseInt(System.getProperty("squirrel.dt.server.port","8011"))).addPathSegments("offline/lookup").addQueryParameter("checkpoints",JsonUtils.toJson(new  HashMap<String,Object>().addEntry("CHAT_MESSAGE_CHECK_POINT",ObjectUtils.getOrDefaultIfNull(ChatMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),!includeChatMessages ? null : 0L)).addEntry("GROUP_CHAT_MESSAGE_CHECK_POINT",ObjectUtils.getOrDefaultIfNull(ChatGroupMessageRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupMessageRepository.DAO.getDataSourceBind().table(),new  Object[]{}),!includeChatGroupMessages ? null : 0L)).addEntry("CONTACT_CHECK_POINT",contactLatestModifyTime == null ? null : contactLatestModifyTime.getTime()).addEntry("CHAT_GROUP_CHECK_POINT",ObjectUtils.getOrDefaultIfNull(ChatGroupSyncRepository.DAO.lookupOne(Long.class,"SELECT  MAX(SYNC_ID)  FROM  "+ChatGroupSyncRepository.DAO.getDataSourceBind().table()),!includeChatGroups ? null : 0L)))).build()).build()).execute() )
 		{
-			if( response.code() != 200 )
-			{
-				throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** OFFLINE  REPOSITORY **  response  code  (%d)  error",response.code()) );
-			}
-			else
+			if( response.code() == 200 )
 			{
 				OoIData  ooiData = JsonUtils.mapper.readValue( response.body().string(),OoIData.class );
 				
@@ -71,10 +55,16 @@ public  class  OfflineRepository  extends  GenericRepository
 				
 				ChatGroupMessageRepository.DAO.attach(context,context.getCacheDir(),ooiData.getOfflineGroupChatMessages() );return  ooiData;    
 			}
+			else
+			{
+				throw  new  IllegalStateException( String.format("SQUIRREL-CLIENT:  ** OFFLINE  REPOSITORY **  response  code  (%d)  error",response.code()) );
+			}
 		}
 		catch(           Throwable   e )
 		{
 			throw  new  RuntimeException( "SQUIRREL-CLIENT:  ** OFFLINE  REPOSITORY **  error  in  pulling  the  offline/insert  datas",e );
 		}
 	}
+	
+	public  final  static OfflineRepository  DAO    =  new  OfflineRepository();
 }

@@ -90,11 +90,11 @@ public  class  SquirrelClient      extends  TransportLifecycleHandlerAdapter    
 		this.setContext(context).setCacheDir(  FileUtils.createDirectoryIfAbsent(cacheDir) );
 	}
 	
-	private  ScheduledThreadPoolExecutor  connectivityGuarantorThreadPool = new  ScheduledThreadPoolExecutor( 1,new  DefaultThreadFactory("CONNECT-THREAD",false,1) );
-	
 	@Setter( value=AccessLevel.PROTECTED )
 	@Accessors(chain=true)
 	private  Object  context;
+	
+	private  File   cacheDir;
 	
 	
 	
