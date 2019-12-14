@@ -20,16 +20,13 @@ import  java.util.concurrent.TimeUnit;
 
 import  org.joda.time.DateTime;
 
-import  cc.mashroom.squirrel.client.event.LifecycleEventDispatcher;
-import  cc.mashroom.squirrel.client.event.PacketEventDispatcher;
+import  cc.mashroom.squirrel.client.connect.call.Call;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
 import  cc.mashroom.squirrel.paip.message.call.CallPacket;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallPacket;
 import  cc.mashroom.squirrel.paip.message.chat.ChatPacket;
 import  cc.mashroom.squirrel.paip.message.chat.GroupChatPacket;
-import  cc.mashroom.squirrel.paip.message.connect.ConnectAckPacket;
-import  cc.mashroom.squirrel.paip.message.connect.DisconnectAckPacket;
 import  cc.mashroom.squirrel.paip.message.connect.PendingAckPacket;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.ObjectUtils;
@@ -37,24 +34,22 @@ import  cc.mashroom.util.collection.map.ConcurrentHashMap;
 import  cc.mashroom.util.collection.map.Map;
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.util.concurrent.DefaultThreadFactory;
-/*
-@NoArgsConstructor(  access =  AccessLevel.PRIVATE )
-*/
+
 public  class  InboundHandler
 {
-	private  ScheduledThreadPoolExecutor pendingScheduledChecker = new  ScheduledThreadPoolExecutor(    1, new  DefaultThreadFactory("ACK-SCHEDULED-CHECKER",false,1) );
+	private  Map<Long,Packet>  pendings=  new  ConcurrentHashMap<Long,Packet>();
 	
-	private  Map<Long,Packet>  pendings =new  ConcurrentHashMap<Long,Packet>();
+	private  ScheduledThreadPoolExecutor  pendingScheduledChecker = new  ScheduledThreadPoolExecutor( 1,new  DefaultThreadFactory("ACK-SCHEDULED-CHECKER",false,1) );
 	
-	public  void  channelRead( ChannelHandlerContext  context,Object  object )//  throws  Exception
+	public  void  channelRead( ChannelHandlerContext  context , Object  object )
 	{
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+object.toString() );
+		
 		Packet  packet = ObjectUtils.cast( object,Packet.class );
 		
-		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+ packet.toString() );
+		SquirrelClient  adapter= ObjectUtils.cast( context.pipeline().get("squirrel.client") );
 		
-		SquirrelClient  adapter  = ObjectUtils.cast( context.pipeline().get( "squirrel.client" ) );
-		
-		if( packet instanceof GroupChatPacket )
+		if( packet instanceof GroupChatPacket  )
 		{
 			
 		}
@@ -64,58 +59,51 @@ public  class  InboundHandler
 			adapter.send( new  PendingAckPacket(packet.getContactId(),packet.getId()).setAttatchments(String.format("{\"SYNC_ID\":%d}",ObjectUtils.cast(packet,ChatPacket.class).getContactSyncId())) );
 		}
 		else
-		if( packet instanceof PendingAckPacket)
+		if( packet instanceof PendingAckPacket )
 		{
-			unpend( adapter,ObjectUtils.cast(packet,PendingAckPacket.class), TransportState.SENT );
+		unpend( adapter,ObjectUtils.cast(packet,PendingAckPacket.class), TransportState.SENT );
 		}
 		else
 		if( packet instanceof CallPacket )
 		{
-			adapter.setCall(ObjectUtils.cast(packet,CallPacket.class).getRoomId(),ObjectUtils.cast(packet,CallPacket.class).getContactId(),ObjectUtils.cast(packet,CallPacket.class).getContentType() );
+			adapter.setCall( new  Call(adapter,ObjectUtils.cast(packet,CallPacket.class).getRoomId(),ObjectUtils.cast(packet,CallPacket.class).getContactId(),ObjectUtils.cast(packet,CallPacket.class).getContentType()) );
 		}
 		else
 		if( packet.getAckLevel()   ==  1 )
 		{
-			adapter.send(          new  PendingAckPacket( packet.getContactId(),packet.getId() ) );
+			adapter.send(        new  PendingAckPacket(packet.getContactId(),packet.getId()) );
 		}
 		else
-		if( packet instanceof CloseCallPacket )
+		if( packet instanceof CloseCallPacket  )
 		{
-			if( adapter.getCall() == null || adapter.getCall().getId() != ObjectUtils.cast(packet,CloseCallPacket.class).getRoomId() || adapter.getCall().getContactId() != ObjectUtils.cast(packet,CloseCallPacket.class).getContactId() )
+			if( adapter.getCall() == null || adapter.getCall().getId() != ObjectUtils.cast(packet,CloseCallPacket.class).getRoomId() || adapter.getCall().getContactId() !=   ObjectUtils.cast(packet,CloseCallPacket.class).getContactId() )
 			{
 				return;
 			}
 		}
 		
-		PacketEventDispatcher.onReceived( adapter.getPacketListeners(),packet );
+		adapter.getPacketEventDispatcher().onReceived(  packet );
 	}
 	
-	public  Packet  unpend( TransportLifecycleHandlerAdapter<?>  context,PendingAckPacket<?>  pendingAckPacket,TransportState  transportState )
+	public  void  unpend( TransportLifecycleHandlerAdapter  <?>  context,PendingAckPacket<?>  pendingAckPacket,TransportState  transportState )
 	{
-		Packet  packet = this.pendings.remove( pendingAckPacket.getPacketId() );
-		
-		if( packet == null )
-		{
-			return   packet;
-		}
+		Packet <?>  packet =     this.pendings.remove( pendingAckPacket.getPendingPacketId() );
 		
 		if( packet instanceof ChatPacket )
 		{
-			ObjectUtils.cast(packet,ChatPacket.class).setSyncId(      Long.parseLong(JsonUtils.fromJson(pendingAckPacket.getAttatchments(),Map.class).get("SYNC_ID").toString()) );
+			context.getPacketEventDispatcher().onSent( ObjectUtils.cast(packet,ChatPacket.class).setSyncId(     Long.parseLong(JsonUtils.fromJson(pendingAckPacket.getAttatchments(),Map.class).get("SYNC_ID").toString())),transportState );
 		}
 		else
-		if( packet instanceof GroupChatPacket )
+		if( packet instanceof GroupChatPacket  )
 		{
-			ObjectUtils.cast(packet,GroupChatPacket.class).setSyncId( Long.parseLong(JsonUtils.fromJson(pendingAckPacket.getAttatchments(),Map.class).get("SYNC_ID").toString()) );
+			context.getPacketEventDispatcher().onSent( ObjectUtils.cast(packet,GroupChatPacket.class).setSyncId(Long.parseLong(JsonUtils.fromJson(pendingAckPacket.getAttatchments(),Map.class).get("SYNC_ID").toString())),transportState );
 		}
-		
-		PacketEventDispatcher.onSent(    context.getPacketListeners() , packet ,  transportState );  return  packet;
 	}
 	
-	public  void  pend(final  TransportLifecycleHandlerAdapter<?> context,final  Packet  pendingPacket,final  long  writeTimeout,final  TimeUnit  timeunit )
+	public  void  pend(final  TransportLifecycleHandlerAdapter<?> context,final  Packet  pendingPacket,final  long  writeTimeout,final  TimeUnit  writeTimeoutTimeunit )
 	{
-		pendings.addEntry( pendingPacket.getId(), ObjectUtils.cast( pendingPacket,Packet.class ) );
+		pendings.addEntry(pendingPacket.getId(),ObjectUtils.cast(pendingPacket,Packet.class) );
 		
-		pendingScheduledChecker.schedule( new  Runnable(){public  void  run() { unpend(context,new  PendingAckPacket(pendingPacket.getContactId(),pendingPacket.getId()) , TransportState.SEND_FAILED ); } },   writeTimeout,timeunit );
+		pendingScheduledChecker.schedule( new  Runnable(){public  void  run() { unpend(context,new  PendingAckPacket(pendingPacket.getContactId(),pendingPacket.getId()),TransportState.SEND_FAILED); }},writeTimeout,writeTimeoutTimeunit );
 	}
 }

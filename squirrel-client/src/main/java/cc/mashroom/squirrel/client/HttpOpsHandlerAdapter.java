@@ -18,11 +18,6 @@ package cc.mashroom.squirrel.client;
 import  java.io.File;
 import  java.io.IOException;
 import  java.net.SocketTimeoutException;
-import  java.util.List;
-import  java.util.concurrent.CopyOnWriteArrayList;
-import  java.util.concurrent.LinkedBlockingQueue;
-import  java.util.concurrent.ScheduledFuture;
-import  java.util.concurrent.ThreadPoolExecutor;
 import  java.util.concurrent.TimeUnit;
 
 import  org.apache.commons.codec.binary.Hex;
@@ -30,16 +25,11 @@ import  org.apache.commons.codec.binary.Hex;
 import  cc.mashroom.db.common.Db;
 import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.db.connection.Connection;
-import  cc.mashroom.router.ServiceListRequestStrategy;
-import  cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.connect.UserMetadata;
 import  cc.mashroom.squirrel.client.connect.call.Call;
 import  cc.mashroom.squirrel.client.connect.call.CallError;
 import  cc.mashroom.squirrel.client.connect.call.CallEventDispatcher;
-import  cc.mashroom.squirrel.client.connect.call.CallState;
 import  cc.mashroom.squirrel.client.connect.util.HttpUtils;
-import  cc.mashroom.squirrel.client.event.LifecycleEventDispatcher;
-import  cc.mashroom.squirrel.client.event.LifecycleEventListener;
 import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.repository.OfflineRepository;
@@ -47,14 +37,12 @@ import  cc.mashroom.squirrel.paip.message.call.CallContentType;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
 import  cc.mashroom.squirrel.paip.message.connect.DisconnectAckPacket;
 import  cc.mashroom.squirrel.transport.ConnectState;
-import  cc.mashroom.squirrel.transport.TransportAndConnectivityGuarantorHandlerAdapter;
 import  cc.mashroom.util.DigestUtils;
 import  cc.mashroom.util.JsonUtils;
 import  cc.mashroom.util.NoopHostnameVerifier;
 import  cc.mashroom.util.NoopX509TrustManager;
 import  cc.mashroom.util.collection.map.HashMap;
 import  cc.mashroom.util.collection.map.Map;
-import  io.netty.util.concurrent.DefaultThreadFactory;
 import  lombok.AccessLevel;
 import  lombok.Getter;
 import  lombok.NonNull;
@@ -71,10 +59,12 @@ import  okhttp3.Interceptor.Chain;
 
 public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAdapter<HttpOpsHandlerAdapter>
 {
+	@Getter
 	private  CallEventDispatcher   callEventDispatcher       = new  CallEventDispatcher();
 	
 	private  Storage  storage    = new  Storage();
 	@Getter
+	@Setter(value=AccessLevel.PUBLIC   )
 	@Accessors(  chain=true )
 	protected  Call     call;
 	@Setter(value=AccessLevel.PROTECTED)

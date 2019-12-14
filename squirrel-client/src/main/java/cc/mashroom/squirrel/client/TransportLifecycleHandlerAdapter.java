@@ -54,6 +54,7 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 	@Accessors(chain=true)
 	private  String  accessKey;
 	private  ExecutorService  packetWritingPool = Executors.newFixedThreadPool( 2,new  DefaultThreadFactory("MULTIPART-SENDER",false,1) );
+	@Getter
 	private  PacketEventDispatcher  packetEventDispatcher = new  PacketEventDispatcher();
 	@Setter( value = AccessLevel.PROTECTED )
 	@Getter
@@ -61,9 +62,9 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 	private  String  id;
 	@Setter( value = AccessLevel.PROTECTED )
 	private  InboundHandler  handler = new  InboundHandler();
-
+	@Getter
 	protected  LifecycleEventDispatcher  lifecycleEventDispatcher     =new  LifecycleEventDispatcher();
-	
+	@Override
 	public  void  channelRead( ChannelHandlerContext  context,Object  packet )
 	{
 		super.channelRead( context,packet );

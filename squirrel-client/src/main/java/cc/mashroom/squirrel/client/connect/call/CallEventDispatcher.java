@@ -15,28 +15,29 @@
  */
 package cc.mashroom.squirrel.client.connect.call;
 
+import  cc.mashroom.squirrel.client.connect.call.webrtc.ClientObserver;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallReason;
 import  cc.mashroom.util.event.EventDispather;
 
 public  class  CallEventDispatcher  extends  EventDispather<CallListener>
 {
-	public  void  onStart( Call  call )
+	public  void  onRoomCreated( ClientObserver  call )
+	{
+		for( CallListener  listener : super.listeners )  listener.onRoomCreated( call );
+	}
+	
+	public  void  onStart( ClientObserver  call )
 	{
 		for( CallListener  listener : super.listeners )  listener.onStart( call );
 	}
 	
-	public  void  onClose( Call  call, boolean  proactively , CloseCallReason  reason )
+	public  void  onClose( ClientObserver  call,boolean  proactively,CloseCallReason  reason )
 	{
 		for( CallListener  listener : super.listeners )  listener.onClose( call,proactively,reason );
 	}
 	
-	public  void  onError( Call  call,CallError  error,Throwable  cause )
+	public  void  onError( ClientObserver  call,CallError  error,Throwable cause )
 	{
 		for( CallListener  listener : super.listeners )  listener.onError( call,error,cause );
-	}
-	
-	public  void  onRoomCreated( Call  call )
-	{
-		for( CallListener  listener : super.listeners )  listener.onRoomCreated( call);
 	}
 }

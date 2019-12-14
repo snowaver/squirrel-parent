@@ -34,6 +34,7 @@ import  cc.mashroom.util.Reference;
 import  cc.mashroom.util.StringUtils;
 import  cc.mashroom.util.collection.map.LinkedMap;
 import  lombok.AccessLevel;
+import lombok.Getter;
 import  lombok.NoArgsConstructor;
 import  lombok.NonNull;
 
@@ -45,9 +46,9 @@ public  class      ContactRepository  extends  RepositorySupport
 	{
 		for( Contact  contact:contacts )  upsert( contact,true);
 	}
-	
+	@Getter
 	private  LinkedMap<Long,Contact>  contactDirect   = new  LinkedMap<Long,Contact>();
-	
+	@Getter
 	private  ArrayListValuedHashMap<String,Contact>contactGroups    = new  ArrayListValuedHashMap<String,Contact>();
 	
 	public  final  static  ContactRepository  DAO = new  ContactRepository();

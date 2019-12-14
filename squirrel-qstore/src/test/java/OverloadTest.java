@@ -49,7 +49,7 @@ public class OverloadTest implements TransportFutureListener<PendingAckPacket<?>
 		OverloadTest listener = new OverloadTest();
 		try {
 			for(QstoreSubmitter submitter : submitters) {
-				submitter.connect( new  TransportConfig(null,"127.0.0.1",8014,5000,15*60) );
+//				submitter.connect( new  TransportConfig(null,"127.0.0.1",8014,5000,15*60) );
 			}
 			DateTime now = DateTime.now();
 			previous = now;

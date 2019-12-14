@@ -15,6 +15,7 @@
  */
 package cc.mashroom.squirrel.client.connect.call;
 
+import cc.mashroom.squirrel.client.connect.call.webrtc.ClientObserver;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallReason;
 
 public  interface  CallListener
@@ -22,13 +23,13 @@ public  interface  CallListener
 	/**
 	 *  will  be  triggered  when  a  new  room  is  created.
 	 */
-	public  void  onRoomCreated( Call  call );
+	public  void  onRoomCreated( ClientObserver  call  );
 	/**
 	 *  call  is  connected  and  udp/tcp  multimedia  packets  is  exchanging  now  by  stun/turn/ice  server.
 	 */
-	public  void  onStart( Call  call );
+	public  void  onStart( ClientObserver  call  );
 	
-	public  void  onError( Call  call,CallError  error,Throwable  stacktrace );
+	public  void  onError( ClientObserver  call,CallError  error,Throwable  stacktrace );
 	
-	public  void  onClose( Call  call,boolean  isClosedByUser,CloseCallReason  reason );
+	public  void  onClose( ClientObserver  call,boolean  isClosedByUser,CloseCallReason  reason );
 }

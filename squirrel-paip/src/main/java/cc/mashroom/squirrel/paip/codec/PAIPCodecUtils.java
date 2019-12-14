@@ -59,19 +59,17 @@ public  class  PAIPCodecUtils
         
         if(  buf.readableBytes()       <=  0 )     return  0;
         
-        for( @SuppressWarnings("unused")Byte  remainingLengthByte;;counter= counter+1 )
+        for( Byte  remainingLengthByte;; counter = counter+1)
         {
-        	if(((remainingLength = remainingLength+(((remainingLengthByte = buf.readByte()) & 0x7F) << (7*counter))) & 0x80) == 0 )
+        	remainingLength = remainingLength+ (((remainingLengthByte=buf.readByte())&0x7F)<<(7*counter));
+        	
+        	if( (remainingLengthByte &   0x80)  == 0 )
         	{
         		break  ;
         	}
         }
         
         return  remainingLength;
-    }
-    public  static  ByteBuf  encode( String  string,String  encode )  throws  UnsupportedEncodingException
-    {
-    	return  encodeBytes( StringUtils.isBlank(encode) ? string.getBytes() : string.getBytes(encode ) );
     }
     @SneakyThrows(value={UnsupportedEncodingException.class})
     public  static  ByteBuf  encode( String  string  )
@@ -83,7 +81,10 @@ public  class  PAIPCodecUtils
     {
     	return  decode(     byteBuf,"UTF-8" );
     }
-    
+    public  static  ByteBuf  encode( String  string,String  encode )  throws  UnsupportedEncodingException
+    {
+    	return  encodeBytes( StringUtils.isBlank(encode) ? string.getBytes() : string.getBytes(encode ) );
+    }
     public  static  byte[]  decodeBytes(   ByteBuf  byteBuf )
     {
         if(     byteBuf.readableBytes() <= 1 )  return  null;
