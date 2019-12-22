@@ -27,6 +27,7 @@
 	<modules >
 		<module>squirrel-paip</module>
 		<module>squirrel-client</module>
+		<module>squirrel-transport</module>
 	</modules>
 	
 	<dependencies >

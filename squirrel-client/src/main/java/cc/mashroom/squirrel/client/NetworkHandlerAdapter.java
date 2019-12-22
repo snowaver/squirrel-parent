@@ -15,21 +15,8 @@
  */
 package cc.mashroom.squirrel.client;
 
-import  cc.mashroom.router.ServiceListRequestStrategy;
-import  cc.mashroom.router.ServiceRouteManager;
-import  cc.mashroom.squirrel.transport.TransportAndConnectivityGuarantorHandlerAdapter;
-import  lombok.Getter;
-import  lombok.NonNull;
-import  lombok.experimental.Accessors;
-
-public  class  NetworkHandlerAdapter  extends  TransportAndConnectivityGuarantorHandlerAdapter
+@Deprecated
+public  class  NetworkHandlerAdapter
 {
-	@Accessors(chain=true )
-	@Getter
-	protected  ServiceRouteManager  serviceRouteManager = new  ServiceRouteManager();
 	
-	protected  boolean  route( @NonNull  ServiceListRequestStrategy  strategy )
-	{
-		return !this.serviceRouteManager.setStrategy(strategy).request().isEmpty() && this.serviceRouteManager.tryNext() != null;
-	}
 }

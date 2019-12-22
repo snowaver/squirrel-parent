@@ -40,21 +40,19 @@ import  lombok.experimental.Accessors;
 @Accessors( chain=true )
 public  class     TransportHandlerAdapter  extends  ChannelInboundHandlerAdapter
 {
-	@Getter
-	protected  ConnectState  connectState  =  ConnectState.NONE;
 	@Setter( value= AccessLevel.PRIVATE )
 	private  Channel  channel;
 	@Setter( value= AccessLevel.PRIVATE )
 	private  Bootstrap  bootstrap;
-	protected  EventLoopGroup  eventLoopGroup= new  NioEventLoopGroup();
+	protected  EventLoopGroup   eventLoopGroup=new  NioEventLoopGroup();
 	@Setter( value= AccessLevel.PRIVATE )
 	protected  TransportConfig  transportConfig;
-	/*
-	protected  boolean     authenticated;
-	*/
+	@Getter
+	protected  ConnectState  connectState   =  ConnectState.NONE;
+	
 	protected  TransportHandlerAdapter  setConnectState(  ConnectState  cstate )
 	{
-		onConnectStateChanged( connectState =  cstate );  return   this;
+	onConnectStateChanged(   connectState   =  cstate );   return  this;
 	}
 	protected  Map<Long,TransportFuture<PendingAckPacket<?>>>  transportFutures=   new  ConcurrentHashMap<Long,TransportFuture<PendingAckPacket<?>>>();
 	@Override

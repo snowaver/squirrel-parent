@@ -15,13 +15,8 @@
  */
 package cc.mashroom.squirrel.client.storage.repository;
 
-import  java.util.ArrayList;
-import  java.util.List;
-
 import  cc.mashroom.db.GenericRepository;
 import  cc.mashroom.db.annotation.DataSourceBind;
-import  cc.mashroom.router.Service;
-import  cc.mashroom.util.collection.map.Map;
 import  lombok.AccessLevel;
 import  lombok.NoArgsConstructor;
 
@@ -30,30 +25,4 @@ import  lombok.NoArgsConstructor;
 public  class  ServiceRepository  extends  GenericRepository
 {
 	public  final  static  ServiceRepository  DAO = new  ServiceRepository();
-	
-	public  List<Service>  lookup()
-	{
-		List<Service>  services = new  ArrayList<Service>();
-		
-		for( Map<String,Object>  service  : super.lookup(Map.class,   "SELECT  ID,SCHEMA,HOST,PORT  FROM  "+super.getDataSourceBind().table()+"  ORDER  BY  ID  ASC") )
-		{
-			services.add( new  Service().setId(service.getLong("ID")).setSchema(service.getString("SCHEMA")).setHost(service.getString("HOST")).setPort(service.getInteger("PORT")) );
-		}
-		
-		return  services;
-	}
-	
-	public  void  insert( List<Service>  services )
-	{
-		List<Object[]>  params = new  ArrayList<Object[]>();
-		
-		for( Service  service : services )
-		{
-			if( service.getId() > 0 )  params.add( new  Object[]{service.getId(),service.getSchema(),service.getHost(),service.getPort()} );
-		}
-		
-		super.update( "DELETE  FROM  "+super.getDataSourceBind().table()   );
-		
-		super.update( "INSERT  INTO  "+super.getDataSourceBind().table()+"  (ID,SCHEMA,HOST,PORT)  VALUES  (?,?,?,?)",params.toArray(new  Object[services.size()][]) );
-	}
 }

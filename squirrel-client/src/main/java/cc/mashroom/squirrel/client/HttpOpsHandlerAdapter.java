@@ -25,6 +25,10 @@ import  org.apache.commons.codec.binary.Hex;
 import  cc.mashroom.db.common.Db;
 import  cc.mashroom.db.common.Db.Callback;
 import  cc.mashroom.db.connection.Connection;
+import  cc.mashroom.router.Service;
+import  cc.mashroom.router.ServiceListRequestEventListener;
+import  cc.mashroom.router.ServiceListRequestStrategy;
+import  cc.mashroom.router.ServiceRouteManager;
 import  cc.mashroom.squirrel.client.connect.UserMetadata;
 import  cc.mashroom.squirrel.client.connect.call.Call;
 import  cc.mashroom.squirrel.client.connect.call.CallError;
@@ -59,9 +63,11 @@ import  okhttp3.Interceptor.Chain;
 
 public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAdapter<HttpOpsHandlerAdapter>
 {
+	@Setter(value=AccessLevel.PROTECTED)
+	@Accessors(chain=true)
+	private  Object   context;
 	@Getter
 	private  CallEventDispatcher   callEventDispatcher       = new  CallEventDispatcher();
-	
 	private  Storage  storage    = new  Storage();
 	@Getter
 	@Setter(value=AccessLevel.PUBLIC   )
@@ -74,17 +80,20 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 	@Setter(value=AccessLevel.PROTECTED)
 	@Accessors( chain= true )
 	private  UserMetadata  userMetadata;
+	@Accessors(chain=true )
+	@Getter
+	private  ServiceRouteManager   serviceRouteManager       = new  ServiceRouteManager();
 	@Setter(value=AccessLevel.PROTECTED)
 	@Accessors( chain= true )
 	private  Map<String, Object>connectParameters;
 	
 	protected  void  newCall( long  contactId,@NonNull  CallContentType  callContentType )
 	{
-		try(Response  clresponse = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(System.getProperty("squirrel.dt.server.schema","https")).host(super.getServiceRouteManager().service().getHost()).port(Integer.parseInt(System.getProperty("squirrel.dt.server.port","8011"))).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(callContentType.getValue())).build()).build()).execute() )
+		try(Response  clresponse = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(System.getProperty("squirrel.dt.server.schema","https")).host(service().getHost()).port(Integer.parseInt(System.getProperty("squirrel.dt.server.port","8011"))).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(callContentType.getValue())).build()).build()).execute() )
 		{
 		if (clresponse.code()  == 200  )
 			{
-				this.callEventDispatcher.onRoomCreated( this.call = new  Call(this,Long.parseLong(clresponse.body().string()),contactId,callContentType) );
+				this.callEventDispatcher.onRoomCreated( this.call =  new  Call( this,Long.parseLong(clresponse.body().string()),contactId,callContentType ) );
 			}
 			else
 			{
@@ -95,6 +104,11 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 		{
 			callEventDispatcher.onError( null/* SHOULD  NULL */,CallError.CREATE_ROOM,e );
 		}
+	}
+	
+	protected  void   route( @NonNull  ServiceListRequestStrategy  strategy , @NonNull  ServiceListRequestEventListener  listener )
+	{
+		serviceRouteManager.getServiceListRequestEventDispatcher().addListener(listener );if( !serviceRouteManager.setStrategy(strategy).request().isEmpty() )  serviceRouteManager.tryNext();
 	}
 	/**
 	 *  clear  all  states,  include  user  metadata,  connect  parameters,  call,  lifecycle  listener  and  super  class  states  ( id,  authenticate  state  and  connect  state ).
@@ -111,13 +125,13 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 	 */
 	protected  HttpOpsHandlerAdapter  connect( String  username,boolean  isPasswordEncrypted,String  password,Double  longitude,Double  latitude,String  mac )
 	{
-		try(Response  clresponse = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(System.getProperty("squirrel.dt.server.schema","https")).host(super.getServiceRouteManager().service().getHost()).port(Integer.parseInt(System.getProperty("squirrel.dt.server.port","8011"))).addPathSegments("user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isPasswordEncrypted ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
+		try(Response  clresponse = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(System.getProperty("squirrel.dt.server.schema","https")).host(service().getHost()).port(Integer.parseInt(System.getProperty("squirrel.dt.server.port","8011"))).addPathSegments("user/signin").build()).post(HttpUtils.form(this.connectParameters = new  HashMap<String,Object>().addEntry("username",username).addEntry("password",isPasswordEncrypted ? password : new  String(Hex.encodeHex(DigestUtils.md5(password))).toUpperCase()).addEntry("protocolVersion",ConnectPacket.CURRENT_PROTOCOL_VERSION).addEntry("longitude",longitude).addEntry("latitude",latitude).addEntry("mac",mac))).build()).execute() )
 		{
 		if( clresponse.code()  == 200  )
 			{
 				setUserMetadata(JsonUtils.mapper.readValue(clresponse.body().string(),UserMetadata.class)).checkConnectivity( 10 );
 				//  connecting  to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
-				this.storage.initialize( this, false,lifecycleEventDispatcher,this.cacheDir,this.userMetadata,this.connectParameters.getString("password") );
+				this.storage.initialize( this, false, lifecycleEventDispatcher,this.cacheDir,this.userMetadata,this.connectParameters.getString("password") );
 			
 				this.lifecycleEventDispatcher.onAuthenticateComplete( clresponse.code() );
 				
@@ -134,6 +148,11 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 		}
 		
 		return   this;
+	}
+	@Override
+	public  Service service()
+	{
+		return      serviceRouteManager.service();
 	}
 	@SneakyThrows
 	public  UserMetadata  userMetadata()
@@ -156,7 +175,7 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 	@Override
 	public  void disconnect()
 	{
-		try(Response  clresponse = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(System.getProperty("squirrel.dt.server.schema","https")).host(super.getServiceRouteManager().service().getHost()).port(Integer.parseInt(System.getProperty("squirrel.dt.server.port","8011"))).addPathSegments("user/logout").build()).post(new  FormBody.Builder().build()).build()).execute() )
+		try(Response  clresponse = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(System.getProperty("squirrel.dt.server.schema","https")).host(service().getHost()).port(Integer.parseInt(System.getProperty("squirrel.dt.server.port","8011"))).addPathSegments("user/logout").build()).post(new  FormBody.Builder().build()).build()).execute() )
 		{
 		if (clresponse.code()  == 200  )
 			{

@@ -25,6 +25,7 @@ import  javax.net.ssl.SSLContext;
 
 import  org.joda.time.DateTime;
 
+import cc.mashroom.router.Service;
 import  cc.mashroom.squirrel.client.event.LifecycleEventDispatcher;
 import  cc.mashroom.squirrel.client.event.PacketEventDispatcher;
 import  cc.mashroom.squirrel.paip.message.Packet;
@@ -33,6 +34,7 @@ import  cc.mashroom.squirrel.paip.message.connect.ConnectAckPacket;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
 import  cc.mashroom.squirrel.paip.message.connect.DisconnectAckPacket;
 import  cc.mashroom.squirrel.transport.ConnectState;
+import cc.mashroom.squirrel.transport.TransportAndConnectivityGuarantorHandlerAdapter;
 import  cc.mashroom.squirrel.transport.TransportConfig;
 import  cc.mashroom.util.ObjectUtils;
 import  cc.mashroom.util.SecureUtils;
@@ -44,7 +46,7 @@ import  lombok.Setter;
 import  lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 
-public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHandlerAdapter<?>>  extends  NetworkHandlerAdapter
+public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHandlerAdapter<?>>  extends           TransportAndConnectivityGuarantorHandlerAdapter
 {
 	public  final  static  SSLContext      SSL_CONTEXT  = SecureUtils.getSSLContext( "/squirrel.cer" );
 	
@@ -55,15 +57,13 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 	private  String  accessKey;
 	private  ExecutorService  packetWritingPool = Executors.newFixedThreadPool( 2,new  DefaultThreadFactory("MULTIPART-SENDER",false,1) );
 	@Getter
-	private  PacketEventDispatcher  packetEventDispatcher = new  PacketEventDispatcher();
+	private  PacketEventDispatcher  packetEventDispatcher  = new  PacketEventDispatcher();
 	@Setter( value = AccessLevel.PROTECTED )
 	@Getter
 	@Accessors(chain=true)
 	private  String  id;
-	@Setter( value = AccessLevel.PROTECTED )
-	private  InboundHandler  handler = new  InboundHandler();
 	@Getter
-	protected  LifecycleEventDispatcher  lifecycleEventDispatcher     =new  LifecycleEventDispatcher();
+	protected  LifecycleEventDispatcher  lifecycleEventDispatcher  =  new   LifecycleEventDispatcher();
 	@Override
 	public  void  channelRead( ChannelHandlerContext  context,Object  packet )
 	{
@@ -83,31 +83,33 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 	{
 		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.CONN:\tCONNECT.STATE = "+ connectState.name() );
 		
-		super.connect( new  TransportConfig(SSL_CONTEXT,super.serviceRouteManager.service().getHost(),Integer.parseInt(System.getProperty("squirrel.im.server.port","8012")),5* 1000,this.keepalive,new  Object[]{id,secretKey}) );
+		super.connect( new  TransportConfig(SSL_CONTEXT,service().getHost(),Integer.parseInt(System.getProperty("squirrel.im.server.port","8012")),5* 1000,this.keepalive,new  Object[]{id,secretKey}) );
 			
 		super.checkConnectivity(  10 );
 	}
+	@Setter( value = AccessLevel.PROTECTED )
+	private  InboundHandler  handler = new  InboundHandler();
 	@Override
 	protected  void  onConnectStateChanged( ConnectState  connectState )
 	{
 		super.onConnectStateChanged( connectState );
+	}
+	
+	protected  void   reset()
+	{
+		this.setId(null).setAccessKey(null);
 	}
 	@Override
 	public  void    release()
 	{
 		super.release();
 		
-		packetWritingPool.shutdown(  );
+		this.packetWritingPool.shutdown( /*STDN*/ );
 	}
 	
-	public  void  send(Packet  packet )
+	public  void  send(     Packet  packet )
 	{
 		this.send( packet , 10 , TimeUnit.SECONDS );
-	}
-	
-	protected  void   reset()
-	{
-		setId(null).setAccessKey(null);
 	}
 	@SneakyThrows( value={InterruptedException.class,ExecutionException.class,TimeoutException.class} )
 	@Override
@@ -118,7 +120,7 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 	/**
 	 *  write  the  packet  to  the  non-null,  opened  and  active  channel  and  await  until  timeout.  may  failed  if  exception  in  {@link  PacketEventDispatcher#onBeforeSend(Packet)},  {@link  PacketEventDispatcher#onSent(Packet,TransportState)}  or  timeout  in  writing.
 	 */
-	public  void  send(Packet  packet,long  writeTimeout,TimeUnit  writeTimeoutTimeUnit )
+	public  void  send(Packet  packet,long  writeTimeout, TimeUnit  writeTimeoutTimeUnit )
 	{
 		try
 		{
@@ -132,6 +134,11 @@ public  class  TransportLifecycleHandlerAdapter<T extends TransportLifecycleHand
 		{
 			packetEventDispatcher.onSent( packet,TransportState.SEND_FAILED );
 		}
+	}
+	
+	public  Service service()
+	{
+		return  null;
 	}
 	
 	public  void  send( ExecutorService  executor,final  Packet  packet,final  long  writeTimeout, final  TimeUnit  writeTimeoutTimeUnit )
