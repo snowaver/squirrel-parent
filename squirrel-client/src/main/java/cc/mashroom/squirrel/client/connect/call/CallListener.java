@@ -15,7 +15,7 @@
  */
 package cc.mashroom.squirrel.client.connect.call;
 
-import cc.mashroom.squirrel.client.connect.call.webrtc.ClientObserver;
+import  cc.mashroom.squirrel.client.connect.call.webrtc.ClientObserver;
 import  cc.mashroom.squirrel.paip.message.call.CloseCallReason;
 
 public  interface  CallListener
