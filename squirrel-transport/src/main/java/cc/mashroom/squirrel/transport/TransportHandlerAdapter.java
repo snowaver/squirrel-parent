@@ -106,7 +106,7 @@ public  class  TransportHandlerAdapter   extends    ChannelInboundHandlerAdapter
 		
 		super.exceptionCaught(context,t);
 		
-		context.close().syncUninterruptibly();  this.tryconnect();
+		context.close().syncUninterruptibly(  );this.tryconnect();
 	}
 	protected  void  onConnectStateChanged( ConnectState  connectState )
 	{
@@ -119,7 +119,7 @@ public  class  TransportHandlerAdapter   extends    ChannelInboundHandlerAdapter
 		
 		super.channelInactive( context );
 		
-		context.close().syncUninterruptibly();  this.tryconnect();
+		context.close().syncUninterruptibly(  );this.tryconnect();
 	}
 	protected  boolean  authenticate( Object...objects )
 	{
@@ -141,7 +141,7 @@ public  class  TransportHandlerAdapter   extends    ChannelInboundHandlerAdapter
 		{
 			try
 			{
-				this.checkConnectivity();         break;
+				this.checkConnectivity(); break;
 			}
 		catch(  Throwable  e )
 			{
@@ -150,26 +150,21 @@ public  class  TransportHandlerAdapter   extends    ChannelInboundHandlerAdapter
 		}
 	}
 	@Synchronized
-	public  void     release()
-	{
-		workerEventLoopGroup.shutdownGracefully().syncUninterruptibly();  
-	}
-	/*
-	@SneakyThrows(value = {InterruptedException.class} )
-	*/
-	@Synchronized
 	public  void  disconnect()
 	{
-		this.setTransportConfig(  null );
-		
 		if( !   channel.disconnect().syncUninterruptibly().isSuccess() )
 		{
-			setConnectState(ConnectState.DISCONNECTED );
+			setTransportConfig(null).setConnectState(ConnectState.DISCONNECTED);
 		}
 		else
 		{
 			throw  new  IllegalStateException( "SQUIRREL-TRANSPORT:  ** TRANSPORT  HANDLER  ADAPTER **  can  not  disconnect  from  the  server."   );
 		}
+	}
+	@Synchronized
+	public  void     release()
+	{
+		workerEventLoopGroup.shutdownGracefully().syncUninterruptibly();  
 	}
 	@Synchronized
 	public  void  connect( @NonNull   TransportConfig  transportConfig )
