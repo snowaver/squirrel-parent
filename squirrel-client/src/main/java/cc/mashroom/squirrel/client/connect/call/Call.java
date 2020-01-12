@@ -36,18 +36,18 @@ import  cc.mashroom.util.ObjectUtils;
 
 public  class  Call             extends  ClientObserver  implements  PacketEventListener
 {
-	public  Call(HttpOpsHandlerAdapter  context,long  id,long  contactId,CallContentType  contentType )
+	public  Call(  HttpOpsHandlerAdapter  context,  long  id,long  contactId,CallContentType  contentType )
 	{
 		super( context,id,contactId,contentType );
 		
-		super.context.getPacketEventDispatcher().addListener( Call.this);
+		super.context.getPacketEventDispatcher().addListeners(Call.this);
 	}
 	
 	public  void   agree()
 	{
 		if( state.compareAndSet(CallState.REQUESTED , CallState.AGREED) )
 		{
-			context.send( new  CallAckPacket(contactId , id, CallAckPacket.ACK_AGREE) );
+			context.write( new  CallAckPacket(contactId,id, CallAckPacket.ACK_AGREE),10,TimeUnit.SECONDS );
 		}
 		else
 		{
@@ -59,7 +59,7 @@ public  class  Call             extends  ClientObserver  implements  PacketEvent
 	{
 		if( state.compareAndSet(CallState.REQUESTED ,CallState.DECLINE) )
 		{
-			context.send( new  CallAckPacket(contactId,id, CallAckPacket.ACK_DECLINE) );
+			this.context.write( new  CallAckPacket(this.contactId,this.id,CallAckPacket.ACK_DECLINE),10,TimeUnit.SECONDS );
 			
 			this.release( true    ,CloseCallReason.DECLINE );
 		}
@@ -81,7 +81,7 @@ public  class  Call             extends  ClientObserver  implements  PacketEvent
 	{
 		if( state.compareAndSet(CallState.NONE,   CallState.REQUESTING) )
 		{
-			context.send( new  CallPacket(this.contactId, this.id, contentType), 20,TimeUnit.SECONDS );
+			this.context.write( new  CallPacket(this.contactId,this.id, contentType),20,TimeUnit.SECONDS );
 		}
 		else
 		{
@@ -93,17 +93,17 @@ public  class  Call             extends  ClientObserver  implements  PacketEvent
 	{
 		if( state.compareAndSet(CallState.REQUESTING,   CallState.NONE) )
 		{
-			context.send( new  CloseCallPacket(contactId,id , CloseCallReason.CANCEL) );
+			context.write( new  CloseCallPacket(contactId,id,CloseCallReason.CANCEL),10,TimeUnit.SECONDS );
 		}
 		else
 		{
-			this.context.send(   new  CloseCallPacket( this.contactId , this.id , CloseCallReason.BY_USER ) , 5 , TimeUnit.SECONDS );
+			this.context.write( new  CloseCallPacket(this.contactId,this.id,CloseCallReason.BY_USER ),5,TimeUnit.SECONDS );
 		}
 	}
 	@Override
 	protected  void  release( boolean  proactive,CloseCallReason reason )
 	{
-		this.context.getPacketEventDispatcher().removeListener(  this  );
+		this.context.getPacketEventDispatcher().removeListeners( this  );
 		
 		super.release(proactive,reason );
 	}

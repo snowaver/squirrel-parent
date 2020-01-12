@@ -15,6 +15,7 @@
  */
 package cc.mashroom.squirrel.client.connect.call.webrtc;
 
+import java.util.concurrent.TimeUnit;
 import  java.util.concurrent.atomic.AtomicReference;
 
 import  org.webrtc.DataChannel;
@@ -126,7 +127,7 @@ public  class   ClientObserver  implements  SdpObserver,PeerConnection.Observer/
         
         constraints.optional.add(new  MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement","true") );  connectionMediaConstraints.optional.add( new  MediaConstraints.KeyValuePair("RtpDataChannels" ,"true") );
         
-        this.localMs.addTrack(this.peerConnectionFactory.createAudioTrack("ARDAMSa0",this.peerConnectionFactory.createAudioSource(new  MediaConstraints())) );
+        this.localMs.addTrack(this.peerConnectionFactory.createAudioTrack("ARDAMSa0",this.peerConnectionFactory.createAudioSource(            new  MediaConstraints())) );
         
         (this.connection = this.peerConnectionFactory.createPeerConnection(parameters.ices,this.connectionMediaConstraints,this)).addStream( this.localMs, new  MediaConstraints() );
 	}
@@ -179,7 +180,7 @@ public  class   ClientObserver  implements  SdpObserver,PeerConnection.Observer/
 	    	{
 	    		for( int  orientationHint  : new  int[]{90, 0, 180, 270} )
 	    		{
-	    			VideoCapturer       videoCapturer = VideoCapturer.create( "Camera " + index + ", Facing " + facing + ", Orientation " + orientationHint );
+	    			VideoCapturer       videoCapturer = VideoCapturer.create( "Camera "+index+", Facing "+facing+", Orientation "+orientationHint );
 	    			
 	    			if( videoCapturer !=  null )
 	    			{
@@ -194,7 +195,7 @@ public  class   ClientObserver  implements  SdpObserver,PeerConnection.Observer/
 	
     public  void  onIceCandidate( IceCandidate  iceCandidate )
     {
-        this.context.send( new  CandidatePacket(this.contactId,id,new  Candidate(iceCandidate.sdpMid,iceCandidate.sdpMLineIndex,iceCandidate.sdp)) );
+        this.context.write( new  CandidatePacket(this.contactId,id,new  Candidate(iceCandidate.sdpMid,iceCandidate.sdpMLineIndex,iceCandidate.sdp)),10,TimeUnit.SECONDS );
     }
 	
 	public  void  onAddStream(     MediaStream  stream )
@@ -213,7 +214,7 @@ public  class   ClientObserver  implements  SdpObserver,PeerConnection.Observer/
     	
     	this.state.set(     CallState.CALLING );
     	
-    	this.context.send( new  SDPPacket(this.contactId,this.id,new  SDP(sessionDescription.type.canonicalForm(),sessionDescription.description)) );
+    	this.context.write( new  SDPPacket(this.contactId,this.id,new  SDP(sessionDescription.type.canonicalForm(),sessionDescription.description)),10,TimeUnit.SECONDS );
     }
 	
 	public  void  onRemoveStream(  MediaStream  stream )

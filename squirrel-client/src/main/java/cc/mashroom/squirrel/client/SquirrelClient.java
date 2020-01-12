@@ -40,6 +40,8 @@ public  class  SquirrelClient  extends  HttpOpsHandlerAdapter
 	
 	public  SquirrelClient( Object  context, File  cacheDir )
 	{
+		super();
+		
 		this.setContext(context).setCacheDir( FileUtils.createDirectoryIfAbsent(cacheDir) );
 	}
 	private  ThreadPoolExecutor  lifecycleThreadPool = new  ThreadPoolExecutor( 1,1,2,TimeUnit.MINUTES,new  LinkedBlockingQueue<Runnable>(),new  DefaultThreadFactory("LIFECYCLE-TREAD-POOL") );

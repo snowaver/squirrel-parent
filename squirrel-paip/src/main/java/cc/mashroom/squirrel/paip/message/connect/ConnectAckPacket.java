@@ -45,7 +45,7 @@ public  class  ConnectAckPacket    extends  PendingAckPacket<ConnectAckPacket>
     @Override
     public  ByteBuf  writeToVariableByteBuf(   ByteBuf  variableBuf )
 	{
-		return  variableBuf.writeByte(this.isSessionPresent? 0x01 : 0x00).writeByte( this.responseCode );
+		return  super.writeToVariableByteBuf(variableBuf).writeByte(this.isSessionPresent? 0x01 : 0x00).writeByte( this.responseCode );
 	}
     
     public  ConnectAckPacket( long  connectPacketId, int  responseCode,boolean  isSessionPresent )
@@ -57,7 +57,7 @@ public  class  ConnectAckPacket    extends  PendingAckPacket<ConnectAckPacket>
     @Override
 	public  int     getInitialVariableByteBufferSize()
 	{
-		return  10+super.getInitialVariableByteBufferSize();
+		return  2 +super.getInitialVariableByteBufferSize();
 	}
     	
     @Setter( value=AccessLevel.PROTECTED )

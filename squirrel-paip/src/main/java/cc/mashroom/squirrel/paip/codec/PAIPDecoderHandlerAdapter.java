@@ -17,16 +17,22 @@ package cc.mashroom.squirrel.paip.codec;
 
 import  java.util.List;
 
+import  org.joda.time.DateTime;
+
 import  io.netty.buffer.ByteBuf;
 import  io.netty.channel.ChannelHandlerContext;
 import  io.netty.handler.codec.ByteToMessageDecoder;
+import  lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public  class  PAIPDecoderHandlerAdapter  extends  ByteToMessageDecoder
 {
 	protected  PAIPDecoderChain  chain =  new  PAIPDecoderChain();
-	
+	@Override
 	protected  void  decode( ChannelHandlerContext  context,ByteBuf  byteBuf,List<Object>  objectList )
 	{
 		objectList.add( chain.decode(context.channel(),byteBuf.markReaderIndex().resetReaderIndex()) );
+		
+		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+objectList.get(0).toString() );
 	}
 }

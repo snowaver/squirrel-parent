@@ -43,10 +43,8 @@ public  class  PAIPEncoderHandlerAdapter  extends  MessageToByteEncoder<Packet<?
 		{
 			context.channel().attr(CallPacket.CALL_ROOM_ID).set( ObjectUtils.cast(packet,CallPacket.class).getRoomId() );
 		}
-		if( log.isDebugEnabled() )
-		{
-			log.debug(DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.SENT:\t"+packet.toString() );
-		}
+		
+		System.out.println(   DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.SENT:\t"+packet.toString() );
 		
 		ByteBuf  contentBuf= Unpooled.buffer(); packet.write(contentBuf);  byteBuf.writeInt(contentBuf.readableBytes()).writeBytes( contentBuf );  contentBuf.release();
 	}

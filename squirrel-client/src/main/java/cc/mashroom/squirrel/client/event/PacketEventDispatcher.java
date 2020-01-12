@@ -16,6 +16,7 @@
 package cc.mashroom.squirrel.client.event;
 
 import  java.io.IOException;
+import  java.util.Arrays;
 
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
@@ -23,6 +24,11 @@ import  cc.mashroom.util.event.EventDispather;
 
 public  class  PacketEventDispatcher  extends  EventDispather  <PacketEventListener>
 {
+	public  PacketEventDispatcher( PacketEventListener    ...  listeners )
+	{
+		super.listeners.addAll( Arrays.asList( listeners ) );
+	}
+	
 	public  void  onReceived(   Packet  packet )
 	{
 		for( PacketEventListener  listener : this.listeners )  listener.onReceived(   packet );

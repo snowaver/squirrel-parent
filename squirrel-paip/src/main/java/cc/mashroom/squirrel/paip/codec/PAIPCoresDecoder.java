@@ -22,7 +22,7 @@ public  class  PAIPCoresDecoder  implements  PAIPDecoder
 		}
 		catch( Throwable  ife )
 		{
-			
+			ife.printStackTrace();
 		}
 		
 		return  null;

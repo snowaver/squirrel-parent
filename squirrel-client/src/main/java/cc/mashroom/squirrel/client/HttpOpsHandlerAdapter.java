@@ -37,6 +37,7 @@ import  cc.mashroom.squirrel.client.connect.util.HttpUtils;
 import  cc.mashroom.squirrel.client.storage.Storage;
 import  cc.mashroom.squirrel.client.storage.model.OoIData;
 import  cc.mashroom.squirrel.client.storage.repository.OfflineRepository;
+import  cc.mashroom.squirrel.common.Tracer;
 import  cc.mashroom.squirrel.paip.message.call.CallContentType;
 import  cc.mashroom.squirrel.paip.message.connect.ConnectPacket;
 import  cc.mashroom.squirrel.paip.message.connect.DisconnectAckPacket;
@@ -59,16 +60,19 @@ import  okhttp3.Interceptor;
 import  okhttp3.OkHttpClient;
 import  okhttp3.Request;
 import  okhttp3.Response;
-import  okhttp3.Interceptor.Chain;
 
-public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAdapter<HttpOpsHandlerAdapter>
+public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAdapter<HttpOpsHandlerAdapter>  implements  Interceptor
 {
+	protected  HttpOpsHandlerAdapter(  )
+	{
+		super.packetEventDispatcher.addListeners(this.storage= new  Storage() );
+	}
 	@Setter(value=AccessLevel.PROTECTED)
 	@Accessors(chain=true)
-	private  Object   context;
+	private  Object  context;
 	@Getter
-	private  CallEventDispatcher   callEventDispatcher       = new  CallEventDispatcher();
-	private  Storage  storage    = new  Storage();
+	private  CallEventDispatcher     callEventDispatcher     = new  CallEventDispatcher();
+	private  Storage storage;  //= new  Storage();
 	@Getter
 	@Setter(value=AccessLevel.PUBLIC   )
 	@Accessors(  chain=true )
@@ -80,13 +84,14 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 	@Setter(value=AccessLevel.PROTECTED)
 	@Accessors( chain= true )
 	private  UserMetadata  userMetadata;
-	@Accessors(chain=true )
 	@Getter
-	private  ServiceRouteManager   serviceRouteManager       = new  ServiceRouteManager();
 	@Setter(value=AccessLevel.PROTECTED)
 	@Accessors( chain= true )
 	private  Map<String, Object>connectParameters;
-	
+	@Accessors(chain=true )
+	@Getter
+	private  ServiceRouteManager     serviceRouteManager     = new  ServiceRouteManager();
+
 	protected  void  newCall( long  contactId,@NonNull  CallContentType  callContentType )
 	{
 		try(Response  clresponse = okhttpClient(5,5,10).newCall(new  Request.Builder().url(new  HttpUrl.Builder().scheme(System.getProperty("squirrel.dt.server.schema","https")).host(service().getHost()).port(Integer.parseInt(System.getProperty("squirrel.dt.server.port","8011"))).addPathSegments("call/room/status").build()).post(new  FormBody.Builder().add("calleeId",String.valueOf(contactId)).add("contentType",String.valueOf(callContentType.getValue())).build()).build()).execute() )
@@ -106,9 +111,9 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 		}
 	}
 	
-	protected  void   route( @NonNull  ServiceListRequestStrategy  strategy , @NonNull  ServiceListRequestEventListener  listener )
+	protected  void   route( @NonNull  ServiceListRequestStrategy  strategy , @NonNull  ServiceListRequestEventListener  listener  )
 	{
-		serviceRouteManager.getServiceListRequestEventDispatcher().addListener(listener );if( !serviceRouteManager.setStrategy(strategy).request().isEmpty() )  serviceRouteManager.tryNext();
+		serviceRouteManager.getServiceListRequestEventDispatcher().addListeners(listener);if( !serviceRouteManager.setStrategy(strategy).request().isEmpty() )  serviceRouteManager.tryNext();
 	}
 	/**
 	 *  clear  all  states,  include  user  metadata,  connect  parameters,  call,  lifecycle  listener  and  super  class  states  ( id,  authenticate  state  and  connect  state ).
@@ -129,7 +134,7 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 		{
 		if( clresponse.code()  == 200  )
 			{
-				setUserMetadata(JsonUtils.mapper.readValue(clresponse.body().string(),UserMetadata.class)).checkConnectivity( 10 );
+				setUserMetadata(JsonUtils.mapper.readValue(clresponse.body().string(),UserMetadata.class));//.checkConnectivity(10);
 				//  connecting  to  the  user's  database  and  merge  offline  datas  from  remote  server  to  native  storage.
 				this.storage.initialize( this, false, lifecycleEventDispatcher,this.cacheDir,this.userMetadata,this.connectParameters.getString("password") );
 			
@@ -144,7 +149,9 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 		}
 		catch( Throwable  e )
 		{
-		lifecycleEventDispatcher.onAuthenticateComplete( e instanceof SocketTimeoutException ? 501 : 500 );
+			Tracer.trace( e);
+			
+		lifecycleEventDispatcher.onAuthenticateComplete( e instanceof SocketTimeoutException ? 502 : 500 );
 		}
 		
 		return   this;
@@ -154,7 +161,7 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 	{
 		return      serviceRouteManager.service();
 	}
-	@SneakyThrows
+	@SneakyThrows// ( CloneNotSupportedException.class )
 	public  UserMetadata  userMetadata()
 	{
 		return  this.userMetadata== null  ? null : userMetadata.clone();
@@ -162,16 +169,15 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 	@Override
 	protected  void  onConnectStateChanged( ConnectState  connectState )
 	{
-		if( connectState==ConnectState.CONNECTED )  super.lifecycleEventDispatcher.onReceivedOfflineData( (OoIData)  Db.tx(String.valueOf(this.userMetadata.getId()),java.sql.Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(Connection  connection)  throws  Throwable{ return  OfflineRepository.DAO.attach(HttpOpsHandlerAdapter.this,true,true,true,true); }}) );
+		if( connectState == ConnectState.AUTHENTICATED )  super.lifecycleEventDispatcher.onReceivedOfflineData( (OoIData)  Db.tx(String.valueOf(this.userMetadata.getId()),java.sql.Connection.TRANSACTION_REPEATABLE_READ,new  Callback(){public  Object  execute(Connection  connection)  throws  Throwable{ return  OfflineRepository.DAO.attach(HttpOpsHandlerAdapter.this,true,true,true,true); }}) );
 		
 		lifecycleEventDispatcher.onConnectStateChanged(   connectState);
 	}
-	
-	public  Response  intercept( Chain  reqchain )  throws   IOException
+	@Override
+	public  Response  intercept(    Chain  chain )  throws   IOException
 	{
-		return  reqchain.proceed( reqchain.request().newBuilder().addHeader("SECRET_KEY",this.userMetadata == null || this.userMetadata.getSecretKey() == null ? "" : this.userMetadata.getSecretKey()).build() );
+		return  chain.proceed( chain.request().newBuilder().addHeader("SECRET_KEY", this.userMetadata == null || this.userMetadata.getSecretKey() == null ? "" : this.userMetadata.getSecretKey()).build() );
 	}
-	
 	@Override
 	public  void disconnect()
 	{
@@ -190,12 +196,14 @@ public  class  HttpOpsHandlerAdapter       extends  TransportLifecycleHandlerAda
 		}
 		catch( Throwable  e )
 		{
+			Tracer.trace( e);
+			
 			this.lifecycleEventDispatcher.onLogoutComplete( 500,DisconnectAckPacket.REASON_CLIENT_LOGOUT );
 		}
 	}
 
-	public  OkHttpClient  okhttpClient(          long  connectTimeoutSeconds,long  writeTimeoutSeconds,long    readTimeoutSeconds )
+	public  OkHttpClient  okhttpClient(          long  connectTimeoutSeconds,long  writeTimeoutSeconds,long     readTimeoutSeconds )
 	{
-		return  new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).addInterceptor((Interceptor) this).connectTimeout(connectTimeoutSeconds,TimeUnit.SECONDS).writeTimeout(writeTimeoutSeconds,TimeUnit.SECONDS).readTimeout(readTimeoutSeconds,TimeUnit.SECONDS).build();
+		return  new  OkHttpClient.Builder().hostnameVerifier(new  NoopHostnameVerifier()).sslSocketFactory(SSL_CONTEXT.getSocketFactory(),new  NoopX509TrustManager()).addInterceptor(this).connectTimeout(connectTimeoutSeconds,TimeUnit.SECONDS).writeTimeout(writeTimeoutSeconds,TimeUnit.SECONDS).readTimeout(readTimeoutSeconds,TimeUnit.SECONDS).build();
 	}
 }

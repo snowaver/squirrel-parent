@@ -18,8 +18,6 @@ package cc.mashroom.squirrel.client;
 import  java.util.concurrent.ScheduledThreadPoolExecutor;
 import  java.util.concurrent.TimeUnit;
 
-import  org.joda.time.DateTime;
-
 import  cc.mashroom.squirrel.client.connect.call.Call;
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.TransportState;
@@ -37,14 +35,10 @@ import  io.netty.util.concurrent.DefaultThreadFactory;
 
 public  class  InboundHandler
 {
-	private  Map<Long,Packet>  pendings=  new  ConcurrentHashMap<Long,Packet>();
-	
 	private  ScheduledThreadPoolExecutor  pendingScheduledChecker = new  ScheduledThreadPoolExecutor( 1,new  DefaultThreadFactory("ACK-SCHEDULED-CHECKER",false,1) );
 	
-	public  void  channelRead( ChannelHandlerContext  context , Object  object )
+	public  void  channelRead( ChannelHandlerContext  context, Object  object )
 	{
-		System.out.println( DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS")+"  CHANNEL.READ:\t"+object.toString() );
-		
 		Packet  packet = ObjectUtils.cast( object,Packet.class );
 		
 		SquirrelClient  adapter= ObjectUtils.cast( context.pipeline().get("squirrel.client") );
@@ -56,7 +50,7 @@ public  class  InboundHandler
 		else
 		if( packet instanceof ChatPacket )
 		{
-			adapter.send( new  PendingAckPacket(packet.getContactId(),packet.getId()).setAttatchments(String.format("{\"SYNC_ID\":%d}",ObjectUtils.cast(packet,ChatPacket.class).getContactSyncId())) );
+			adapter.write( new  PendingAckPacket(packet.getContactId(),packet.getId()).setAttatchments(String.format("{\"SYNC_ID\":%d}",ObjectUtils.cast(packet,ChatPacket.class).getContactSyncId())),10,TimeUnit.SECONDS );
 		}
 		else
 		if( packet instanceof PendingAckPacket )
@@ -66,12 +60,12 @@ public  class  InboundHandler
 		else
 		if( packet instanceof CallPacket )
 		{
-			adapter.setCall( new  Call(adapter,ObjectUtils.cast(packet,CallPacket.class).getRoomId(),ObjectUtils.cast(packet,CallPacket.class).getContactId(),ObjectUtils.cast(packet,CallPacket.class).getContentType()) );
+			adapter.setCall( new  Call(adapter,ObjectUtils.cast(packet,CallPacket.class).getRoomId(),ObjectUtils.cast(packet,CallPacket.class).getContactId(),ObjectUtils.cast(packet, CallPacket.class).getContentType()) );
 		}
 		else
 		if( packet.getAckLevel()   ==  1 )
 		{
-			adapter.send(        new  PendingAckPacket(packet.getContactId(),packet.getId()) );
+			adapter.write(   new  PendingAckPacket(packet.getContactId(),packet.getId()),10,TimeUnit.SECONDS );
 		}
 		else
 		if( packet instanceof CloseCallPacket  )
@@ -85,7 +79,7 @@ public  class  InboundHandler
 		adapter.getPacketEventDispatcher().onReceived(  packet );
 	}
 	
-	public  void  unpend( TransportLifecycleHandlerAdapter  <?>  context,PendingAckPacket<?>  pendingAckPacket,TransportState  transportState )
+	public  void  unpend( TransportLifecycleHandlerAdapter<?>  context,PendingAckPacket<?>  pendingAckPacket,TransportState  transportState )
 	{
 		Packet <?>  packet =     this.pendings.remove( pendingAckPacket.getPendingPacketId() );
 		
@@ -99,6 +93,8 @@ public  class  InboundHandler
 			context.getPacketEventDispatcher().onSent( ObjectUtils.cast(packet,GroupChatPacket.class).setSyncId(Long.parseLong(JsonUtils.fromJson(pendingAckPacket.getAttatchments(),Map.class).get("SYNC_ID").toString())),transportState );
 		}
 	}
+	
+	private Map<Long,Packet>  pendings = new  ConcurrentHashMap<Long,Packet>();
 	
 	public  void  pend(final  TransportLifecycleHandlerAdapter<?> context,final  Packet  pendingPacket,final  long  writeTimeout,final  TimeUnit  writeTimeoutTimeunit )
 	{

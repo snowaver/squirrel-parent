@@ -37,64 +37,65 @@ import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
-public class OverloadTest implements TransportFutureListener<PendingAckPacket<?>> {
-	static List<QstoreSubmitter> submitters = Lists.newArrayList(
-			new  QstoreSubmitter(),new  QstoreSubmitter(),new  QstoreSubmitter(),new  QstoreSubmitter());
-	private static  AtomicLong  counter = new  AtomicLong(  0 );
-	static int  total = 100000;
-	static CountDownLatch cdl = new CountDownLatch(1);
-	static DateTime startTime;
-	static DateTime endTime;
-	public static void main(String[] args) throws InterruptedException {
-		OverloadTest listener = new OverloadTest();
-		try {
-			for(QstoreSubmitter submitter : submitters) {
-//				submitter.connect( new  TransportConfig(null,"127.0.0.1",8014,5000,15*60) );
-			}
-			DateTime now = DateTime.now();
-			previous = now;
-			startTime = now;
-			System.err.println(now);
-			for(QstoreSubmitter submitter : submitters) {
-				run(submitter,listener);
-			}
-			cdl.await();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			cdl.countDown();
-		} finally {
-			for(QstoreSubmitter submitter : submitters) {
-				submitter.disconnect();
-				submitter.release();
-			}
-		}
-	}
-	public static byte[] bytes = "hsdfhd9999999999999999999999999999999999999999999999999999999999999999999999999999".getBytes();
-	public static void run(QstoreSubmitter submitter, TransportFutureListener<PendingAckPacket<?>> listener)
-	{
-		List<Packet>  packets = new  LinkedList<>();
-		for( int  i = 0;i < total;i = i+1 ) {
-			packets.add(new  ByteArrayPacket(bytes).setAckLevel(1,0));
-		}
-		packets.forEach((bap) -> submitter.write(bap).addTransportFutureListener(listener));
-	}
-	static DateTime previous;
-	@Override
-	public void onComplete(TransportFuture<PendingAckPacket<?>> transportFuture) {
-		// TODO Auto-generated method stub
-		long current = counter.incrementAndGet();
-		if( current%200000 == 0 )
-		{
-			DateTime now = DateTime.now();
-			System.err.println(current+"\t"+now+"\t"+((double) 200000*1000/(now.getMillis()-previous.getMillis()))+"/s");
-			previous = now;
-			endTime = now;
-		}
-		if( current == total*submitters.size() )
-		{
-			cdl.countDown();
-			System.err.println("finished."+((double) total*submitters.size()*1000/(endTime.getMillis()-startTime.getMillis()))+"/s");
-		}
-	}
+public class OverloadTest// implements TransportFutureListener<PendingAckPacket<?>> 
+{
+//	static List<QstoreSubmitter> submitters = Lists.newArrayList(
+//			new  QstoreSubmitter(),new  QstoreSubmitter(),new  QstoreSubmitter(),new  QstoreSubmitter());
+//	private static  AtomicLong  counter = new  AtomicLong(  0 );
+//	static int  total = 100000;
+//	static CountDownLatch cdl = new CountDownLatch(1);
+//	static DateTime startTime;
+//	static DateTime endTime;
+//	public static void main(String[] args) throws InterruptedException {
+//		OverloadTest listener = new OverloadTest();
+//		try {
+//			for(QstoreSubmitter submitter : submitters) {
+////				submitter.connect( new  TransportConfig(null,"127.0.0.1",8014,5000,15*60) );
+//			}
+//			DateTime now = DateTime.now();
+//			previous = now;
+//			startTime = now;
+//			System.err.println(now);
+//			for(QstoreSubmitter submitter : submitters) {
+//				run(submitter,listener);
+//			}
+//			cdl.await();
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//			cdl.countDown();
+//		} finally {
+//			for(QstoreSubmitter submitter : submitters) {
+//				submitter.disconnect();
+//				submitter.release();
+//			}
+//		}
+//	}
+//	public static byte[] bytes = "hsdfhd9999999999999999999999999999999999999999999999999999999999999999999999999999".getBytes();
+//	public static void run(QstoreSubmitter submitter, TransportFutureListener<PendingAckPacket<?>> listener)
+//	{
+//		List<Packet>  packets = new  LinkedList<>();
+//		for( int  i = 0;i < total;i = i+1 ) {
+//			packets.add(new  ByteArrayPacket(bytes).setAckLevel(1,0));
+//		}
+//		packets.forEach((bap) -> submitter.write(bap).addTransportFutureListener(listener));
+//	}
+//	static DateTime previous;
+//	@Override
+//	public void onComplete(TransportFuture<PendingAckPacket<?>> transportFuture) {
+//		// TODO Auto-generated method stub
+//		long current = counter.incrementAndGet();
+//		if( current%200000 == 0 )
+//		{
+//			DateTime now = DateTime.now();
+//			System.err.println(current+"\t"+now+"\t"+((double) 200000*1000/(now.getMillis()-previous.getMillis()))+"/s");
+//			previous = now;
+//			endTime = now;
+//		}
+//		if( current == total*submitters.size() )
+//		{
+//			cdl.countDown();
+//			System.err.println("finished."+((double) total*submitters.size()*1000/(endTime.getMillis()-startTime.getMillis()))+"/s");
+//		}
+//	}
 }
