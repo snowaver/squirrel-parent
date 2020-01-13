@@ -22,83 +22,79 @@ import  java.util.concurrent.ExecutionException;
 import  java.util.concurrent.Future;
 import  java.util.concurrent.TimeUnit;
 import  java.util.concurrent.TimeoutException;
-import  java.util.concurrent.atomic.AtomicBoolean;
 
 import  cc.mashroom.squirrel.paip.message.Packet;
 import  cc.mashroom.squirrel.paip.message.connect.PendingAckPacket;
 import  cc.mashroom.util.ObjectUtils;
+import  io.netty.channel.Channel;
 import  lombok.AccessLevel;
 import  lombok.NonNull;
 import  lombok.RequiredArgsConstructor;
 import  lombok.Setter;
+import  lombok.SneakyThrows;
 import  lombok.experimental.Accessors;
 
 @RequiredArgsConstructor
 @Accessors( chain=true )
-public  class  TransportFuture<T extends PendingAckPacket<?>>      implements  Future<T>
+public  class  TransportFuture<T extends PendingAckPacket<?>>  implements  Runnable,Future<T>
 {
-	private  AtomicBoolean  isSuccess   = new  AtomicBoolean(false );
-	
-	private  List<TransportFutureListener<T>>  transportFutureListeners = new  CopyOnWriteArrayList<TransportFutureListener<T>>();
-	
-	private  AtomicBoolean  isCancelled = new  AtomicBoolean(false );
-
-	private  AtomicBoolean  isDone  = new  AtomicBoolean( false );
-	
-	private  CountDownLatch  latch  = new  CountDownLatch(1);
-	@NonNull
-	private  Packet<?>pacekt;
-	@Setter( value =  AccessLevel.PACKAGE  )
-	private  PendingAckPacket  <?>  pendingAckPacket;
-	
-	public  boolean  isCancelled()
+	@SneakyThrows
+	@Override
+	public  void   run()
 	{
-		return  isCancelled.get();
+		if( this.packet.getAckLevel() == 1 && !this.channel.writeAndFlush(this.packet).sync().isSuccess() )
+		{
+			done(false);
+		}
+		else
+		if( this.packet.getAckLevel() == 0 )
+		{
+			done( this.channel.writeAndFlush( this.packet ).sync().isSuccess());
+		}
 	}
-	
+	public   T  get()  throws  InterruptedException,ExecutionException
+	{
+	latch.await();  return  ObjectUtils.cast( this.pendingAckPacket );
+	}
+	private  List<TransportFutureListener<T>> transportFutureListeners =new  CopyOnWriteArrayList<TransportFutureListener<T>>();
+	@Setter( value =   AccessLevel.PACKAGE )
+	private  PendingAckPacket  <?>    pendingAckPacket;
+	private  CountDownLatch  latch = new  CountDownLatch( 1 );
+	private  boolean  isSuccess  ;
+	private  boolean  isCancelled;
+	private  boolean  isDone;
+	@NonNull
+	private  Channel      channel;
+	@NonNull
+	private  Packet  <?>   packet;
 	public  boolean  isDone()
 	{
-		return  this.isDone.get();
+		return   isDone;
 	}
-	
-	protected  TransportFuture<T>  done( boolean  isSuccess )
+	public  boolean  isCancelled()
 	{
-		if( updateState( false ) )
+		return   isCancelled;
+	}
+	protected  TransportFuture<T>  done(  boolean  isSuccess )
+	{
+		if( !this.isCancelled && (this.isDone = true) )
 		{
-			this.isSuccess.set( isSuccess );  this.latch.countDown();  for(    TransportFutureListener<T>  transportFutureListener : transportFutureListeners )  transportFutureListener.onComplete( this );
+			this.isSuccess = isSuccess;this.latch.countDown();  for( TransportFutureListener<T>  listener :     this.transportFutureListeners )  listener.onComplete( this );
 		}
+		return  this;
+	}
+	public  boolean  cancel( boolean   mayInterruptIfRunning )
+	{
+		if( !this.isDone && (this.isCancelled = true) )  this.latch.countDown();
 		
-		return  this ;
+		return  true;
 	}
-	
-	public  boolean  cancel( boolean  mayInterruptIfRunning )
+	public  T  get(  long  timeout,TimeUnit  timeoutTimeUnit )  throws  InterruptedException,ExecutionException,TimeoutException
 	{
-		if( updateState( true  ) )    this.latch.countDown();
-		
-		return  true ;
+		this.latch.await(  timeout,  timeoutTimeUnit );  return  ObjectUtils.cast( this.pendingAckPacket );
 	}
-	
-	public  T  get()   throws InterruptedException,ExecutionException
+	public  TransportFuture<T>  addTransportFutureListener(@NonNull  TransportFutureListener<T>  listener )
 	{
-		latch.await(); return  ObjectUtils.cast(   pendingAckPacket);
-	}
-	
-	public  T  get( long  timeout,TimeUnit  timeoutTimeUnit )  throws  InterruptedException  ,ExecutionException ,TimeoutException
-	{
-		this.latch.await( timeout,timeoutTimeUnit  );
-		
-		return  ObjectUtils.cast( pendingAckPacket );
-	}
-	
-	public  TransportFuture<T>  addTransportFutureListener(  @NonNull  TransportFutureListener<T>  transportFutureListener )
-	{
-		this.transportFutureListeners.add( transportFutureListener );    if( this.isCancelled() || this.isDone() )  transportFutureListener.onComplete( this );
-		
-		return  this ;
-	}
-	
-	protected  synchronized  boolean  updateState(  boolean  cancel )
-	{
-		return  cancel ? !this.isDone.get() && this.isCancelled.compareAndSet(false,true) : !this.isCancelled.get() && this.isDone.compareAndSet( false,true );
+		this.transportFutureListeners.add(  listener );  if( this.isCancelled() || this.isDone() )  listener.onComplete( this );  return  this;
 	}
 }
